@@ -120,20 +120,32 @@ provenance tree.
   host retention, distinguishes the dev repo from the clean public snapshot, and
   records the dated, scope-limited snapshot scan.
 
+## Public repository verification (2026-09-16)
+
+The public `main` was initialized at `9815eee7d044a7bd1352bbd55031d0e4a9557c98`
+with no parent and a GitHub noreply author. Its 43-file tree matches the locally
+accepted snapshot. [GitHub Actions run 35026787716](https://github.com/yunheliu68-ux/offer-selection-skill/actions/runs/35026787716)
+passed Linux release-readiness and real Windows (`windows-latest`, `pwsh`)
+installer checks, including `install.ps1` and `tools/test_installer.ps1`.
+No stable tag or GitHub Release has been created.
+
+This closes the Windows execution and initial-publication engineering tasks.
+It does not close the behavioral findings below: **v0.3.2 remains RC; NO-GO for
+stable release under the current governance requirements.** WorkBuddy remains
+pending host validation and does not block public RC availability.
+
+Replacing `main` did not purge GitHub's old commit objects or Actions records.
+The previous root commit may still be accessible by SHA; the current branch's
+clean history must not be described as deletion of all older hosted material.
+
 ## What remains before a stable public release
 
-- **Run the Windows installer job on GitHub.** It cannot be called verified
-  before the first real `windows-latest` execution passes; `install.ps1` has
-  static correspondence review only (no `pwsh` on this machine).
 - **Exercise WorkBuddy through a real current host run.** Current file
   placement and discovery are confirmed, but WorkBuddy 5.5.4 kept the new-task
   Send control disabled after selecting the project, code mode, and an
   available free model. No current invocation or reference-loading result was
   produced. Do not substitute the older failed-cost conversation for this
   check.
-- **Resolve the public-history/privacy choice** and publish from the clean
-  snapshot with a fresh Git history and a GitHub `noreply` author e-mail — or
-  explicitly accept the development history. Do not mix the two.
 - **Decide the stability posture**: v0.3.2 is experimental while behavioral
   evidence still contains bound PARTIAL/FAIL findings and three open Robustness
   Instability findings; a stable claim needs the governed regression completed.
