@@ -1,0 +1,15 @@
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Local skill-runner caches (regenerable, machine-local)
+.skill-cache/
+
+# Workspace memory (not part of the shipped skill)
+.workbuddy/
+
+# OS noise
+.DS_Store
+
+# Release snapshot build output (regenerable)
+build/

@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Manifest JSON parse
+        run: |
+          python3 - <<'PY'
+          import json
+          for p in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
+              json.load(open(p, encoding="utf-8"))
+              print("json ok:", p)
+          PY
+
+      - name: SKILL.md frontmatter compliance
+        run: python3 tools/check_frontmatter.py
+
+      - name: Installer syntax and safety battery
+        run: |
+          bash -n install.sh tools/test_installer.sh
+          ./install.sh --dry-run --platform universal
+          bash tools/test_installer.sh
+
+      - name: Version consistency
+        run: |
+          PLUGIN="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
+          grep -q "FALLBACK_VERSION=\"${PLUGIN}\"" install.sh
+          grep -q "\$FallbackVersion = \"${PLUGIN}\"" install.ps1
+
+  windows-installer-safety:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: PowerShell parse check
+        shell: pwsh
+        run: |
+          foreach ($f in @("install.ps1", "tools/test_installer.ps1")) {
+            $tokens = $null
+            $errors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $f), [ref]$tokens, [ref]$errors
+            )
+            if ($errors -and $errors.Count -gt 0) {
+              foreach ($e in $errors) { Write-Host $e.Message }
+              exit 1
+            }
+          }
+
+      - name: PowerShell installer safety battery
+        shell: pwsh
+        run: pwsh -File tools/test_installer.ps1
