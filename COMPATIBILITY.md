@@ -8,9 +8,14 @@ matrix separates file installation from real host execution; a copied
 |---|---|---:|---:|---:|---:|---:|
 | Codex | `~/.agents/skills/offer-selection-skill/` | PASS (Unix) | PASS (Codex CLI 0.154.0-alpha.6.2) | PASS | PASS (core + private-sector path) | Not tested in current smoke (no live research) |
 | WorkBuddy | `~/.workbuddy/skills/offer-selection-skill/` | PASS (Unix) | PASS (listed in WorkBuddy 5.5.4) | Pending — new-task Send remained disabled | Pending | Pending |
-| Claude Code | `~/.claude/skills/offer-selection-skill/` | PASS (Unix) | PASS (2.1.260, headless) | PASS (Skill tool invoked it) | PASS (core + `path-private-sector.md` + priors loaded; non-activated paths and never-load files correctly skipped) | PASS (two anonymous China-return comparisons, mechanism-correct) |
+| Claude Code | `~/.claude/skills/offer-selection-skill/` | PASS (Unix) | PASS (2.1.260, headless) | PASS (current routing smoke, 2026-09-16) | PASS (current core + private-sector path); priors/skip observations are historical | Historical smoke PASS (2026-09-09); not revalidated for current runtime |
 
-**Claude Code verification record (2026-09-09).** Environment: macOS, Claude
+**Installer CI record (2026-09-16).** Linux and real `windows-latest` / `pwsh`
+installer checks passed in [GitHub Actions run 35026787716](https://github.com/yunheliu68-ux/offer-selection-skill/actions/runs/35026787716)
+for commit `9815eee7d044a7bd1352bbd55031d0e4a9557c98`. These checks validate
+installation safety, not host invocation or decision behavior.
+
+**Claude Code verification record (2026-09-09, historical runtime).** Environment: macOS, Claude
 Code 2.1.260, headless (`claude -p`). Observed end-to-end on two representative
 cases: skill discovered and invoked; `references/core-decision-engine.md` loaded
 plus the correctly activated `references/path-private-sector.md`;

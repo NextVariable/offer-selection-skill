@@ -55,7 +55,16 @@ From a checkout of this repository:
 ./install.sh --dry-run           # preview only, changes nothing
 ```
 
-Windows: `.\install.ps1` (PowerShell 7+) with the same flags. The installer
+Windows (PowerShell 7+):
+
+```powershell
+pwsh -File .\install.ps1 -Platform codex
+pwsh -File .\install.ps1 -Platform workbuddy
+pwsh -File .\install.ps1 -Platform claude-code
+pwsh -File .\install.ps1 -DryRun
+```
+
+The installer
 copies only a fixed runtime allowlist and writes an ownership marker; it
 refuses to overwrite any directory it does not own. See
 [Installation](#installation) for update and uninstall details.
@@ -63,7 +72,10 @@ refuses to overwrite any directory it does not own. See
 ## Status
 
 **v0.3.2 release candidate.** [RELEASE_STATUS.md](RELEASE_STATUS.md) is the
-single current readiness record. Latest released version: **v0.3.1**.
+single current readiness record. **v0.3.1** is a historical development-repository
+release; this fresh public repository has no published release or tag yet.
+Linux and Windows installer CI passed for the initial public candidate;
+mechanical CI does not establish behavioral regression or stable readiness.
 
 | Platform | Verification |
 |---|---|
@@ -120,7 +132,7 @@ SKILL.md ──> references/core-decision-engine.md   (every run, single owner)
    ├──> references/path-*.md                      (only the activated path)
    │      private-sector · soe-public · local-stay · phd-academic
    │
-   └──> domain/priors-and-calibration.md          (only when a prior fires)
+   └──> domain/priors-and-calibration.md          (prior or mandatory dated calibration)
 ```
 
 For the philosophy behind this design, see
