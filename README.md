@@ -1,19 +1,21 @@
 # Offer Selection Skill
 
-**专注于硕士留学 Offer 选择的 AI Skill，基于个人背景、职业目标与 ROI，倒推更适合你的硕士决策。**
+**全网首个硕士留学 Offer 选择 Agent Skill，基于个人背景、职业目标与 ROI，倒推最适合你的 Offer。**
 
 An evidence-driven AI skill for choosing between university offers based on your profile, goals, eligibility, career outcomes, and ROI — not rankings alone.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.3.2--rc-yellow.svg)](RELEASE_STATUS.md)
 
+支持 Codex、Claude Code、WorkBuddy 等 AI 客户端的本地技能安装。Codex 和 Claude Code 已完成当前版本的调用与加载验证；WorkBuddy 已确认安装与技能发现，真实调用仍待验证。详见 [兼容性说明](COMPATIBILITY.md)。
+
 ## 拿到 Offer 之后，怎么选？
 
-学校排名更高，是否值得多花几十万？想回国就业、留当地工作，或者继续读博，同一组 Offer 会不会有不同答案？你已经有的学历、实习和研究经历，会怎样改变一个硕士项目的价值？
+学校排名更高，是否值得多花几十万？想回国就业、留当地工作，或者继续读博深造，同一组 Offer 会不会有不同答案？你已经有的学历、实习和研究经历，会怎样改变一个硕士项目的价值？
 
-Offer Selection Skill 把这些问题放在一起分析。从你想去的岗位、行业或研究方向出发，判断每个项目能补上什么短板、提供哪些实际可达的机会，以及这些变化是否值得付出学费、生活费和时间。
+Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发，判断每个项目能补上什么短板、能带来哪些实际可达的机会，以及这些变化是否值得你付出额外的学费、生活费和时间。
 
-它是一套安装到 AI 助手中的决策技能。你提供背景与 Offer，助手按照既定流程查找公开资料、比较选项，再给出有依据的建议。
+它不是一个大学排名器，也不会用固定权重机械打分。你提供个人背景和已经拿到的 Offer，AI 助手按照既定决策流程研究公开信息、核验关键条件，再给出针对你的建议。
 
 ## 它会帮你看什么？
 
