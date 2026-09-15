@@ -1,0 +1,53 @@
+name: Rule proposal
+description: Propose a change to the decision methodology (needs an explicit maintainer decision).
+labels: ["rule-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Changing **decision methodology** (the judgment chain, gates, evidence
+        states, score-state rules, or the four paths' business logic) requires
+        an explicit, recorded maintainer decision. Note that these are
+        forbidden without that decision: fixed weights, fixed country/school
+        scores, ranking-to-score mappings, prestige bonuses, "cheaper is
+        better", "name brand is better", test-case special branches, and
+        hard-coded dynamic facts.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem the proposal solves
+      description: Real-world pattern (anonymized) that the current rules handle badly.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: The exact rule change and its owner file (core / path file / priors doc). Do not restate a rule in a second file.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Cases or evidence (case ids, evidence manifests) that justify the change; mark missing as missing.
+    validations:
+      required: true
+  - type: textarea
+    id: regressions
+    attributes:
+      label: Effect on existing evidence
+      description: Which oracles would need a new freeze generation or a new baseline, and which existing PASS/FAIL verdicts would be re-examined (none are deleted).
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints respected
+      options:
+        - label: No fixed weights, points, prestige bonus, "cheaper/name-first" shortcut, or test-case branch.
+          required: true
+        - label: No dynamic fact hard-coded into the rules.
+          required: true
+        - label: Proposal changes the rule in its owner only.
+          required: true

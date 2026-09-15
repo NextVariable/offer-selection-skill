@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "offer-selection-skill",
+  "owner": {"name": "Francis"},
+  "plugins": [
+    {
+      "name": "offer-selection-skill",
+      "source": "./",
+      "description": "Compare postgraduate offers for a specific user and goal using current evidence and causal decision rules."
+    }
+  ]
+}

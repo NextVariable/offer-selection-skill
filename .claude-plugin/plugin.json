@@ -1,0 +1,6 @@
+{
+  "name": "offer-selection-skill",
+  "version": "0.3.2",
+  "description": "Evidence-driven postgraduate offer selection using eligibility gates, graduation-profile transformation, target-market competitiveness, total cost, ROI, and risk.",
+  "author": {"name": "Francis and OpenAI Codex"}
+}

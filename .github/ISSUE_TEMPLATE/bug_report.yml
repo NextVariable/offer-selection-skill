@@ -1,0 +1,55 @@
+name: Production bug
+description: The skill reached a wrong decision because the rules are wrong.
+labels: ["production"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template only for a **production rules** problem: the engine
+        followed its rules and the outcome was wrong. For a one-off model
+        wobble, an evidence gap, or a robustness variation, use the other
+        templates. A FAIL in the evidence suite is not automatically a
+        production bug.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Version string from .claude-plugin/plugin.json (or git commit SHA).
+      placeholder: e.g. 0.3.1
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: Anonymized user situation (no real names, grades, offer letters, IDs, or financial details).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected decision
+      description: What the rules should have concluded, and which owner file governs it.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual decision
+      description: What the skill concluded and where the engine went wrong (stage/gate/evidence state if known).
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence behind the expectation
+      description: Links or sources; mark anything you could not verify as unverified.
+    validations:
+      required: true
+  - type: checkboxes
+    id: ownership
+    attributes:
+      label: Rule-owner change?
+      options:
+        - label: I confirm this requires changing a rule owner (core / path file / priors doc), not a test-case special case.
+          required: true
