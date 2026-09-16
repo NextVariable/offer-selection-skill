@@ -26,14 +26,14 @@ Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发�
 
 安装后，刷新客户端的技能列表或开启新会话，输入以下命令启动技能。
 
+在 Codex 中输入：
+```
+使用 offer-selection-skill
+```
+
 在 Claude Code 中输入：
 ```
 /offer-selection-skill
-```
-
-在 Codex 中输入：
-```
-$offer-selection-skill
 ```
 
 启动后，助手会集中询问决策需要的背景。如果希望一次提供完整信息，可以参考：
