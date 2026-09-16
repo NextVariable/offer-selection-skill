@@ -1,13 +1,6 @@
-# Offer Selection Skill
+Offer Selection Skill
 
-**全网首个硕士留学 Offer 选择 Agent Skill，基于个人背景、职业目标与 ROI，倒推最适合你的 Offer。**
-
-An evidence-driven AI skill for choosing between university offers based on your profile, goals, eligibility, career outcomes, and ROI — not rankings alone.
-
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.2--rc-yellow.svg)](RELEASE_STATUS.md)
-
-支持 Codex、Claude Code、WorkBuddy 等 AI 客户端的本地技能安装。Codex 和 Claude Code 已完成当前版本的调用与加载验证；WorkBuddy 已确认安装与技能发现，真实调用仍待验证。详见 [兼容性说明](COMPATIBILITY.md)。
+**全网首个硕士留学 Offer 选择 Agent Skill，基于个人背景、职业目标与 ROI，倒推最适合你的 Offer 。**
 
 ## 拿到 Offer 之后，怎么选？
 
@@ -16,6 +9,8 @@ An evidence-driven AI skill for choosing between university offers based on your
 Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发，判断每个项目能补上什么短板、能带来哪些实际可达的机会，以及这些变化是否值得你付出额外的学费、生活费和时间。
 
 它不是一个大学排名器，也不会用固定权重机械打分。你提供个人背景和已经拿到的 Offer，AI 助手按照既定决策流程研究公开信息、核验关键条件，再给出针对你的建议。
+
+支持 Codex、Claude Code、WorkBuddy 等 AI 客户端的本地技能安装。Codex 和 Claude Code 已完成当前版本的调用与加载验证；WorkBuddy 已确认安装与技能发现，真实调用仍待验证。详见 [兼容性说明](COMPATIBILITY.md)。
 
 ## 它会帮你看什么？
 
