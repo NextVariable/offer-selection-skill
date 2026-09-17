@@ -4,6 +4,46 @@ This is the single current readiness record for `offer-selection-skill`.
 Files under `audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
 
+**Local Git checkpoint (2026-09-17):** the accumulated working-tree changes,
+including earlier uncommitted work, are being archived in scoped local commits.
+This checkpoint adds no runtime fixes or behavioral reruns and does not create
+a release, tag or remote publication. The earlier uncommitted-state description
+below is historical; use Git history for the checkpoint commit identities.
+
+**Focused validation update (2026-09-17; round closed):** the three amended
+semantics passed one blind, independently reviewed controlled case each
+(8 scenario branches total). The two preselected unchanged frozen regressions
+were then generated once with live research, but their original manifests were
+rejected before governed recording. Independent diagnostics graded decision
+mechanism PASS for both, Evidence Support FAIL for both under the current
+validator contract, and Output Contract PASS / PARTIAL (one non-decisive
+rounding error). The main rejection is a scope-declaration/evaluation-interface
+incompatibility involving explicitly Unresolved/Heuristic references; it does
+not establish a Production decision-semantic defect. No full governed
+regression pass, human sign-off or baseline promotion is claimed. Runtime and
+tool hashes remained unchanged; no fixes or reruns followed. See
+[the bounded round result](evals/rounds/20260917-three-semantics/SUMMARY.md).
+Earlier aggregate counts below describe earlier batches and are not this round's
+scoreboard.
+
+**Earlier working-tree amendment (2026-09-17, unreleased; before this round):** the maintainer authorized
+this task's audit corrections. Runtime uncertainty, nontechnical private-sector
+course preference and cost-calibration semantics were updated in their owners;
+duplicated instructions were reduced. New recordings require an archived
+pre-run runtime snapshot, separately from the freeze's commit. Evidence checks
+now traverse dependency chains and reject structural counterexamples. These
+changes have not been committed, tagged, published, or independently behavior-
+validated by this task. Earlier host checks and verdicts below describe their
+recorded versions, not this amended runtime. Governed regression remains pending;
+no historical oracle, rollout or verdict has been rewritten.
+Local checks for this amendment: 98 Python tests passed, including new
+transitive-dependency and runtime-identity counterexamples; eval structure and
+frontmatter checks passed; runtime snapshot CLI and Python compilation passed;
+all four release-snapshot safety checks passed. These are deterministic checks,
+not independent behavioral reruns. The bounded follow-up described above used unchanged frozen regression
+contracts and exercised the new course-preference and uncertainty boundaries;
+its rejected regression attempts remain unresolved evidence, not successful runs.
+
 **Current publication decision (2026-09-17): the maintainer designates v0.3.2
 as the official version.** This supersedes the earlier RC publication label;
 it does not claim that the outstanding behavioral findings or governed

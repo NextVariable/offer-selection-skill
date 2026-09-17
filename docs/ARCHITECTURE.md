@@ -10,23 +10,10 @@ Current Profile → Goal → Gap → Offer Transformation → Graduation Profile
   → Score (as representation)
 ```
 
-Each offer is judged by the candidate it produces, not by its label. Stages run
-in a fixed order, and no stage may be skipped or reordered:
-
-| Stage | What it decides |
-|---|---|
-| 0 — Early hard-feasibility | Confirmed fatal constraints only (`Unknown ≠ Pass/Fail`) |
-| 1 — User and goal | Primary/secondary goal, path, geographic intent |
-| 2 — Gap and transformation | Primary gap, each offer's real additions, Graduation Profile |
-| 3 — Exact-path eligibility | The path's hard gates (credential, major, dates, work rights) |
-| 4 — Target-market competitiveness | Compare only eligible paths |
-| 5 — Cost / ROI / risk | Total cost vs. budget/ceiling, incremental value, risk |
-| 6 — Subjective utility | City/lifestyle/experience — only when outcomes are close |
-| 7 — Recommendation and score | Map reasoning to Score State, then score |
-
-The ordering `Evidence → Recommendation → Score State → Score` is one-way.
-`Score → Recommendation` is forbidden: scores represent a decision, they never
-generate one.
+Each offer is judged by the candidate it produces, not by its label. The
+canonical stage order, exceptions and scoring semantics live only in
+[`core-decision-engine.md`](../references/core-decision-engine.md). This diagram
+is an orientation aid, not an alternative execution specification.
 
 ## Loading structure
 
@@ -51,7 +38,8 @@ SKILL.md  ──>  references/core-decision-engine.md   (every run, single owner
   joint venture, local-stay country claims, equivalence/tie-break, or a
   strong-baseline check). The dated cost-calibration section is the exception:
   when it covers the decision's operative year, `SKILL.md` and core require it
-  to be read before any cost conclusion.
+  to be read and cross-checked before a cost conclusion. The calculation and
+  reconciliation semantics are owned by core Budget, not by the table.
 
 ## Never loaded at runtime
 
