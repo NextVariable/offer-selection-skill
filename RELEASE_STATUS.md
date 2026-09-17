@@ -4,8 +4,11 @@ This is the single current readiness record for `offer-selection-skill`.
 Files under `audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
 
-**Current decision (2026-09-16): v0.3.2 remains a release candidate. A public
-stable release is not yet approved.** The installer, packaging and privacy work
+**Current publication decision (2026-09-17): the maintainer designates v0.3.2
+as the official version.** This supersedes the earlier RC publication label;
+it does not claim that the outstanding behavioral findings or governed
+regression requirements have passed. No tag or GitHub Release is created by
+this documentation update. The installer, packaging and privacy work
 described below is unchanged. The branch now contains **committed production
 behavior changes** to the decision rules (`67f0e63`) —
 private-sector non-technical Major-Gate scope, multi-offer hard-gate screening
@@ -130,15 +133,16 @@ installer checks, including `install.ps1` and `tools/test_installer.ps1`.
 No stable tag or GitHub Release has been created.
 
 This closes the Windows execution and initial-publication engineering tasks.
-It does not close the behavioral findings below: **v0.3.2 remains RC; NO-GO for
-stable release under the current governance requirements.** WorkBuddy remains
-pending host validation and does not block public RC availability.
+It does not close the behavioral findings below. The earlier RC / NO-GO
+publication decision is superseded by the maintainer's 2026-09-17 official-version
+decision; governed behavioral regression remains incomplete. WorkBuddy remains
+pending host validation.
 
 Replacing `main` did not purge GitHub's old commit objects or Actions records.
 The previous root commit may still be accessible by SHA; the current branch's
 clean history must not be described as deletion of all older hosted material.
 
-## What remains before a stable public release
+## Outstanding validation work
 
 - **Exercise WorkBuddy through a real current host run.** Current file
   placement and discovery are confirmed, but WorkBuddy 5.5.4 kept the new-task
