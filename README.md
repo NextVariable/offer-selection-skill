@@ -129,6 +129,9 @@ bash install.sh --platform codex
 
 # Claude Code
 bash install.sh --platform claude-code
+
+# WorkBuddy
+bash install.sh --platform workbuddy
 ```
 
 ### Windows
@@ -141,25 +144,12 @@ pwsh -File .\install.ps1 -Platform codex
 
 # Claude Code
 pwsh -File .\install.ps1 -Platform claude-code
+
+# WorkBuddy
+pwsh -File .\install.ps1 -Platform workbuddy
 ```
 
 默认安装到当前用户的客户端技能目录。Codex 使用 `~/.agents/skills/offer-selection-skill/`，Claude Code 使用 `~/.claude/skills/offer-selection-skill/`；Windows 使用对应的用户主目录。
-
-### WorkBuddy（实验性）
-
-WorkBuddy 已确认安装与技能发现，**当前版本的真实调用和参考文件加载仍待验证**。如需试用，在仓库目录执行：
-
-macOS / Linux：
-
-```bash
-bash install.sh --platform workbuddy
-```
-
-Windows：
-
-```powershell
-pwsh -File .\install.ps1 -Platform workbuddy
-```
 
 ### 启用与更新
 
