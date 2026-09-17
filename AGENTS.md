@@ -31,6 +31,22 @@ this file or anywhere else.
 - The skill loads only the files in the table above at runtime. Maintainer
   history and provenance are kept out of this repository.
 
+## Git workflow
+
+- User standing preference (2026-09-17): automatically complete local Git
+  version control for authorized repository changes; do not wait for a separate
+  reminder to commit. Inspect branch, HEAD, staging and existing edits before
+  work, preserve unrelated edits, and commit completed work in coherent units.
+- Inspect the staged diff and run appropriate checks before committing. Record
+  failed or incomplete validation honestly; a checkpoint is not a release or a
+  claim that behavioral regression passed. Preserve immutable eval evidence.
+- Do not silently include unrelated pre-existing work. When a user explicitly
+  requests archiving the current accumulated changes, identify that provenance
+  in commit messages instead of claiming every change was made in this task.
+- Report commit IDs, checks and any remaining working-tree changes at handoff.
+  Push, release, tags and history rewriting require authorization beyond this
+  standing local-commit preference. If Git writes are blocked, report the block.
+
 ## Testing workflow
 
 - Mechanical: `python3 tools/check_frontmatter.py` and the installer battery

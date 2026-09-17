@@ -41,7 +41,7 @@ Determine which offer, if any, is worth accepting **for this user and goal**. Do
    when a decision's operative cost year is covered by it** (the maintained
    calibration currently covers 2026). Priors and calibrations are labelled
    with boundaries, not universal hard rules; the operative-year cost
-   calibration is the one entry that is mandatory once its condition holds.
+   calibration is the one mandatory cross-check once its condition holds.
    Core Budget makes that read a precondition of any cost conclusion, so it
    needs no trigger phrase and the user does not have to ask.
 4. Never load at runtime: `domain/source-of-truth.md` (provenance and rule
@@ -128,22 +128,3 @@ evidence-state bookkeeping.
 This reduces presentation, never research. Decision-critical dynamic claims
 still carry their evidence state and source; they are simply not turned into a
 checklist for the reader.
-
-## Gotchas
-
-- A continuation or expected-graduation-date mechanism does not prove
-  permission to delay for recruiting or employer recognition of a later
-  campus-recruiting cycle; verify both separately.
-- Program English name, Chinese credential-recognition name, and employer
-  accepted-major category are separate facts.
-- Work rights, target-role employability, employer friction, and long-term
-  residence continuity are separate conclusions.
-- Ranking can evidence a verified threshold or recognition tier but is not a
-  continuous school-quality score.
-- Accessible opportunity is not city opportunity and never guarantees an
-  internship or a job.
-- Evidence difference controls numerical difference; scores cannot reverse the
-  qualitative engine.
-- Programme evidence > geography prior; eligibility > brand prior; user-
-  specific transformation > country prestige; target-market recognition >
-  generic ranking. Never add fixed country points.

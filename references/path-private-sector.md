@@ -9,7 +9,10 @@
 
 ## Non-technical
 
-Core: school/credential signal + internship capital + recruiting execution. Major-title match, course rigor, and discipline ranking are normally secondary unless a real employer gate applies. Marketing does not require a Marketing degree; Management/Finance/Marketing degrees need not determine the job. A lighter but well-recognized program can be rational if it enables recruiting and internships.
+Core: school/credential signal + internship capital + recruiting execution.
+Apply the scope and technical-course preference below. A lighter but
+well-recognized programme can be rational if it enables recruiting and
+internships.
 
 ### Major Eligibility Gate scope
 
@@ -29,40 +32,27 @@ otherwise qualification-bound roles; roles covered by a named employer's
 published accepted-major directory; and a specific position the user identifies
 as carrying a major catalogue. Do not extend this scope to those roles.
 
-Within scope, do not turn curriculum adjacency into a major-eligibility rule. A
-brokerage target does not activate the SOE/public path by industry name alone;
-use that path only when the actual employer/channel has the relevant public/SOE
-gates. Unless a named employer, regulated role, or clearly technical job
-description supplies contrary evidence, an unrelated or vertical-specific
-master's is not by itself a closed path or a material employability penalty. Do
-not use programme fit to recreate the restriction under "competitiveness" or
-"narrative". Separate three questions: whether the degree passes any real
-eligibility screen; whether it repairs a capability gap this user actually has;
-and whether the user's relevant internships, ownership, results,
-product/business judgment, and recruiting execution already provide the role
-evidence. Programme fit may still affect learning value, narrative, or access
-to a particular industry, but "less adjacent curriculum" must not be rewritten
-as "locked into that vertical" or used as the decisive reason for a broad
-non-technical role without direct market evidence.
+Within this scope, do not select, exclude, or penalize offers by degree-title
+match, curriculum adjacency, or an assumed industry lock-in. School recognition,
+internship capital, recruiting access/readiness, cost and risk remain the main
+comparison. A brokerage industry label alone does not activate the SOE path;
+use the actual employer/channel to route it.
 
-In No-major role mode, the usual "repairs a capability gap"
-question must also be role-evidence based. A programme's title or taught
-content does not repair missing product, operations, market, sales, investment-
-banking, research, or brokerage experience. Conversely, a health, biotech,
-transport, policy, economics, management, or AI curriculum does not weaken
-existing role evidence. Do not infer that "AI" creates product experience,
-that "biotech" creates brokerage fit, or that a vertical degree confines the
-candidate to its alumni sector. Those are learning narratives unless verified
-employer evidence makes them hiring mechanisms.
+**Technical-course preference.** When those core factors are materially close,
+prefer substantive tech-related subjects (for example, actual programming,
+data analysis or technical systems content). This is a positive course
+preference, not a major gate, guaranteed hiring advantage, fixed bonus or proof
+of product/operations experience. Verify actual content; an AI/Data programme
+name alone does not qualify. Other subject areas receive no mismatch penalty.
+Actual accessible internships and project outputs may count as role evidence,
+but classroom learning must not be relabelled as work experience. Technical
+employment itself follows the Technical section below.
 
-This is also a shortlist rule: keep every otherwise eligible offer in the
-comparison until its credential transformation, recruiting access, role
-evidence, cost/ROI and risks have been assessed. For these broad roles,
-"health", "policy", "economics", "management" or "analytics" in a programme
-title may describe curriculum and alumni concentration; none is a standalone
-exclude/advance label. An output that first divides offers into "matching" and
-"mismatching" majors and then evaluates only the matching group has imported a
-technical/SOE gate into the wrong path.
+**Pre-output check.** Keep every otherwise eligible offer in the comparison
+through credential transformation, recruiting access, role evidence, cost/ROI
+and risk. Remove any selection or score gap supported only by major-name fit
+or assumed vertical lock-in. A technical-course preference must be labelled as
+such and cannot override a material difference in the main comparison factors.
 
 Likewise, local post-study work rights are not an automatic advantage on a
 clear China-return path. Count them only as option value when the user actually
@@ -77,7 +67,10 @@ Assess internship capital by platform, target-role relevance, industry/vertical 
 
 ## Recognition priors (application)
 
-School recognition is target-market-specific and tiered; recognized tier is decided by the real target market, and actual recognition can exceed a ranking-only reading (e.g., Dartmouth, Brown, Vanderbilt, Rice, WashU — verify each school and market). `HK3/SG2 ≈ G5 ≈ U.S. Top 30` and the original `U.S. > HK/SG > UK/Canada > Australia` ordering are same-tier heuristics only, applicable after actual brand, target-school/employer recognition, internship capital, relevant fit, recruiting timeline/access, and cost/ROI are materially equal. Never add country and ranking mechanically, and never reward the same school via brand, ranking, and country at once. When internship and recruiting readiness are already strong, mainstream-country preference, city, experience, and cost may legitimately decide within an equivalent tier. Calibrated pairs, country-prior boundaries, and school examples: `domain/priors-and-calibration.md`. Use of priors is governed by core ("Priors as conditional evidence").
+School recognition is target-market-specific and tiered. Conditional country,
+school and same-tier examples live only in `domain/priors-and-calibration.md`.
+Use core's priors control and the evidence ladder below; do not count the same
+recognition signal again under ranking and country.
 
 ### Recognition judgment when employer-specific evidence is missing
 

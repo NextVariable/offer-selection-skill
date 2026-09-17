@@ -6,9 +6,9 @@
 > offer on a research/STEM or China-return comparison; joint venture;
 > local-stay country claims; equivalence/tie-break; strong-baseline
 > calibration). One exception is the operative-year cost calibration (§7):
-> when a decision's operative cost year is covered by it, reading and applying
+> when a decision's operative cost year is covered by it, reading and cross-checking
 > it is **mandatory, not discretionary** — the condition is still required,
-> but once it holds the calibration binds. How priors may be used is governed
+> but its numbers never override better-supported component evidence. How priors may be used is governed
 > by `references/core-decision-engine.md` ("Priors as conditional evidence"
 > and "Budget"). Every entry below is tagged `[HEURISTIC/PRIOR]` or
 > `[CALIBRATION]`; none is a fact, a fixed point, or a school hard branch. Full
@@ -167,7 +167,7 @@ evidence strengthened while a country/JV label is held fixed.
 planning baseline for decisions whose operative cost year is 2026. It is a dated
 budgeting prior, not independently confirmed market data, not a permanent
 country constant, and not a fixed point. Unlike the discretionary priors above,
-this calibration is **mandatory to read and apply** for a 2026 cost decision
+this calibration is **mandatory to read and cross-check** for a 2026 cost decision
 (core: "Budget"; `SKILL.md`: load order): it needs no trigger phrase and the
 user does not have to ask for it. How it may be used is governed by core.
 
@@ -186,12 +186,7 @@ user does not have to ask for it. How it may be used is governed by core.
 | Malaysia, public university | ¥120k–150k |
 | Malaysia, private university | ¥160k–180k |
 
-Use the applicable row as the opening all-in range, then flex it with exact
-tuition, duration, city/housing tier, exchange rate, insurance, visa, travel,
-scholarship and lifestyle. Do not scale all components linearly for a shorter
-programme: tuition may be fixed while living costs follow actual months. If a
-destination is absent, build a sourced programme-specific range; never invent a
-generic destination total or borrow a nearby country's range. A result
-materially outside the baseline requires component-level reconciliation.
-Reconfirm or retire this table for later operative years: a later year replaces
-or adds its own calibration without changing core.
+The calculation, reconciliation and uncertainty rules have one owner: core
+"Budget". These rows are dated planning references, not default confirmed
+prices. Reconfirm or retire them for later operative years; do not silently
+carry 2026 numbers into another year.

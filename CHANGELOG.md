@@ -5,6 +5,18 @@ of truth: `.claude-plugin/plugin.json` (mirrored in `SKILL.md` frontmatter).
 This project follows the governance rules in `AGENTS.md` / `CONTRIBUTING.md`;
 behavioral evidence conventions are in `evals/README.md`.
 
+## Unreleased — 2026-09-17 audit corrections
+
+- Fix transitive evidence dependency checks, reject cycles and malformed scopes,
+  and enforce score state/type/range constraints.
+- Require a pre-run runtime snapshot for new recordings; separate the actual
+  runtime checkout and file contents from the contract's frozen commit.
+- Apply maintainer-approved uncertainty, nontechnical private-sector technical-
+  course preference, and cost cross-check boundaries in their canonical owners.
+- Remove duplicated prior definitions and execution summaries. Existing frozen
+  contracts and historical outputs remain unchanged; this is not a release or
+  a claim of governed behavioral regression success.
+
 ## v0.3.2 — official version (2026-09-17)
 
 Designated the official version by the maintainer. This designation does not

@@ -70,8 +70,8 @@ their owning stage; eligibility precedes competitiveness.
 - **Stage 6** compares city, lifestyle, school affection, experience, and risk
   preference **only when outcomes are materially close**. Subjective utility
   cannot override a hard gate or a clear outcome difference.
-- **Stage 7** maps the completed reasoning to Score State then integer
-  (see Score and equivalence).
+- **Stage 7** maps completed reasoning to the permitted Score State and
+  precision (see Evidence state and decision sufficiency; Score and equivalence).
 
 ## Rule priority
 
@@ -108,20 +108,26 @@ dated numbers live in `domain/priors-and-calibration.md`
 ("Operative-year all-in cost calibration"), so a later year replaces or adds
 its own calibration without changing core.
 
-**Mandatory read.** Before computing any total cost, judging the Budget Gate,
-or emitting a cost-based recommendation for a decision whose operative cost
-year is covered by that calibration, you must read the applicable calibration
-section in `domain/priors-and-calibration.md`. Not reading it means Total Cost
-and Budget Gate stay `unresolved` and no recommendation may rest on cost. This
-is not an optional heuristic and needs no trigger phrase from the user. Use the
-applicable row as the opening all-in range, then flex it with exact tuition,
-duration, city/housing tier, exchange rate, insurance, visa, travel,
-scholarship and lifestyle. Do not scale all components linearly for a shorter
-programme: tuition may be fixed while living costs follow actual months. If the
-destination is absent from the calibration, build a sourced programme-specific
-range; never invent a generic destination total or borrow a nearby country's
-range. A result materially outside the calibration requires component-level
-reconciliation.
+**Mandatory read.** Before a cost conclusion for an operative year covered by
+`domain/priors-and-calibration.md`, read the dated calibration and cross-check
+it against a programme-specific component estimate. The calibration is a
+planning prior, not a confirmed market price or a mandatory opening total.
+Calculate exact tuition, actual months, realistic housing (including an
+accessible fallback), mandatory fees, insurance, visa, necessary travel,
+exchange-rate uncertainty and applicable scholarship. A university's minimum
+living-cost estimate alone does not establish this user's realistic total.
+Reconcile a material difference from the maintained range component by
+component; a well-supported estimate may supersede the range in either
+direction. Do not scale fixed tuition linearly with programme duration.
+If the destination has no row, use the same component and uncertainty standard;
+never borrow another country's total. Missing evidence stays unresolved, but
+an unknown component blocks the Budget Gate only if its plausible range can
+change affordability. A defensible upper bound may establish affordability
+without exact certainty; an unsupported assertion that costs "cannot be that
+high" may not. If a material discrepancy cannot be reconciled, retain the
+uncertainty range and conditional gate rather than choosing the convenient
+estimate. Skipping an applicable calibration check leaves cost conclusions
+unresolved.
 
 Use lower-bound arithmetic before debating a midpoint. Confirmed tuition plus
 unavoidable mandatory fees is already a Total Cost lower bound; tuition must
@@ -138,19 +144,14 @@ baseline does not erase unusually high or low programme tuition.
 
 Before emitting a recommendation, re-check every offer against the following:
 
-- If No-major role mode is active, remove any ranking, exclusion, score gap, or
-  recommendation whose causal language is "more/less relevant", "only
-  matching", "direction mismatch", "vertical lock-in", or an unevidenced
-  subject-to-role "synergy". A conclusion that still depends on such language
-  is invalid and must be recomputed.
 - For a decision whose operative cost year is covered by the operative-year
   calibration, compare every stated total with it. A figure outside the
   applicable range requires an explicit, component-level reconciliation;
   without one it cannot support a Budget Gate result.
-- If the destination has no maintained calibration and a sourced all-in
-  component build-up has not been completed, Total Cost and Budget Gate remain
-  `unresolved`. Tuition alone does not permit a fabricated all-in midpoint or
-  `pass`.
+- Apply the same component-evidence standard whether a destination has a
+  calibration row or not. Unresolved components need defensible bounds before
+  they can support affordability; tuition alone cannot establish an all-in
+  midpoint or a Budget Gate `pass`.
 - A range that straddles the Absolute Ceiling is `conditional/unresolved`, not
   `pass`; a range wholly above it is `fail`; only a defensible range wholly
   within it may pass on the available evidence.
@@ -183,11 +184,10 @@ declared not applicable merely because its outcome is inconvenient, and a path
 may not import another path's gate.
 
 **No-major role mode.** An engine state in which a defined role scope carries
-no Major Eligibility Gate and subject fit may not drive employability
-conclusions. Which paths and role scopes activate it is declared by the path
+no Major Eligibility Gate and degree-title fit is not a selection criterion. Which paths and role scopes activate it is declared by the path
 files (`references/path-private-sector.md`); a user-supplied no-major hiring
-constraint activates it independently. Core does not define the role taxonomy;
-the pre-output consistency check in Budget enforces its output rule.
+constraint activates it independently. Core does not define the role taxonomy or preferences; apply the path's
+selection rule and pre-output check.
 
 Three-name separation is a hard analytical rule: programme English name ≠
 Chinese credential-recognition name (留服 认证名称) ≠ employer accepted-major
@@ -273,16 +273,18 @@ Then grade the decision impact of what is unresolved:
   how each unresolved fact could reverse it. Do not emit a false-precision
   integer.
 - **Material uncertainty** — cannot change eligibility but could change
-  winner vs equivalence, recommendation tier, recommendation strength,
-  critical risk, or material ROI
+  relative winner vs equivalence, recommendation strength, or ROI while the
+  offer remains on the same side of worth choosing vs not worth choosing
   → **Provisional Tier** (report the tier as provisional until resolved).
 - **Non-material uncertainty** — a reasonable change cannot alter eligibility,
   winner/equivalence, tier, or critical risk
   → **Confirmed Score allowed**.
 
-**Path Closure Test.** Criticality is path-relative, not fact-type-relative. A
-fact is Critical only when a plausible resolution can make the user ineligible
-for, or effectively close, the **actual target path being evaluated**. Do not
+**Path Closure Test (eligibility branch).** This test distinguishes loss of
+an actual target path from loss of one replaceable channel. It does not narrow
+the Critical definition above: uncertainty that can reverse whether an offer
+is worth accepting is Critical even if the career path remains open. Evaluate
+criticality for this user and path, not from the fact's type alone. Do not
 classify a fact as Critical merely because it concerns graduation timing,
 fresh-graduate status, recruiting cycles, or application windows. Ask: if this
 fact resolves adversely, does the user lose access to the target path itself,
@@ -298,9 +300,9 @@ path?
 - If only one recruiting channel, cycle, or convenience is affected while
   materially viable alternatives remain — e.g. broad private-sector
   return-China employment where one autumn-recruiting window is uncertain —
-  → usually **Material / execution risk**; it does not automatically block
-  responsible scoring. Elevate to Critical only when the user's actual target
-  is explicitly dependent on that specific eligibility window.
+  → usually **Material / execution risk**; give a Provisional Tier if the
+  impact is material. It is Critical if the user depends on that window or
+  losing it could change whether the offer is worth accepting at all.
 - If plausible resolutions cannot materially affect winner/equivalence/tier/
   critical risk → **Non-material**.
 
@@ -311,7 +313,7 @@ offers — for example both offers missing the same specific recruiting cycle
 that the user's target actually depends on, so neither can enter that applicant
 pool — it remains **Critical at the path level**. But the same timing fact is
 not Critical on a path where viable alternative channels keep the path open;
-there it is Material (or Non-material) as above.
+there apply the worth-accepting test before assigning Material or Non-material.
 
 Principle: **Confirmed Score requires decision-sufficient evidence, not
 complete fact certainty.** Research targets decision value, not fact
@@ -452,16 +454,16 @@ forbidden):
 > Target-market recognition > generic global ranking  
 > Evidence difference > country stereotype
 
-A prior may affect a recommendation only when the stronger variables above it
-are materially close and the mechanism is realistically accessible to this
-user. Do not count the same lab density, industry access, brand, ranking, or
+Country/geography tie-break priors may affect a recommendation only when
+stronger variables are materially close and the mechanism is realistically
+accessible. Market-specific recognition priors have the separate evidence
+ladder in `path-private-sector.md`: they may support a labelled, provisional
+recognition judgment without an employer list, but never become a verified
+employer rule. Apply the uncertainty mapping to their decision impact. Do not count the same lab density, industry access, brand, ranking, or
 country evidence twice under different labels (anti-double-counting). The
 labelled prior definitions, boundaries, and calibration examples live in
 `domain/priors-and-calibration.md`; route to them only when the trigger fires.
 
 ## Output
 
-Produce per the output contract in `SKILL.md`. Default order: scores/tiers and
-gate status → direct conclusion → 2–4 decisive causal factors → material
-risks and unresolved facts that could reverse → separate dual-track outcomes
-when both tracks run → subjective tie-breakers only when equivalent.
+Follow the output contract in `SKILL.md`; this section does not duplicate it.
