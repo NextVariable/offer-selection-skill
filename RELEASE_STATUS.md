@@ -4,6 +4,18 @@ This is the single current readiness record for `offer-selection-skill`.
 Files under `audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
 
+**Iterative clarification amendment (2026-09-17):** the maintainer authorized
+continued clarification of insufficient or conflicting private inputs. The
+runtime now routes intake and clarification turns through core "Iterative
+clarification". This is a new interaction-behavior change; earlier behavioral
+results do not validate it. Governed behavioral regression remains pending.
+No historical evidence, frozen oracle, release version or publication is
+changed by this amendment.
+Validation: repository frontmatter check, 12 existing runtime/snapshot-document
+checks and all four release-snapshot safety checks passed. The skill-creator
+quick validator could not run because PyYAML is unavailable in the local Python
+runtimes. No new model rollout or behavioral regression was performed.
+
 **Local Git checkpoint (2026-09-17):** the accumulated working-tree changes,
 including earlier uncommitted work, are being archived in scoped local commits.
 This checkpoint adds no runtime fixes or behavioral reruns and does not create
