@@ -5,12 +5,17 @@ of truth: `.claude-plugin/plugin.json` (mirrored in `SKILL.md` frontmatter).
 This project follows the governance rules in `AGENTS.md` / `CONTRIBUTING.md`;
 behavioral evidence conventions are in `evals/README.md`.
 
-## [Unreleased] — v0.3.2 release candidate (not yet tagged)
+## v0.3.2 — official version (2026-09-17)
 
-Everything on the branch since the `v0.3.1` release commit. Decision
-methodology is unchanged in substance — the same offer-selection judgment
-chain, gates, evidence states, score-state rules and four path logics — with
-three narrow production clarifications plus governance and packaging work:
+Designated the official version by the maintainer. This designation does not
+claim that outstanding behavioral findings or governed regression requirements
+have passed; current verification details are recorded in `RELEASE_STATUS.md`.
+No GitHub Release or version tag has been created as part of this designation.
+
+Changes since the historical development-repository `v0.3.1` release include
+production behavior changes, clarifications, governance and packaging work.
+The owner chain and four decision paths remain; this is not a claim of unchanged
+behavior or completed regression. The entries below record the changes:
 
 - **exact-claim Confirmed** — `Confirmed` is claim-scoped, not source-scoped
   (an institution name or top-level domain alone confirms nothing); third-party
