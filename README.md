@@ -102,14 +102,22 @@ B：[学校、项目全名、入学年份]
 
 ## 安装
 
-需要一个支持本地 Skill 的 AI 助手。要完成最新信息核查，还需要助手具备可用的联网搜索能力。本项目不单独提供聊天界面或模型服务。
+### 环境要求
 
-先下载仓库 ZIP 并解压，或使用 Git：
+先安装并配置支持本地 Skill 的 AI 客户端，例如 Codex 或 Claude Code。助手需要具备可用的联网搜索能力，才能核查最新的项目、费用与政策信息。
+
+macOS / Linux 使用 Bash 安装；Windows 需要 PowerShell 7+（`pwsh`），不支持 Windows PowerShell 5.1。本项目提供技能文件与安装器，模型和联网工具由客户端提供。
+
+### 获取技能
+
+使用 Git 下载，并进入仓库目录：
 
 ```bash
 git clone https://github.com/yunheliu68-ux/offer-selection-skill.git
 cd offer-selection-skill
 ```
+
+也可以在 GitHub 页面选择 **Code → Download ZIP**，解压后在终端中进入包含 `SKILL.md`、`install.sh` 和 `install.ps1` 的目录。
 
 ### macOS / Linux
 
@@ -117,15 +125,15 @@ cd offer-selection-skill
 
 ```bash
 # Codex
-./install.sh --platform codex
+bash install.sh --platform codex
 
 # Claude Code
-./install.sh --platform claude-code
+bash install.sh --platform claude-code
 ```
 
 ### Windows
 
-使用 PowerShell 7+，在仓库目录中执行对应的一条命令：
+在仓库目录中，选择你使用的客户端，执行对应的一条命令：
 
 ```powershell
 # Codex
@@ -135,11 +143,29 @@ pwsh -File .\install.ps1 -Platform codex
 pwsh -File .\install.ps1 -Platform claude-code
 ```
 
-安装后，在客户端刷新技能或开启新会话，再调用该技能。
+默认安装到当前用户的客户端技能目录。Codex 使用 `~/.agents/skills/offer-selection-skill/`，Claude Code 使用 `~/.claude/skills/offer-selection-skill/`；Windows 使用对应的用户主目录。
 
-WorkBuddy 提供实验性安装入口：macOS / Linux 使用 `./install.sh --platform workbuddy`，Windows 使用 `pwsh -File .\install.ps1 -Platform workbuddy`。目前已确认安装与技能发现，**当前版本的真实调用和参考文件加载仍待验证**。完整记录见 [兼容性说明](COMPATIBILITY.md)。
+### WorkBuddy（实验性）
 
-更新时获取仓库最新内容，再执行原安装命令。安装器会检查目录是否由它管理，拒绝覆盖不属于它的已有目录。
+WorkBuddy 已确认安装与技能发现，**当前版本的真实调用和参考文件加载仍待验证**。如需试用，在仓库目录执行：
+
+macOS / Linux：
+
+```bash
+bash install.sh --platform workbuddy
+```
+
+Windows：
+
+```powershell
+pwsh -File .\install.ps1 -Platform workbuddy
+```
+
+### 启用与更新
+
+安装成功后，在客户端刷新技能列表或开启新会话，再按上方“怎么用”调用技能。Codex 和 Claude Code 已完成当前版本的调用与参考文件加载验证；各客户端的验证范围见 [兼容性说明](COMPATIBILITY.md)。
+
+更新时，获取仓库最新内容，再执行原安装命令。安装器只更新由它管理的技能目录，遇到无法确认归属的已有目录会拒绝覆盖。若提示归属冲突，请先检查并备份原目录，不要直接删除。
 
 ## 使用前了解
 
