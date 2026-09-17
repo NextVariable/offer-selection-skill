@@ -150,10 +150,10 @@ clean history must not be described as deletion of all older hosted material.
   available free model. No current invocation or reference-loading result was
   produced. Do not substitute the older failed-cost conversation for this
   check.
-- **Decide the stability posture**: v0.3.2 is experimental while behavioral
-  evidence still contains bound PARTIAL/FAIL findings and three open Robustness
-  Instability findings; a stable claim needs the governed regression completed.
-  Mechanical tests do not settle this.
+- **Complete outstanding behavioral validation**: v0.3.2 is designated the
+  official version, while behavioral evidence still contains bound PARTIAL/FAIL
+  findings and three open Robustness Instability findings. Governed regression
+  remains incomplete; mechanical tests do not close these findings.
 - **Resolve the governed production-regression failure without cherry-picking.** The production behavior
   changes committed in `67f0e63` and the three new eval cases committed in
   `c9249eb`, frozen against production commit `67f0e63` in `b589715`
