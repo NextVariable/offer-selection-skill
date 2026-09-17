@@ -155,12 +155,12 @@ pwsh -File .\install.ps1 -Platform workbuddy
 
 ## 使用前了解
 
-当前为 **v0.3.2 RC（候选版本）**，欢迎试用和反馈，尚未达到正式稳定版的验收要求。它辅助你整理证据、判断取舍，不能保证就业、录取、签证或投资回报。关键资格与政策应以学校、雇主及主管机构的最新官方信息为准。
+当前为 **v0.3.2 正式版**。建议用于辅助决策，关键资格与政策请以最新官方信息为准。详见 [发布状态](RELEASE_STATUS.md)。
 
-不需要提供姓名、学号、邮箱或完整 Offer 信件。技能指令要求联网检索时排除私人信息；你使用的 AI 平台如何保存和处理对话，仍取决于该平台。详见 [隐私说明](PRIVACY.md)。
+无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](PRIVACY.md)。
 
 ## 进一步了解
 
-更多 [决策示例](examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](COMPATIBILITY.md) · [发布状态](RELEASE_STATUS.md)
+[决策示例](examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](COMPATIBILITY.md)
 
-欢迎通过 Issues 反馈使用问题；参与修改前请阅读 [贡献指南](CONTRIBUTING.md)。项目采用 [MIT License](LICENSE)。
+使用问题欢迎通过 Issues 反馈。贡献请参阅 [贡献指南](CONTRIBUTING.md)，项目采用 [MIT License](LICENSE)。
