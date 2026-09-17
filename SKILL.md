@@ -74,9 +74,8 @@ information needed. Never put the user's name, student ID, email, exact grades,
 offer-letter identifiers, private scholarship terms, family finances, or other
 identifying details into a web query or third-party tool.
 
-When the six required groups are missing, request them once in one compact
-intake. If a remaining private fact could reverse the result, ask only a
-targeted follow-up. Otherwise proceed conditionally and state the assumption.
+Use what the user has already supplied; apply core's "Iterative clarification"
+to missing, ambiguous or conflicting private inputs and goals.
 
 ## Execution overview
 
@@ -103,6 +102,9 @@ into a general immigration, lifetime-income, or career-planning service unless
 such a fact materially changes the offer decision.
 
 ## Output contract
+
+For clarification turns, follow core's "Iterative clarification"; the
+recommendation presentation below applies when giving a decision.
 
 Lead with each offer's score/tier and decisive gate status, followed by one
 direct conclusion: choose X, choose conditionally by goal, no clear

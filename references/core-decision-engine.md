@@ -10,6 +10,7 @@
 ## Contents
 
 - [Execution order](#0-the-one-execution-order)
+- [Iterative clarification](#iterative-clarification)
 - [Rule priority](#rule-priority)
 - [Budget and pre-output consistency](#budget)
 - [Gates](#gates)
@@ -46,7 +47,7 @@ their owning stage; eligibility precedes competitiveness.
   geographic intent: strong local stay / local-China dual track / return
   fallback / clear China return; employment / PhD / mixed. Intake groups are
   defined in `SKILL.md` (Minimal intake); this stage applies them, it does not
-  restate them.
+  restate them. Apply Iterative clarification when these inputs are insufficient.
 - **Stage 2** diagnoses the Primary Gap and any decision-relevant Secondary
   Gap (credential, internship, technical, research, recruiting-readiness,
   language/local-market, work-authorization, budget), models each offer's
@@ -72,6 +73,35 @@ their owning stage; eligibility precedes competitiveness.
   cannot override a hard gate or a clear outcome difference.
 - **Stage 7** maps completed reasoning to the permitted Score State and
   precision (see Evidence state and decision sufficiency; Score and equivalence).
+
+## Iterative clarification
+
+When missing, vague or conflicting private inputs could change a gate, target
+path, winner/equivalence, recommendation tier or decisive trade-off, continue
+Socratic clarification before settling the affected judgment. Do not substitute
+an assumption for an answer the user can provide. This can recur whenever a
+later stage exposes a decision-relevant ambiguity; it is not a one-time intake.
+Public facts remain the agent's research responsibility (SKILL.md: Minimal intake).
+
+Use existing answers and normally ask only one or two high-decision-value
+questions per turn. Briefly explain what distinction matters, then adapt the
+next question to the answer. Use neutral, concrete trade-offs or ask for actual
+experience and outputs instead of repeating abstract labels. For example, if
+the user says both "stay locally" and "return to China is fine", ask which
+they would prefer if the local job were less aligned with their career goal.
+Do not steer toward a preferred offer or demand invented numerical weights.
+Surface conflicting goals, budgets or constraints without choosing the user's
+priority for them; check your interpretation when the distinction matters.
+
+Stop questioning once the decision is sufficiently supported, even if some
+intake fields remain incomplete. Do not re-ask settled questions unless new
+information creates a material conflict. If the user does not know, declines
+to answer or requests a best-effort answer now, explain the remaining limit
+and give conditional branches with their reversal conditions; apply Evidence
+state and decision sufficiency to the permitted score precision. Missing
+non-material details may use explicit assumptions. In a clarification turn,
+briefly state what is already clear and ask the next question without forcing
+a final ranking or score. Continue independent public research where useful.
 
 ## Rule priority
 
