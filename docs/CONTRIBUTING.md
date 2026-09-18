@@ -86,14 +86,13 @@ LLM evals, never calls paid APIs, and needs no secrets.
 Two issue templates ship in `.github/ISSUE_TEMPLATE/`. Please use the one
 that matches and keep the categories distinct:
 
-- **Production bug** (`bug_report.yml`) — the skill gave a wrong decision
-  because the rules are wrong. Do not open this for a one-off model wobble.
-- **Rule proposal** (`rule_proposal.yml`) — a proposed change to decision
-  methodology (requires the explicit maintainer decision above).
+- **Usage problem** (`bug_report.yml`) — installation, invocation, research,
+  or analysis issues. Users do not need to diagnose the internal cause.
+- **Improvement suggestion** (`rule_proposal.yml`) — suggest better usage
+  or analysis. Methodology changes require maintainer approval.
 
-A wrong result or a one-off model wobble is **not** by itself grounds for a
-production change; say which category an observation falls into rather than
-forcing every wrong result to look like a Production bug.
+Keep reports anonymized. Maintainers classify the underlying cause;
+users are not required to diagnose rule ownership or test contracts.
 
 ## Pull requests — minimum requirements
 

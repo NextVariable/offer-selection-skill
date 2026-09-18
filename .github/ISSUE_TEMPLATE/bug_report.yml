@@ -1,55 +1,51 @@
-name: Production bug
-description: The skill reached a wrong decision because the rules are wrong.
+name: 使用问题
+description: 反馈安装、调用、信息查证或分析结果的问题。
 labels: ["production"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this template only for a **production rules** problem: the engine
-        followed its rules and the outcome was wrong. For a one-off model
-        wobble, an evidence gap, or a robustness variation, use the other
-        templates. A FAIL in the evidence suite is not automatically a
-        production bug.
+        请说明遇到的问题，无需判断是规则、模型还是查证造成的。
+        请去除姓名、学号、联系方式、真实成绩和财务信息，不要上传完整录取信件。
+        安全漏洞或敏感信息泄露请通过 Security → Report a vulnerability 私下报告。
   - type: input
     id: version
     attributes:
-      label: Version
-      description: Version string from .claude-plugin/plugin.json (or git commit SHA).
-      placeholder: e.g. 0.3.1
+      label: 使用环境
+      description: 操作系统、AI Agent 名称与版本；知道技能版本时也可补充。
+      placeholder: 例如 macOS、Codex、技能 v0.3.2
     validations:
       required: true
   - type: textarea
     id: scenario
     attributes:
-      label: Scenario
-      description: Anonymized user situation (no real names, grades, offer letters, IDs, or financial details).
+      label: 遇到什么问题
+      description: 简述使用场景和复现步骤，个人背景请用虚构数据代替。
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Expected decision
-      description: What the rules should have concluded, and which owner file governs it.
+      label: 预期结果
+      description: 你原本希望发生什么？
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: Actual decision
-      description: What the skill concluded and where the engine went wrong (stage/gate/evidence state if known).
+      label: 实际结果
+      description: 实际发生了什么？可粘贴去除私人信息后的错误提示。
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Evidence behind the expectation
-      description: Links or sources; mark anything you could not verify as unverified.
-    validations:
-      required: true
+      label: 补充信息（可选）
+      description: 相关公开来源、脱敏截图或其他帮助定位的信息。
   - type: checkboxes
-    id: ownership
+    id: privacy
     attributes:
-      label: Rule-owner change?
+      label: 隐私确认
       options:
-        - label: I confirm this requires changing a rule owner (core / path file / priors doc), not a test-case special case.
+        - label: 我已去除私人信息，未上传真实录取信件或个人文件。
           required: true

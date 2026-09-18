@@ -1,53 +1,35 @@
-name: Rule proposal
-description: Propose a change to the decision methodology (needs an explicit maintainer decision).
+name: 改进建议
+description: 提出使用体验或分析方式的改进建议。
 labels: ["rule-proposal"]
 body:
   - type: markdown
     attributes:
       value: |
-        Changing **decision methodology** (the judgment chain, gates, evidence
-        states, score-state rules, or the four paths' business logic) requires
-        an explicit, recorded maintainer decision. Note that these are
-        forbidden without that decision: fixed weights, fixed country/school
-        scores, ranking-to-score mappings, prestige bonuses, "cheaper is
-        better", "name brand is better", test-case special branches, and
-        hard-coded dynamic facts.
+        请说明希望改善什么；是否调整决策规则由维护者审核。
+        示例请用虚构数据，不要提供私人录取资料、联系方式或财务记录。
   - type: textarea
     id: problem
     attributes:
-      label: Problem the proposal solves
-      description: Real-world pattern (anonymized) that the current rules handle badly.
+      label: 希望解决什么问题
+      description: 描述当前体验或分析方式的不足。
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed change
-      description: The exact rule change and its owner file (core / path file / priors doc). Do not restate a rule in a second file.
+      label: 你建议怎么改善
+      description: 说明你希望的效果，无需了解内部文件和测试流程。
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Supporting evidence
-      description: Cases or evidence (case ids, evidence manifests) that justify the change; mark missing as missing.
-    validations:
-      required: true
-  - type: textarea
-    id: regressions
-    attributes:
-      label: Effect on existing evidence
-      description: Which oracles would need a new freeze generation or a new baseline, and which existing PASS/FAIL verdicts would be re-examined (none are deleted).
-    validations:
-      required: true
+      label: 补充示例（可选）
+      description: 可提供虚构场景或相关公开来源。
   - type: checkboxes
-    id: constraints
+    id: privacy
     attributes:
-      label: Constraints respected
+      label: 隐私确认
       options:
-        - label: No fixed weights, points, prestige bonus, "cheaper/name-first" shortcut, or test-case branch.
-          required: true
-        - label: No dynamic fact hard-coded into the rules.
-          required: true
-        - label: Proposal changes the rule in its owner only.
+        - label: 我已去除私人信息，示例使用虚构数据。
           required: true
