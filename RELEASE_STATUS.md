@@ -4,6 +4,23 @@ This is the single current readiness record for `offer-selection-skill`.
 Files under `audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
 
+**Scoped acceptance repair (2026-09-18; not release acceptance):** the maintainer
+approved a successor to the documented budget oracle/input conflict. The new
+`budget-clarification-flow` contract grades a complete clarification-to-decision
+interaction; `budget-hard-gate` and all its historical evidence stay unchanged.
+The structured evidence interface now supports traceable private user inputs
+without fabricated public URLs, while preserving dependency, scope and
+uncertainty checks. No production rule or version changed. The successor has
+no behavioral result or human-promoted baseline yet; it cannot be reported as
+Regression Passed. Required before acceptance: blind full transcript and bound
+independent review, applicable unchanged-baseline regressions, human acceptance
+and installation checks on the exact release candidate. No publication follows
+from this repair. Later paragraphs retain their historical scope.
+Deterministic validation: 115 Python tests, eval structure, repository frontmatter,
+37 Unix installer checks and four snapshot-boundary checks passed. Skill-creator's
+quick validator remains unavailable because the local Python lacks PyYAML.
+Runtime and original frozen budget input/oracle/baseline/evidence are unchanged.
+
 **Final bounded closure (2026-09-18; round completed, not passed):** three
 specified governance/contract fixes are committed in `7fdaf33`; the unchanged
 111 mechanical tests passed. Runtime was unchanged and matches public main
