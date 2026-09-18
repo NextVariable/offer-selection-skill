@@ -12,25 +12,23 @@
 
 使用支持本地 Skill 的 AI Agent，并开启联网搜索。
 
-### 在终端安装
+### 安装
 
-需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行下方命令；刚安装这些工具的用户，请先关闭并重新打开终端。
+在 AI Agent 对话框中发送：
 
-```bash
-npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
+```text
+请帮我安装这个仓库中的 offer-selection-skill：https://github.com/yunheliu68-ux/offer-selection-skill
 ```
 
-Codex、Claude Code 可使用上方命令安装；WorkBuddy 安装步骤见 [安装说明](docs/INSTALLATION.md)。安装后，在 AI Agent 中新建对话即可使用。
+按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
 
 ### 在 AI 聊天框开始使用
 
 在新会话中发送：
 
 ```text
-请使用 offer-selection-skill，帮我比较硕士 Offer。先问我需要的信息。
+请使用 offer-selection-skill，帮我比较硕士 Offer。
 ```
-
-Claude Code 也可输入 `/offer-selection-skill` 调用。
 
 如果提供的信息不足以判断，助手会追问需要补充的关键背景。
 
