@@ -32,7 +32,7 @@ provenance (`internal/archive/`), machine-local absolute paths, a personal autho
 and a private conversation-derived provenance document
 (`internal/source-of-truth.md`). None of these belong in a public repository.
 
-The public release is produced by `tools/build_release_snapshot.sh` as a clean
+The public release is produced by `maintenance/build_release_snapshot.sh` as a clean
 snapshot: it carries only the runtime skill, installers, developer docs, and
 CI, and excludes every internal directory and machine-local file. The snapshot
 is intended to be initialized as a **fresh Git repository** (new history) with

@@ -144,7 +144,7 @@ the canonical owners; no decision-methodology rule changed in this hardening.
 
 The public snapshot remains self-consistent: its `CONTRIBUTING.md`, `AGENTS.md`,
 PR template and `SECURITY.md` are rewritten at snapshot-build time
-(`tools/snapshot_docs.py`) so they reference only the files the snapshot
+(`maintenance/snapshot_docs.py`) so they reference only the files the snapshot
 actually ships, never the excluded `evals/` / `audits/` / `archive/` /
 provenance tree.
 
@@ -194,7 +194,7 @@ provenance tree.
   dead Cursor/Windsurf rule-adapter functions were removed from both installers
   on 2026-09-09; behavior is unchanged (still 37/37).
 - `README.md` is rewritten as a public-project front page with a
-  self-contained example; `examples/` (12 anonymized cases) and `docs/`
+  self-contained example; `docs/examples/` (12 anonymized cases) and `docs/`
   (philosophy + architecture) are new; `audits/` is marked historical via
   `audits/README.md`.
 - The public snapshot (`build/offer-selection-skill/`, 43 files) has no runtime or
@@ -230,7 +230,7 @@ The public `main` was initialized at `9815eee7d044a7bd1352bbd55031d0e4a9557c98`
 with no parent and a GitHub noreply author. Its 43-file tree matches the locally
 accepted snapshot. [GitHub Actions run 35026787716](https://github.com/yunheliu68-ux/offer-selection-skill/actions/runs/35026787716)
 passed Linux release-readiness and real Windows (`windows-latest`, `pwsh`)
-installer checks, including `install.ps1` and `tools/test_installer.ps1`.
+installer checks, including `maintenance/install.ps1` and `maintenance/test_installer.ps1`.
 No stable tag or GitHub Release has been created.
 
 This closes the Windows execution and initial-publication engineering tasks.

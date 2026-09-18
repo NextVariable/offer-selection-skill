@@ -70,12 +70,12 @@ project's cardinal sin.
 
 ```bash
 # skills/offer-selection-skill/SKILL.md frontmatter compliance
-python3 tools/check_frontmatter.py
+python3 maintenance/check_frontmatter.py
 
 # installers: syntax, dry-run, and the full safety battery
-bash -n install.sh tools/test_installer.sh
-./install.sh --dry-run --platform universal
-bash tools/test_installer.sh
+bash -n maintenance/install.sh maintenance/test_installer.sh
+./maintenance/install.sh --dry-run --platform universal
+bash maintenance/test_installer.sh
 ```
 
 CI runs these checks on every PR (`.github/workflows/ci.yml`). It never runs

@@ -60,9 +60,9 @@ rule changes dangerous.
 
 ```text
 skills/offer-selection-skill/   Skill package: SKILL.md + references/
-docs/                          Usage and design documentation
-examples/                      Synthetic decision examples
-tools/                         Development and release tools
+docs/                          Usage, privacy and maintenance documentation
+docs/examples/                 Synthetic decision examples
+maintenance/                   Installers, checks and release tools
 evals/                         Frozen behavioral evidence (private)
 internal/                      Audits, history and provenance (private)
 ```
@@ -75,13 +75,13 @@ The loading diagram above uses paths relative to `skills/offer-selection-skill/`
 | `skills/offer-selection-skill/references/core-decision-engine.md` | Canonical execution semantics |
 | `skills/offer-selection-skill/references/path-*.md` | One rule file per decision path |
 | `skills/offer-selection-skill/references/priors-and-calibration.md` | Conditional, labelled heuristics/anchors |
-| `install.sh` / `install.ps1` | Cross-platform installer (strict runtime allowlist + ownership marker) |
+| `maintenance/install.sh` / `maintenance/install.ps1` | Cross-platform installer (strict runtime allowlist + ownership marker) |
 | `.claude-plugin/` | Version source of truth (`plugin.json`) + marketplace metadata |
-| `examples/` | Anonymized, synthetic behavior illustrations (not oracles) |
+| `docs/examples/` | Anonymized, synthetic behavior illustrations (not oracles) |
 | `docs/` | Installation, decision philosophy and architecture |
-| `tools/` | Mechanical checks: frontmatter, installer test battery |
+| `maintenance/` | Mechanical checks: frontmatter, installer test battery |
 
 Internal development material — `evals/`, `internal/audits/`, `internal/archive/`,
 `internal/source-of-truth.md`, and the eval runner tooling — lives only in the
 development repository and is **not** shipped in the public release snapshot
-(see `tools/build_release_snapshot.sh`).
+(see `maintenance/build_release_snapshot.sh`).

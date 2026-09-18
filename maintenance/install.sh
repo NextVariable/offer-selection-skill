@@ -14,7 +14,7 @@ set -eu
 # Constants
 # ---------------------------------------------------------------------------
 SKILL_NAME="offer-selection-skill"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SKILL_DIR="${SCRIPT_DIR}/skills/${SKILL_NAME}"
 MANIFEST="${SCRIPT_DIR}/.claude-plugin/plugin.json"
 
@@ -146,7 +146,7 @@ show_help() {
 ${BOLD}install.sh${NC} — Install the ${BOLD}${SKILL_NAME}${NC} skill (v${VERSION})
 
 USAGE
-    ./install.sh [OPTIONS]
+    ./maintenance/install.sh [OPTIONS]
 
 OPTIONS
     --platform PLATFORM   Explicit platform selection. One of:
@@ -162,12 +162,12 @@ OPTIONS
     -h, --help            Show this help message
 
 EXAMPLES
-    ./install.sh                          # Auto-detect platform, user-level
-    ./install.sh --project                # Auto-detect platform, project-level
-    ./install.sh --platform cursor        # Force Cursor, user-level
-    ./install.sh --path ~/my-skills/offer-selection-skill  # Custom destination
-    ./install.sh --all                    # Install to every detected tool
-    ./install.sh --dry-run                # Preview without installing
+    ./maintenance/install.sh                          # Auto-detect platform, user-level
+    ./maintenance/install.sh --project                # Auto-detect platform, project-level
+    ./maintenance/install.sh --platform cursor        # Force Cursor, user-level
+    ./maintenance/install.sh --path ~/my-skills/offer-selection-skill  # Custom destination
+    ./maintenance/install.sh --all                    # Install to every detected tool
+    ./maintenance/install.sh --dry-run                # Preview without installing
 EOF
 }
 

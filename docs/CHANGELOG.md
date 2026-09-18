@@ -53,7 +53,7 @@ behavior or completed regression. The entries below record the changes:
   and run-bound review must carry a commit resolvable in this repository
   (explicit `--commit`, or `HEAD` by default); a run without a commit cannot
   receive a run-bound review; legacy records keep their historical shape.
-- **installer security hardening** — `install.sh` / `install.ps1` install a
+- **installer security hardening** — `maintenance/install.sh` / `maintenance/install.ps1` install a
   fixed runtime allowlist only (`skills/offer-selection-skill/SKILL.md`, `skills/offer-selection-skill/references/`,
   `skills/offer-selection-skill/references/priors-and-calibration.md`, `.claude-plugin/plugin.json`,
   `.claude-plugin/marketplace.json`, `LICENSE`); the version is read from
@@ -80,8 +80,8 @@ behavior or completed regression. The entries below record the changes:
   These local paths remain visible in the public source tree/history and are
   never shipped by the installers.
 - **installer test correctness fixes** — the PowerShell safety battery
-  (`tools/test_installer.ps1`) runs every installer scenario in an isolated
-  `pwsh` child process (an expected `exit 1` inside `install.ps1` can no
+  (`maintenance/test_installer.ps1`) runs every installer scenario in an isolated
+  `pwsh` child process (an expected `exit 1` inside `maintenance/install.ps1` can no
   longer terminate the runner) and passes arguments — including paths with
   spaces — through `ProcessStartInfo.ArgumentList` instead of joined command
   strings. The Unix and Windows link tests now use a destination whose
@@ -105,7 +105,7 @@ behavior or completed regression. The entries below record the changes:
   `license`, `metadata`); the non-standard top-level `activation` and
   `provenance` keys were removed and their content (activation path,
   maintainer, provenance note) moved into `metadata` as strings. A local,
-  network-free compliance check (`tools/check_frontmatter.py`) enforces this in
+  network-free compliance check (`maintenance/check_frontmatter.py`) enforces this in
   CI: official top-level keys only, valid `name`, non-empty ≤1024-char
   `description`, string-only `metadata`, and `metadata.version` equal to
   `.claude-plugin/plugin.json`. The official `skills-ref` validator is **not
@@ -125,7 +125,7 @@ behavior or completed regression. The entries below record the changes:
   `SECURITY.md`, issue templates (production bug / evidence problem / rule
   proposal), PR template, and a minimal credential-free CI
   (`.github/workflows/ci.yml`) that also runs the installer ownership/payload
-  safety battery (including a `windows-latest` job for `install.ps1` when the
+  safety battery (including a `windows-latest` job for `maintenance/install.ps1` when the
   repository is pushed).
 - **removed the unused `skill.graph.json` manifest and its generator** — no
   runtime, installer, manifest or CI consumer existed; keeping it would have
@@ -169,7 +169,7 @@ platform-verification labelling. This block covers the installer, packaging and
 privacy round only; at the time it was written it introduced no
 decision-methodology, evidence, or version change.
 
-- **Native Cursor and Windsurf Skills** (`install.sh` / `install.ps1`): both
+- **Native Cursor and Windsurf Skills** (`maintenance/install.sh` / `maintenance/install.ps1`): both
   clients now receive the complete Agent Skill in their documented native
   directories (`.cursor/skills/` and `.windsurf/skills/`). The old Rule
   conversion is no longer invoked, so references remain available through
@@ -183,7 +183,7 @@ decision-methodology, evidence, or version change.
   private intake or identifying student details into web searches or
   third-party tool queries. `PRIVACY.md` separates Skill behavior from Agent
   host retention and logging policies.
-- **Copilot mis-detection** (`install.sh` / `install.ps1`): removed `.github`
+- **Copilot mis-detection** (`maintenance/install.sh` / `maintenance/install.ps1`): removed `.github`
   directory as a Copilot auto-detection signal — this repository itself ships a
   `.github`, so a user without `~/.claude` could be mis-identified as Copilot.
   Copilot is now detected only via `~/.copilot` or the Copilot CLI config.
@@ -195,12 +195,12 @@ decision-methodology, evidence, or version change.
   three-state table (installer-verified / legacy-adapter-unverified /
   best-effort). No platform is called end-to-end host verified until a real
   client run confirms discovery, invocation, reference loading and execution.
-- **Dead Cursor/Windsurf rule-adapter removal** (`install.sh` / `install.ps1`):
+- **Dead Cursor/Windsurf rule-adapter removal** (`maintenance/install.sh` / `maintenance/install.ps1`):
   the now-unused Cursor `.mdc` and Windsurf rule generators (and their stale
   comments) were deleted, since both clients install the native skills/offer-selection-skill/SKILL.md
   package and the adapters are no longer invoked. Installer behavior is
   unchanged; the Unix safety battery still passes 37/37.
-- **Self-consistent public snapshot docs** (`tools/snapshot_docs.py`, new):
+- **Self-consistent public snapshot docs** (`maintenance/snapshot_docs.py`, new):
   the snapshot build now rewrites the snapshot copies of `CONTRIBUTING.md`,
   `AGENTS.md`, the PR template and `SECURITY.md` so they reference only the
   files the snapshot ships — never the excluded `evals/` / `internal/audits/` /

@@ -23,7 +23,7 @@ $ErrorActionPreference = "Stop"
 # Constants
 # ---------------------------------------------------------------------------
 $SkillName = "offer-selection-skill"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $SkillDir = Join-Path $ScriptDir "skills\$SkillName"
 $Manifest = Join-Path $ScriptDir ".claude-plugin\plugin.json"
 $HomeDir = $env:USERPROFILE
@@ -117,7 +117,7 @@ if ($Help) {
 install.ps1 — Install the $SkillName skill (v$Version)
 
 USAGE
-    .\install.ps1 [OPTIONS]
+    .\maintenance\install.ps1 [OPTIONS]
 
 OPTIONS
     -Platform <name>   Explicit platform selection. One of:
@@ -133,12 +133,12 @@ OPTIONS
     -Help              Show this help message
 
 EXAMPLES
-    .\install.ps1                          # Auto-detect platform, user-level
-    .\install.ps1 -Project                 # Auto-detect platform, project-level
-    .\install.ps1 -Platform cursor         # Force Cursor, user-level
-    .\install.ps1 -Path C:\skills\$SkillName   # Custom destination
-    .\install.ps1 -All                     # Install to every detected tool
-    .\install.ps1 -DryRun                  # Preview without installing
+    .\maintenance\install.ps1                          # Auto-detect platform, user-level
+    .\maintenance\install.ps1 -Project                 # Auto-detect platform, project-level
+    .\maintenance\install.ps1 -Platform cursor         # Force Cursor, user-level
+    .\maintenance\install.ps1 -Path C:\skills\$SkillName   # Custom destination
+    .\maintenance\install.ps1 -All                     # Install to every detected tool
+    .\maintenance\install.ps1 -DryRun                  # Preview without installing
 "@
     exit 0
 }
