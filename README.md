@@ -20,7 +20,7 @@
 npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
 ```
 
-首次运行按提示确认下载，选择你使用的 AI Agent，安装后开启新会话。WorkBuddy 请使用下方的 [备用安装方式](#备用安装方式)。
+安装后，在 AI Agent 中新建对话即可使用。
 
 ### 在 AI 聊天框开始使用
 
