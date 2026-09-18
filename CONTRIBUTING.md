@@ -23,10 +23,10 @@ change it in its owner:
 
 | File | What it owns | When it is read |
 |---|---|---|
-| `SKILL.md` | Intake, load order, output contract, gotchas | Every run |
-| `references/core-decision-engine.md` | **The execution semantics** — Stage 0–7, gates, evidence states, decision sufficiency, research priority/stop, scoring, equivalence | Every run |
-| `references/path-{private-sector,soe-public,local-stay,phd-academic}.md` | Path-specific business rules | When that path activates |
-| `domain/priors-and-calibration.md` | Labelled conditional priors and calibration anchors | Only when a prior trigger fires |
+| `skills/offer-selection-skill/SKILL.md` | Intake, load order, output contract, gotchas | Every run |
+| `skills/offer-selection-skill/references/core-decision-engine.md` | **The execution semantics** — Stage 0–7, gates, evidence states, decision sufficiency, research priority/stop, scoring, equivalence | Every run |
+| `skills/offer-selection-skill/references/path-{private-sector,soe-public,local-stay,phd-academic}.md` | Path-specific business rules | When that path activates |
+| `skills/offer-selection-skill/references/priors-and-calibration.md` | Labelled conditional priors and calibration anchors | Only when a prior trigger fires |
 
 The public repository carries only the runtime files above. The maintainers'
 development history (behavioral evidence, audits, provenance) is intentionally
@@ -34,8 +34,8 @@ not part of this repository. See `AGENTS.md` for the full authority model.
 
 ## What you may change
 
-- **Production files** (`SKILL.md`, `references/*.md`,
-  `domain/priors-and-calibration.md`, installers): only with a clear problem
+- **Production files** (`skills/offer-selection-skill/SKILL.md`, `skills/offer-selection-skill/references/*.md`,
+  `skills/offer-selection-skill/references/priors-and-calibration.md`, installers): only with a clear problem
   statement and, for decision-semantics changes, an explicit maintainer
   decision. See "Domain Methodology changes" below.
 - **Installers** (`install.sh`, `install.ps1`): keep the runtime allowlist
@@ -69,7 +69,7 @@ project's cardinal sin.
 ## How to run verification
 
 ```bash
-# SKILL.md frontmatter compliance
+# skills/offer-selection-skill/SKILL.md frontmatter compliance
 python3 tools/check_frontmatter.py
 
 # installers: syntax, dry-run, and the full safety battery

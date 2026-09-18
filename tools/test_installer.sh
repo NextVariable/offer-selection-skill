@@ -5,7 +5,7 @@
 # with spaces, basename rejection, refusal of / $HOME / the source package and
 # its ancestors, refusal to overwrite unmanaged directories (sentinel file
 # preserved), managed marker upgrades, symlink refusal, invalid-marker
-# refusal, legacy migration, exact payload matching and runtime-reference
+# refusal, unmarked-copy protection, exact payload matching and runtime-reference
 # completeness. Exits non-zero if any assertion fails.
 #
 # Usage:  bash tools/test_installer.sh
@@ -14,6 +14,7 @@
 set -u
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SKILL_DIR="$REPO_DIR/skills/offer-selection-skill"
 cd "$REPO_DIR" || { echo "cannot cd to $REPO_DIR"; exit 1; }
 
 PASS=0
@@ -134,25 +135,25 @@ else
   bad "8. invalid marker preserved"
 fi
 
-# 9. A pre-marker legacy install (skill layout, no marker) is migrated and the
-#    marker is written.
-mkdir -p "$T/9/offer-selection-skill/references" "$T/9/offer-selection-skill/domain" \
+# 9. A complete skill layout is not proof of installer ownership.
+mkdir -p "$T/9/offer-selection-skill/references" \
          "$T/9/offer-selection-skill/.claude-plugin"
-cp SKILL.md "$T/9/offer-selection-skill/SKILL.md"
-cp references/*.md "$T/9/offer-selection-skill/references/"
-cp domain/priors-and-calibration.md "$T/9/offer-selection-skill/domain/"
-if ./install.sh --platform universal --path "$T/9/offer-selection-skill" >/dev/null 2>&1 &&
-   [ -f "$T/9/offer-selection-skill/.offer-selection-skill-install.json" ]; then
-  ok "9. legacy migration + marker written"
+cp "$SKILL_DIR/SKILL.md" "$T/9/offer-selection-skill/SKILL.md"
+cp "$SKILL_DIR"/references/*.md "$T/9/offer-selection-skill/references/"
+if ./install.sh --platform universal --path "$T/9/offer-selection-skill" >/dev/null 2>&1; then
+  bad "9. unmarked complete skill must be refused"
+elif [ ! -e "$T/9/offer-selection-skill/.offer-selection-skill-install.json" ] &&
+     cmp -s "$SKILL_DIR/SKILL.md" "$T/9/offer-selection-skill/SKILL.md"; then
+  ok "9. unmarked complete skill refused and preserved"
 else
-  bad "9. legacy migration + marker written"
+  bad "9. unmarked skill changed"
 fi
 
 # 10. Exact payload: top-level entries equal the allowlist plus the marker, and
 #     dev material is absent.
 INSTALL="$T/1/offer-selection-skill"
 ACTUAL="$(ls -A "$INSTALL" | sort)"
-EXPECTED="$(printf '%s\n' .claude-plugin .offer-selection-skill-install.json LICENSE SKILL.md domain references | sort)"
+EXPECTED="$(printf '%s\n' .claude-plugin .offer-selection-skill-install.json LICENSE SKILL.md references | sort)"
 if [ "$ACTUAL" = "$EXPECTED" ]; then
   ok "10. payload exact match"
 else
@@ -174,7 +175,7 @@ fi
 MISSING=""
 for f in SKILL.md references/core-decision-engine.md references/path-private-sector.md \
          references/path-soe-public.md references/path-local-stay.md \
-         references/path-phd-academic.md domain/priors-and-calibration.md; do
+         references/path-phd-academic.md references/priors-and-calibration.md; do
   [ -f "$INSTALL/$f" ] || MISSING="$MISSING $f"
 done
 if [ -z "$MISSING" ]; then

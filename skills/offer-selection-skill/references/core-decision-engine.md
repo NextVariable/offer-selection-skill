@@ -2,8 +2,8 @@
 
 > Single owner of *how to execute* an offer decision. Loaded on every run.
 > Provenance and the derivation history of these rules live in
-> `domain/source-of-truth.md` (never loaded at runtime). Conditional priors and
-> calibration anchors live in `domain/priors-and-calibration.md`. Path-specific
+> `internal/source-of-truth.md` (never loaded at runtime). Conditional priors and
+> calibration anchors live in `references/priors-and-calibration.md`. Path-specific
 > rules live in the `references/path-*.md` files. Do not restate this file's
 > rules anywhere else; other files reference it.
 
@@ -134,12 +134,12 @@ the user's range, show the disagreement and use an uncertainty range until the
 cause is resolved. Never present a precise total assembled from confirmed
 tuition plus unsupported or non-current living-cost assumptions as Confirmed.
 Destination cost levels are dynamic facts. The engine holds the rule; the
-dated numbers live in `domain/priors-and-calibration.md`
+dated numbers live in `references/priors-and-calibration.md`
 ("Operative-year all-in cost calibration"), so a later year replaces or adds
 its own calibration without changing core.
 
 **Mandatory read.** Before a cost conclusion for an operative year covered by
-`domain/priors-and-calibration.md`, read the dated calibration and cross-check
+`references/priors-and-calibration.md`, read the dated calibration and cross-check
 it against a programme-specific component estimate. The calibration is a
 planning prior, not a confirmed market price or a mandatory opening total.
 Calculate exact tuition, actual months, realistic housing (including an
@@ -232,7 +232,7 @@ permission, cost, and employer recognition separately.
 Joint ventures are not one category: never apply a blanket discount. Verify
 degree-awarding institution, diploma wording, parent-degree equivalence,
 campus identity, 留服 treatment, ranking treatment, and target-market
-recognition case by case. Examples and heuristics: `domain/priors-and-calibration.md`.
+recognition case by case. Examples and heuristics: `references/priors-and-calibration.md`.
 
 ## Gap and transformation
 
@@ -492,7 +492,7 @@ recognition judgment without an employer list, but never become a verified
 employer rule. Apply the uncertainty mapping to their decision impact. Do not count the same lab density, industry access, brand, ranking, or
 country evidence twice under different labels (anti-double-counting). The
 labelled prior definitions, boundaries, and calibration examples live in
-`domain/priors-and-calibration.md`; route to them only when the trigger fires.
+`references/priors-and-calibration.md`; route to them only when the trigger fires.
 
 ## Output
 

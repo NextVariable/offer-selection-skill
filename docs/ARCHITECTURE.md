@@ -12,7 +12,7 @@ Current Profile → Goal → Gap → Offer Transformation → Graduation Profile
 
 Each offer is judged by the candidate it produces, not by its label. The
 canonical stage order, exceptions and scoring semantics live only in
-[`core-decision-engine.md`](../references/core-decision-engine.md). This diagram
+[`core-decision-engine.md`](../skills/offer-selection-skill/references/core-decision-engine.md). This diagram
 is an orientation aid, not an alternative execution specification.
 
 ## Loading structure
@@ -26,7 +26,7 @@ SKILL.md  ──>  references/core-decision-engine.md   (every run, single owner
               path-local-stay.md
               path-phd-academic.md
     │
-    └──>  domain/priors-and-calibration.md          (prior trigger, or mandatory dated cost calibration)
+    └──>  references/priors-and-calibration.md      (prior trigger, or dated cost calibration)
 ```
 
 - `core` owns *how to execute* — stages, gates, evidence states, research
@@ -37,7 +37,7 @@ SKILL.md  ──>  references/core-decision-engine.md   (every run, single owner
   trigger fires (U.S. offer on a research/STEM or China-return comparison,
   joint venture, local-stay country claims, equivalence/tie-break, or a
   strong-baseline check). The dated cost-calibration section is the exception:
-  when it covers the decision's operative year, `SKILL.md` and core require it
+  when it covers the decision's operative year, `skills/offer-selection-skill/SKILL.md` and core require it
   to be read and cross-checked before a cost conclusion. The calculation and
   reconciliation semantics are owned by core Budget, not by the table.
 
@@ -45,10 +45,10 @@ SKILL.md  ──>  references/core-decision-engine.md   (every run, single owner
 
 | Path | Role | Read by |
 |---|---|---|
-| `domain/source-of-truth.md` | Provenance and rule evolution | maintainers |
-| `audits/` | Historical audits (non-normative) | maintainers |
+| `internal/source-of-truth.md` | Provenance and rule evolution | maintainers |
+| `internal/audits/` | Historical audits (non-normative) | maintainers |
 | `evals/` | Behavioral evidence (cases, oracles, rollouts, reviews) | reviewers |
-| `archive/` | Superseded materials | nobody |
+| `internal/archive/` | Superseded materials | nobody |
 
 ## One rule, one owner
 
@@ -58,19 +58,30 @@ rule changes dangerous.
 
 ## Repository layout
 
+```text
+skills/offer-selection-skill/   Skill package: SKILL.md + references/
+docs/                          Usage and design documentation
+examples/                      Synthetic decision examples
+tools/                         Development and release tools
+evals/                         Frozen behavioral evidence (private)
+internal/                      Audits, history and provenance (private)
+```
+
+The loading diagram above uses paths relative to `skills/offer-selection-skill/`.
+
 | Area | Contents |
 |---|---|
-| `SKILL.md` | Runtime entrypoint: trigger, load order, intake, output contract |
-| `references/core-decision-engine.md` | Canonical execution semantics |
-| `references/path-*.md` | One rule file per decision path |
-| `domain/priors-and-calibration.md` | Conditional, labelled heuristics/anchors |
+| `skills/offer-selection-skill/SKILL.md` | Runtime entrypoint: trigger, load order, intake, output contract |
+| `skills/offer-selection-skill/references/core-decision-engine.md` | Canonical execution semantics |
+| `skills/offer-selection-skill/references/path-*.md` | One rule file per decision path |
+| `skills/offer-selection-skill/references/priors-and-calibration.md` | Conditional, labelled heuristics/anchors |
 | `install.sh` / `install.ps1` | Cross-platform installer (strict runtime allowlist + ownership marker) |
 | `.claude-plugin/` | Version source of truth (`plugin.json`) + marketplace metadata |
 | `examples/` | Anonymized, synthetic behavior illustrations (not oracles) |
-| `docs/` | Philosophy (`DECISION_PHILOSOPHY.md`) and this architecture |
+| `docs/` | Installation, decision philosophy and architecture |
 | `tools/` | Mechanical checks: frontmatter, installer test battery |
 
-Internal development material — `evals/`, `audits/`, `archive/`,
-`domain/source-of-truth.md`, and the eval runner tooling — lives only in the
+Internal development material — `evals/`, `internal/audits/`, `internal/archive/`,
+`internal/source-of-truth.md`, and the eval runner tooling — lives only in the
 development repository and is **not** shipped in the public release snapshot
 (see `tools/build_release_snapshot.sh`).

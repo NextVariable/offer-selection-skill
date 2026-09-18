@@ -68,7 +68,7 @@ Assess internship capital by platform, target-role relevance, industry/vertical 
 ## Recognition priors (application)
 
 School recognition is target-market-specific and tiered. Conditional country,
-school and same-tier examples live only in `domain/priors-and-calibration.md`.
+school and same-tier examples live only in `references/priors-and-calibration.md`.
 Use core's priors control and the evidence ladder below; do not count the same
 recognition signal again under ranking and country.
 
@@ -82,7 +82,7 @@ recognition by an evidence ladder, highest first: (1) exact employer-specific
 evidence (a named employer's target-school list or explicit ranking
 threshold); (2) target-market recognition evidence for the user's real
 market; (3) calibrated, market-specific recognition priors
-(`domain/priors-and-calibration.md`); (4) generic ranking signal —
+(`references/priors-and-calibration.md`); (4) generic ranking signal —
 supporting evidence only, never mapped to a score.
 
 Absence of an employer-specific school list or ranking threshold does NOT
@@ -117,7 +117,7 @@ scoring weights.
 
 Core: school + major credibility + technical training + projects/internships. Raise curriculum depth, prerequisites, lab/project quality, skill formation, discipline strength, and technical outcomes. A rigorous CS/EE/technical program normally beats a vaguely branded technical program that cannot create the required capability. Distinguish a strict eligibility mismatch from a competitiveness weakness.
 
-For U.S. STEM/technical offers, an evidenced ecosystem may support breadth, research-university density, labs/faculty, cross-disciplinary work, technical projects, industry R&D, and internship/research connections — a programme-sensitive prior (see `domain/priors-and-calibration.md`), never universal U.S. superiority. Compare curriculum, rigor, faculty/lab access, project quality, internship accessibility, student outcomes and PhD placement. Local technical employment still requires separate work-access and employability analysis; China return still requires school-specific recognition and credential transformation.
+For U.S. STEM/technical offers, an evidenced ecosystem may support breadth, research-university density, labs/faculty, cross-disciplinary work, technical projects, industry R&D, and internship/research connections — a programme-sensitive prior (see `references/priors-and-calibration.md`), never universal U.S. superiority. Compare curriculum, rigor, faculty/lab access, project quality, internship accessibility, student outcomes and PhD placement. Local technical employment still requires separate work-access and employability analysis; China return still requires school-specific recognition and credential transformation.
 
 ## Network and career support
 

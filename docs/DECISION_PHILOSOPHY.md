@@ -104,7 +104,7 @@ repository is a *standing rule* only about method, never about the world.
 
 ## The priors, and their boundaries
 
-`domain/priors-and-calibration.md` records labelled heuristics (a U.S. STEM
+`skills/offer-selection-skill/references/priors-and-calibration.md` records labelled heuristics (a U.S. STEM
 research-ecosystem prior, a China-return recognition prior, joint-venture
 heuristics, calibration anchors from earlier controlled cases). They are:
 
@@ -123,5 +123,5 @@ Adding fixed weights, country/school point systems, ranking-to-score mappings,
 per-school golden cases, or hard-coded dynamic facts (tuition, ranking, visa,
 credential policy, employer lists). Each rule has exactly one owner file; the
 philosophy lives here, the executable semantics live in
-`references/core-decision-engine.md`, and provenance lives in
-`domain/source-of-truth.md` (never loaded at runtime).
+`skills/offer-selection-skill/references/core-decision-engine.md`, and provenance lives in
+`internal/source-of-truth.md` (never loaded at runtime).

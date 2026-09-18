@@ -1,6 +1,6 @@
 ## What kind of change is this?
 
-- [ ] Production rules change (owner: `SKILL.md` / `references/*.md` / `domain/priors-and-calibration.md`)
+- [ ] Production rules change (owner: `skills/offer-selection-skill/SKILL.md` / `skills/offer-selection-skill/references/*.md` / `skills/offer-selection-skill/references/priors-and-calibration.md`)
 - [ ] Evidence / research correction
 - [ ] Tooling or CI change (`tools/`, `.github/`)
 - [ ] Docs / community / release metadata (`README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, `.github/`, `.claude-plugin/`)

@@ -12,7 +12,7 @@ Research whether the route is taught MSc, research master, MRes/MPhil, or integr
 For committed PhD intent, materially stronger research transformation can outweigh overall university rank. For uncertain intent, separately evaluate academic preparation and employment fallback; longer integrated routes can be academically superior but costlier and less flexible.
 
 For a research/STEM ecosystem comparison, read the conditional prior and its
-programme-level boundaries in `domain/priors-and-calibration.md` (§1). Core
+programme-level boundaries in `references/priors-and-calibration.md` (§1). Core
 controls its use; the country label alone is not a research advantage.
 
 Ask: “What research candidate does this offer create, and does it materially improve research capital and access to the target PhD/academic path?” Do not promise admission probabilities without defensible data.

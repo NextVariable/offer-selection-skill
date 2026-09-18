@@ -1,8 +1,24 @@
 # Release status
 
 This is the single current readiness record for `offer-selection-skill`.
-Files under `audits/` preserve what was known at an earlier point; they are
+Files under `internal/audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
+
+**Directory-only reorganization (2026-09-19):** the runtime package now lives in
+`skills/offer-selection-skill/`, with calibration under its `references/`.
+Audits, archives and provenance moved to `internal/` without content changes.
+Installers, release packaging and current references follow the new layout;
+legacy runtime snapshots remain valid and frozen eval evidence is unchanged.
+Older paragraphs retain the paths and verification scope of their own dates.
+No behavioral regression, Windows execution or remote publication is claimed.
+
+**Scoped installation/output repair (2026-09-19):** unmarked destinations are
+now refused; project installs create no global secondary entry; managed links
+stay intact until staged replacement and participate in rollback. Release
+snapshots include `docs/INSTALLATION.md`. The output contract consistently puts
+the conclusion first; duplicated routing prose and unused migration helpers
+were removed without changing decision methodology. No behavioral regression,
+Windows execution, release, tag or remote publication is claimed by this repair.
 
 **Scoped acceptance repair (2026-09-18; not release acceptance):** the maintainer
 approved a successor to the documented budget oracle/input conflict. The new

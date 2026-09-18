@@ -34,7 +34,7 @@ Determine which offer, if any, is worth accepting **for this user and goal**. Do
    - `references/path-local-stay.md` — local stay / dual track;
    - `references/path-phd-academic.md` — PhD / academic / research route.
    For genuine dual goals, load and run both paths separately.
-3. Read `domain/priors-and-calibration.md` when a conditional prior fires — a
+3. Read `references/priors-and-calibration.md` when a conditional prior fires — a
    U.S. offer on a research/STEM or China-return comparison, a joint venture,
    local-stay country claims, an equivalence/tie-break, or a strong-baseline
    calibration check — **and always for the operative-year cost calibration
@@ -44,9 +44,9 @@ Determine which offer, if any, is worth accepting **for this user and goal**. Do
    calibration is the one mandatory cross-check once its condition holds.
    Core Budget makes that read a precondition of any cost conclusion, so it
    needs no trigger phrase and the user does not have to ask.
-4. Never load at runtime: `domain/source-of-truth.md` (provenance and rule
-   evolution), `audits/`, `evals/`, `archive/`. Maintainers and auditors read
-   the first three; nobody reads `archive/`.
+4. Never load at runtime: `internal/source-of-truth.md` (provenance and rule
+   evolution), `internal/audits/`, `evals/`, `internal/archive/`. Maintainers and auditors read
+   the first three; nobody reads `internal/archive/`.
 
 Do not skip the relevant path file; do not restate rules that live in core or
 a path file.
@@ -86,29 +86,17 @@ If the target is unrealistic, say that the main problem is the
 profile-to-goal gap, not the choice among offers, and continue with a relative
 comparison only when useful.
 
-## Score-state summary
-
-Apply the canonical Evidence State, Decision Sufficiency, and Score State
-mappings from `references/core-decision-engine.md`; do not duplicate or alter
-them here.
-
-## Research trigger
-
-Research when a fact may change a gate, the graduation profile, a
-recommendation direction or tier, a material risk, or an equivalence result —
-and stop when it no longer can (core: Research priority / Research stop).
-Research decision-critical facts first, not the easiest ones. Do not expand
-into a general immigration, lifetime-income, or career-planning service unless
-such a fact materially changes the offer decision.
+Do not expand into general immigration, lifetime-income, or career planning
+unless it materially changes the offer decision.
 
 ## Output contract
 
 For clarification turns, follow core's "Iterative clarification"; the
 recommendation presentation below applies when giving a decision.
 
-Lead with each offer's score/tier and decisive gate status, followed by one
-direct conclusion: choose X, choose conditionally by goal, no clear
-difference, or choose none.
+Lead with one direct conclusion: choose X, choose conditionally by goal, no
+clear difference, or choose none. Present each offer's score/tier and decisive
+gate status as supporting information, not as the opening.
 
 Explain only the 2–4 factors that determine this user's result through Current
 Profile → Transformation → Graduation Profile. Show Critical and Important
@@ -116,9 +104,7 @@ risks, unresolved facts that could reverse the decision, and dual-track results
 separately. Do not default to a school encyclopedia or a long generic
 pros/cons report.
 
-**How much evidence machinery to show.** Lead with the conclusion, its decisive
-causes, and the conditions that would reverse it — not with stage, gate and
-evidence-state bookkeeping.
+**How much evidence machinery to show.**
 
 - Normal user answer: show the evidence that actually decides the
   recommendation, the unresolved items that could change it, and the source

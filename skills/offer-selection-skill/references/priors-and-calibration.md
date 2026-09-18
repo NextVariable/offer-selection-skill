@@ -12,7 +12,7 @@
 > by `references/core-decision-engine.md` ("Priors as conditional evidence"
 > and "Budget"). Every entry below is tagged `[HEURISTIC/PRIOR]` or
 > `[CALIBRATION]`; none is a fact, a fixed point, or a school hard branch. Full
-> derivation history: `domain/source-of-truth.md`.
+> derivation history: `internal/source-of-truth.md`.
 
 ## Contents
 

@@ -1,7 +1,4 @@
-# install-template.ps1 — Cross-platform skill installation script (Windows)
-# This file is a template. During skill generation, offer-selection-skill is replaced
-# with the actual skill name and the result is shipped as install.ps1 inside
-# every generated skill package.
+# Install the offer-selection-skill runtime package (Windows).
 #
 # Requires PowerShell 7+. CI and local verification exercise pwsh only; the
 # installer is not claimed to support Windows PowerShell 5.1.
@@ -27,8 +24,15 @@ $ErrorActionPreference = "Stop"
 # ---------------------------------------------------------------------------
 $SkillName = "offer-selection-skill"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$SkillDir = Join-Path $ScriptDir "skills\$SkillName"
 $Manifest = Join-Path $ScriptDir ".claude-plugin\plugin.json"
 $HomeDir = $env:USERPROFILE
+
+function Get-RuntimeSource {
+    param([string]$Entry)
+    if ($Entry -in "SKILL.md", "references") { return Join-Path $SkillDir $Entry }
+    return Join-Path $ScriptDir $Entry
+}
 
 # Ownership marker written into every install. Before overwriting an existing
 # destination the installer requires a marker with exactly this schema/name, so
@@ -49,7 +53,6 @@ $FallbackVersion = "0.3.2"
 $RuntimeAllowlist = @(
     "SKILL.md"
     "references"
-    "domain\priors-and-calibration.md"
     ".claude-plugin\plugin.json"
     ".claude-plugin\marketplace.json"
     "LICENSE"
@@ -63,11 +66,11 @@ $RequiredRuntimeFiles = @(
     "references\path-soe-public.md"
     "references\path-local-stay.md"
     "references\path-phd-academic.md"
-    "domain\priors-and-calibration.md"
+    "references\priors-and-calibration.md"
 )
 
 # Directories that must never appear in an installation.
-$ForbiddenDirs = @(".git", ".workbuddy", ".DS_Store", "audits", "evals",
+$ForbiddenDirs = @(".git", ".workbuddy", ".DS_Store", "internal", "audits", "evals",
                    "archive", "tools", "__pycache__")
 
 # ---------------------------------------------------------------------------
@@ -144,10 +147,10 @@ EXAMPLES
 # SKILL.md validation
 # ---------------------------------------------------------------------------
 function Test-SkillMd {
-    $skillMd = Join-Path $ScriptDir "SKILL.md"
+    $skillMd = Join-Path $SkillDir "SKILL.md"
 
     if (-not (Test-Path $skillMd)) {
-        Write-Err "SKILL.md not found in $ScriptDir"
+        Write-Err "SKILL.md not found in $SkillDir"
         Write-Err "Every skill package must contain a valid SKILL.md file."
         exit 1
     }
@@ -458,7 +461,7 @@ function New-SkillLink {
 # Extract SKILL.md body (everything after second ---)
 # ---------------------------------------------------------------------------
 function Get-SkillBody {
-    $skillMd = Join-Path $ScriptDir "SKILL.md"
+    $skillMd = Join-Path $SkillDir "SKILL.md"
     $lines = Get-Content $skillMd
     $delimCount = 0
     $bodyLines = @()
@@ -479,7 +482,7 @@ function Get-SkillBody {
 # Extract description from SKILL.md frontmatter (handles folded YAML blocks)
 # ---------------------------------------------------------------------------
 function Get-SkillDescription {
-    $skillMd = Join-Path $ScriptDir "SKILL.md"
+    $skillMd = Join-Path $SkillDir "SKILL.md"
     $lines = Get-Content $skillMd
     $inFm = $false
     $got = $false
@@ -604,7 +607,7 @@ function Install-UniversalSecondary {
 
     # A custom path is an explicit containment boundary. Do not create a second
     # user-profile install that the caller did not request.
-    if ($Path) { return }
+    if ($Path -or $Project) { return }
 
     if ($Plat -in "codex", "universal") { return }
 
@@ -671,7 +674,7 @@ function Assert-SafeInstallDir {
         Write-Err "Refusing to install into a directory that is not a $SkillName install path."
         exit 1
     }
-    if ($full -eq $ScriptDir) {
+    if ($full -eq $ScriptDir -or $full -eq $SkillDir) {
         Write-Err "Refusing to install directly into the source package: $ScriptDir"
         exit 1
     }
@@ -699,19 +702,6 @@ function Test-OwnershipMarker {
     }
 }
 
-# True if $Dir\SKILL.md has frontmatter `name: <skill>` exactly.
-function Test-SkillMdName {
-    param([string]$Dir)
-    $skillMd = Join-Path $Dir "SKILL.md"
-    if (-not (Test-Path -LiteralPath $skillMd)) { return $false }
-    foreach ($line in (Get-Content -LiteralPath $skillMd -TotalCount 40)) {
-        if ($line -match '^name:\s*(.+)$') {
-            return ($Matches[1].Trim() -eq $SkillName)
-        }
-    }
-    return $false
-}
-
 # True if every required runtime file exists under $Dir.
 function Test-RuntimeFilesPresent {
     param([string]$Dir)
@@ -723,9 +713,7 @@ function Test-RuntimeFilesPresent {
 
 # Called before any overwrite (also in dry-run so the preview is accurate).
 # A destination may be replaced only when it does not exist yet, carries a
-# valid ownership marker (managed upgrade), or satisfies the legacy contract
-# for pre-marker installs (basename + SKILL.md name + every runtime reference),
-# in which case the replacement writes the marker.
+# valid ownership marker (managed upgrade).
 function Assert-ManagedDestination {
     param([string]$InstallDir)
     if (-not (Test-Path -LiteralPath $InstallDir)) { return }
@@ -737,7 +725,7 @@ function Assert-ManagedDestination {
             (Test-RuntimeFilesPresent $InstallDir)) {
             Write-Info "Migrating installer-managed universal link to a standalone install."
             if ($DryRun) { return }
-            Remove-Item -LiteralPath $InstallDir -Force
+            # Keep the link until staging succeeds; the swap backs up the link.
             return
         }
         Write-Err "Refusing to replace '$InstallDir': it is a symlink/junction."
@@ -759,13 +747,8 @@ function Assert-ManagedDestination {
         exit 1
     }
 
-    if ((Test-SkillMdName $InstallDir) -and (Test-RuntimeFilesPresent $InstallDir)) {
-        Write-Warn "Existing install at $InstallDir has no ownership marker but matches the legacy install contract."
-        Write-Warn "Migrating it to a marker-managed install."
-        return
-    }
-    Write-Err "Refusing to overwrite '$InstallDir': it exists but is not a directory managed by this installer (no valid ownership marker, and no matching legacy skill layout)."
-    Write-Err "Choose a different destination or remove the directory yourself."
+    Write-Err "Refusing to overwrite '$InstallDir': no valid installer ownership marker."
+    Write-Err "Back up personal changes and remove the old copy with its original installation method, or choose a new destination."
     exit 1
 }
 
@@ -830,7 +813,7 @@ function Install-Files {
         Write-Info "Would create directory: $InstallDir"
         Write-Info "Runtime allowlist (the complete install payload):"
         foreach ($entry in $RuntimeAllowlist) {
-            $src = Join-Path $ScriptDir $entry
+            $src = Get-RuntimeSource $entry
             if (-not (Test-Path -LiteralPath $src)) {
                 Write-Err "Would copy: $entry  (MISSING in the source package)"
                 exit 1
@@ -857,7 +840,7 @@ function Install-Files {
 
     try {
         foreach ($entry in $RuntimeAllowlist) {
-            $src = Join-Path $ScriptDir $entry
+            $src = Get-RuntimeSource $entry
             if (-not (Test-Path -LiteralPath $src)) {
                 Write-Err "Runtime allowlist entry missing from the package: $entry"
                 Write-Err "Refusing to install an incomplete skill package."
@@ -945,7 +928,7 @@ function Commit-StagedInstall {
         exit 3
     }
     if ($movedOld) {
-        Remove-Item -LiteralPath $old -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-OwnedPath $old
     }
     Write-Ok "Installed $SkillName to $InstallDir"
 }
@@ -1046,7 +1029,7 @@ if ($Help) {
     Write-Host ""
     Write-Host "Usage:  ./install.ps1 [-Platform <name>] [-Project] [-Path <dir>] [-All] [-DryRun] [-Help]"
     Write-Host "The install payload is a fixed runtime allowlist: SKILL.md, references/,"
-    Write-Host "domain/priors-and-calibration.md, .claude-plugin/, LICENSE, and an"
+    Write-Host "references/priors-and-calibration.md, .claude-plugin/, LICENSE, and an"
     Write-Host "ownership marker (.offer-selection-skill-install.json)."
     Write-Host "Development material (audits, evals, archive, tools, .git) and the"
     Write-Host "developer docs (README/CONTRIBUTING/SECURITY/AGENTS) are never installed."
