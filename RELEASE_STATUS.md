@@ -4,6 +4,22 @@ This is the single current readiness record for `offer-selection-skill`.
 Files under `audits/` preserve what was known at an earlier point; they are
 evidence and history, not competing current verdicts.
 
+**Final bounded closure (2026-09-18; round completed, not passed):** three
+specified governance/contract fixes are committed in `7fdaf33`; the unchanged
+111 mechanical tests passed. Runtime was unchanged and matches public main
+`473e84a`. One blind sample per planned case received independent review:
+`equivalence-strong-profile` was rejected before recording (empty budget
+dependencies; independently graded PASS / FAIL / PASS), while
+`budget-hard-gate` was recorded and graded PASS / PASS / FAIL because a
+legitimate clarification conflicts with frozen final-answer expectations.
+Both Overall grades are FAIL; this is not Regression Passed or human sign-off.
+The oracle conflict is written up without changing the oracle. No repairs,
+reruns, release or publication followed. Work stops at the authorized boundary.
+Detailed round evidence is retained in the development repository at
+`evals/rounds/20260918-final-closure/SUMMARY.md` (excluded from the public snapshot).
+The amendment's formerly pending regression now has this concrete outcome;
+older paragraphs below retain their historical scope.
+
 **Iterative clarification amendment (2026-09-17):** the maintainer authorized
 continued clarification of insufficient or conflicting private inputs. The
 runtime now routes intake and clarification turns through core "Iterative
