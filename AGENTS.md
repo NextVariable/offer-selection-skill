@@ -49,7 +49,7 @@ this file or anywhere else.
 
 ## Testing workflow
 
-- Mechanical: `python3 tools/check_frontmatter.py` and the installer battery
-  (`bash tools/test_installer.sh`) run in CI.
+- Mechanical: `python3 maintenance/check_frontmatter.py` and the installer battery
+  (`bash maintenance/test_installer.sh`) run in CI.
 - A production change that alters decision semantics must be backed by an
-  explicit maintainer decision and documented in `CHANGELOG.md`.
+  explicit maintainer decision and documented in `docs/CHANGELOG.md`.

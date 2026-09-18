@@ -2,9 +2,9 @@
 
 - [ ] Production rules change (owner: `skills/offer-selection-skill/SKILL.md` / `skills/offer-selection-skill/references/*.md` / `skills/offer-selection-skill/references/priors-and-calibration.md`)
 - [ ] Evidence / research correction
-- [ ] Tooling or CI change (`tools/`, `.github/`)
+- [ ] Tooling or CI change (`maintenance/`, `.github/`)
 - [ ] Docs / community / release metadata (`README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, `.github/`, `.claude-plugin/`)
-- [ ] Installer change (`install.sh`, `install.ps1`)
+- [ ] Installer change (`maintenance/install.sh`, `maintenance/install.ps1`)
 
 ## Checklist
 
@@ -20,8 +20,8 @@
 - [ ] No real student private material (names, grades, offer letters,
       student IDs, emails, financial details) was added.
 - [ ] Verification re-run and reported in the PR description:
-      `python3 tools/check_frontmatter.py`, `bash -n install.sh`,
-      `bash tools/test_installer.sh`.
+      `python3 maintenance/check_frontmatter.py`, `bash -n maintenance/install.sh`,
+      `bash maintenance/test_installer.sh`.
 
 ## Problem
 

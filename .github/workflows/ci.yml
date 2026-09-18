@@ -30,19 +30,19 @@ jobs:
           PY
 
       - name: SKILL.md frontmatter compliance
-        run: python3 tools/check_frontmatter.py
+        run: python3 maintenance/check_frontmatter.py
 
       - name: Installer syntax and safety battery
         run: |
-          bash -n install.sh tools/test_installer.sh
-          ./install.sh --dry-run --platform universal
-          bash tools/test_installer.sh
+          bash -n maintenance/install.sh maintenance/test_installer.sh
+          ./maintenance/install.sh --dry-run --platform universal
+          bash maintenance/test_installer.sh
 
       - name: Version consistency
         run: |
           PLUGIN="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
-          grep -q "FALLBACK_VERSION=\"${PLUGIN}\"" install.sh
-          grep -q "\$FallbackVersion = \"${PLUGIN}\"" install.ps1
+          grep -q "FALLBACK_VERSION=\"${PLUGIN}\"" maintenance/install.sh
+          grep -q "\$FallbackVersion = \"${PLUGIN}\"" maintenance/install.ps1
 
   windows-installer-safety:
     runs-on: windows-latest
@@ -55,7 +55,7 @@ jobs:
       - name: PowerShell parse check
         shell: pwsh
         run: |
-          foreach ($f in @("install.ps1", "tools/test_installer.ps1")) {
+          foreach ($f in @("maintenance/install.ps1", "maintenance/test_installer.ps1")) {
             $tokens = $null
             $errors = $null
             $null = [System.Management.Automation.Language.Parser]::ParseFile(
@@ -69,4 +69,4 @@ jobs:
 
       - name: PowerShell installer safety battery
         shell: pwsh
-        run: pwsh -File tools/test_installer.ps1
+        run: pwsh -File maintenance/test_installer.ps1

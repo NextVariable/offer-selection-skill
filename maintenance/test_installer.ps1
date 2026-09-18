@@ -1,18 +1,18 @@
 # test_installer.ps1 — PowerShell installer safety battery (dev tool, not shipped)
 #
-# Mirrors tools/test_installer.sh for install.ps1. Intended to run on a real
+# Mirrors maintenance/test_installer.sh for maintenance/install.ps1. Intended to run on a real
 # Windows runner (GitHub Actions windows-latest job) because this repository's
 # development machines have no PowerShell. Exits non-zero if any check fails.
 #
 # Every installer scenario runs inside its OWN pwsh child process
-# (Invoke-InstallerProcess). install.ps1 is invoked with -File, so an expected
+# (Invoke-InstallerProcess). maintenance/install.ps1 is invoked with -File, so an expected
 # `exit 1` inside the installer terminates only the child process — never this
 # test runner — and every assertion reads the child's real ExitCode instead of
 # a stale $LASTEXITCODE. Arguments travel through
 # System.Diagnostics.ProcessStartInfo.ArgumentList, so paths containing spaces
 # are passed verbatim with no manual quoting and no string concatenation.
 #
-# Usage:  pwsh -File tools/test_installer.ps1
+# Usage:  pwsh -File maintenance/test_installer.ps1
 # CI:     .github/workflows/ci.yml runs the windows-latest job.
 
 $ErrorActionPreference = "Stop"
@@ -42,7 +42,7 @@ function Invoke-InstallerProcess {
     foreach ($k in $Environment.Keys) { $psi.Environment[$k] = [string]$Environment[$k] }
     $psi.ArgumentList.Add("-NoProfile")
     $psi.ArgumentList.Add("-File")
-    $psi.ArgumentList.Add((Join-Path $RepoDir "install.ps1"))
+    $psi.ArgumentList.Add((Join-Path $RepoDir "maintenance/install.ps1"))
     foreach ($a in $Arguments) { $psi.ArgumentList.Add($a) }
 
     $proc = [System.Diagnostics.Process]::Start($psi)
@@ -190,7 +190,7 @@ try {
 
     # 9. Payload: dev docs / dev material / installer scripts are absent.
     $bad = @()
-    foreach ($d in @("README.md","CONTRIBUTING.md","SECURITY.md","AGENTS.md","audits","evals","archive","tools",".git",".workbuddy",".DS_Store","install.sh","install.ps1")) {
+    foreach ($d in @("README.md","docs/CONTRIBUTING.md","docs/SECURITY.md","AGENTS.md","audits","evals","archive","tools",".git",".workbuddy",".DS_Store","maintenance/install.sh","maintenance/install.ps1")) {
         if (Test-Path -LiteralPath (Join-Path $p1 $d)) { $bad += $d }
     }
     if ($bad.Count -eq 0) { Ok "9. no dev docs / dev material / installer scripts" }

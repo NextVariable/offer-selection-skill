@@ -110,12 +110,12 @@ B：[学校、项目全名、入学年份]
 
 ## 使用前了解
 
-当前为 **v0.3.2 正式版**。建议用于辅助决策，关键资格与政策请以最新官方信息为准。详见 [发布状态](RELEASE_STATUS.md)。
+当前为 **v0.3.2 正式版**。建议用于辅助决策，关键资格与政策请以最新官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)。
 
-无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](PRIVACY.md)。
+无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](docs/PRIVACY.md)。
 
 ## 进一步了解
 
-[安装与更新](docs/INSTALLATION.md) · [决策示例](examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](COMPATIBILITY.md)
+[安装与更新](docs/INSTALLATION.md) · [决策示例](docs/examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](docs/COMPATIBILITY.md)
 
-使用问题欢迎通过 Issues 反馈。贡献请参阅 [贡献指南](CONTRIBUTING.md)，项目采用 [MIT License](LICENSE)。
+使用问题欢迎通过 Issues 反馈。贡献请参阅 [贡献指南](docs/CONTRIBUTING.md)，项目采用 [MIT License](LICENSE)。

@@ -5,7 +5,7 @@ Agent Skills `skills-ref` validator).
 Dev tool. Python standard library only (no PyYAML dependency). Run from the
 repository root:
 
-    python3 tools/check_frontmatter.py
+    python3 maintenance/check_frontmatter.py
 
 The frontmatter is a small, controlled YAML subset: top-level scalar keys, one
 folded `description` block, and one nested `metadata` mapping whose values are

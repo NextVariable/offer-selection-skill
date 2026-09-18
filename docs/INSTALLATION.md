@@ -33,22 +33,22 @@ macOS / Linux 选择对应的一条命令：
 
 ```bash
 # Codex
-bash install.sh --platform codex
+bash maintenance/install.sh --platform codex
 # Claude Code
-bash install.sh --platform claude-code
+bash maintenance/install.sh --platform claude-code
 # WorkBuddy
-bash install.sh --platform workbuddy
+bash maintenance/install.sh --platform workbuddy
 ```
 
 Windows 需要 PowerShell 7（`pwsh`），选择对应的一条命令：
 
 ```powershell
 # Codex
-pwsh -File .\install.ps1 -Platform codex
+pwsh -File .\maintenance/install.ps1 -Platform codex
 # Claude Code
-pwsh -File .\install.ps1 -Platform claude-code
+pwsh -File .\maintenance/install.ps1 -Platform claude-code
 # WorkBuddy
-pwsh -File .\install.ps1 -Platform workbuddy
+pwsh -File .\maintenance/install.ps1 -Platform workbuddy
 ```
 
 安装后开启 AI Agent 的新会话，按 [README 中的示例](../README.md#在-ai-聊天框开始使用) 调用。
