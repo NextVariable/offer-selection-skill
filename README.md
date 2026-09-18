@@ -12,6 +12,38 @@ Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发�
 
 支持 Codex、Claude Code、WorkBuddy 等 AI 客户端的本地技能安装。
 
+## 快速开始
+
+这是安装到 AI 客户端里的技能，不是独立软件。先准备支持本地 Skill 的客户端，并允许助手联网查资料；普通聊天窗口上传文件不等于完成本地安装。WorkBuddy 已验证文件安装和技能发现，完整调用仍待验证，详见 [兼容性](COMPATIBILITY.md)。
+
+### 在终端安装
+
+需要 [Node.js LTS](https://nodejs.org/)、Git，以及能访问 npm 和 GitHub 的网络。安装 Node.js 后重新打开终端。macOS 打开“终端”，Windows 打开 Windows Terminal 或 PowerShell；下面的命令在电脑终端执行，不是在 AI 聊天框输入：
+
+```bash
+npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
+```
+
+首次运行如果询问是否下载 `skills` 工具，确认后按安装向导选择你使用的客户端和安装方式。`-g` 表示安装到用户目录，跨项目可用，不必先下载 ZIP 或进入仓库目录。安装完成后开启客户端的新会话。WorkBuddy 用户请使用下方的 [备用安装方式](#备用安装方式)，不假定第三方工具支持它。
+
+已有同名技能时先确认原来的安装方式，不要直接确认覆盖。更新和卸载应沿用同一工具，避免重复副本。
+
+此方式使用第三方 [skills CLI](https://github.com/vercel-labs/skills)，会安装技能所在目录，包括附带的公开文档；本项目的备用脚本则只复制固定运行文件。2026-09-18 已在 macOS 临时项目中验证 Codex 和 Claude Code 的复制安装，七个运行文件完整且与本地一致；未覆盖已有全局安装，也未据此声明 Windows 或其他客户端已完成验证。
+
+### 在 AI 聊天框开始使用
+
+在新会话中发送：
+
+```text
+请使用 offer-selection-skill，帮我比较硕士 Offer。先问我需要的信息。
+```
+
+不需要先填完长表格。助手会根据已经知道的信息，追问真正影响选择的背景；公开学费、学制、课程和政策由助手查证，私人奖学金和接受截止日期由你补充。后面的完整提问示例是可选的。
+
+### 确认安装成功
+
+终端显示安装完成只证明文件安装完成。用 `npx skills list -g` 查看是否列出 `offer-selection-skill`，再在客户端的新会话中确认能找到该技能。你也可以请助手说明是否已加载该技能的 `SKILL.md` 和 `references/core-decision-engine.md`，并查看客户端提供的文件读取记录；一段普通选校建议本身不能证明技能已加载。
+
 ## 它会帮你看什么？
 
 | 你在纠结什么？ | 它帮你判断什么？ |
@@ -22,21 +54,9 @@ Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发�
 | 想继续读博，哪个硕士更有帮助？      | 判断项目能否提供与你研究目标相关的训练、研究成果、导师支持和推荐信机会           |
 | 更贵的 Offer，值得多花这笔钱吗？  | 比较多付出的总成本能换来什么，以及这些机会对你是否有用、是否可达、是否承担得起       |
 
-## 怎么用？
+## 提供背景与完整示例（可选）
 
-安装后，刷新客户端的技能列表或开启新会话，输入以下命令启动技能。
-
-在 Codex 中输入：
-```
-使用 offer-selection-skill
-```
-
-在 Claude Code 中输入：
-```
-/offer-selection-skill
-```
-
-启动后，助手会集中询问决策需要的背景。如果希望一次提供完整信息，可以参考：
+在 Codex 中可直接发送前面的自然语言提问；使用本项目备用脚本安装到 Claude Code 后，也可输入 `/offer-selection-skill` 调用。缺少决定性信息时助手会逐步追问。如果希望一次提供完整信息，可以参考：
 ```
 本科背景：院校、专业、成绩
 已获 Offer：学校、项目全名、入学年份
@@ -102,7 +122,12 @@ B：[学校、项目全名、入学年份]
 
 分析也可能得出“两个项目没有明显差距”“需要先核实关键条件”，或“这几个都不值得接受”。它不会为了给出赢家而强行排序。
 
-## 安装
+## 备用安装方式
+
+<details>
+<summary>不使用 npx，或需要安装到 WorkBuddy：下载后运行原安装脚本</summary>
+
+这是与快速开始不同的一套安装工具。请选择一种方式并沿用；原安装器不会接管第三方工具安装的目录。
 
 ### 环境要求
 
@@ -154,6 +179,40 @@ pwsh -File .\install.ps1 -Platform workbuddy
 安装后，刷新客户端技能列表或开启新会话，再按“怎么用”调用技能。
 
 更新时，获取仓库最新内容，再执行原安装命令。安装器会拒绝覆盖不属于它管理的已有目录。
+
+</details>
+
+## 更新与常见问题
+
+通过 `npx skills` 安装的用户，可在终端执行 `npx skills update offer-selection-skill -g` 更新；需要移除时执行 `npx skills remove offer-selection-skill -g` 并按提示确认客户端。用原脚本安装的用户，重新获取最新仓库后执行原安装命令，不要混用。
+
+<details>
+<summary>提示找不到 npx、Git，或下载失败</summary>
+
+找不到 `npx`：安装 Node.js LTS 后重新打开终端。找不到 `git`：先安装 Git。连接超时或下载失败：检查能否访问 npm 和 GitHub；不要用管理员权限反复运行来解决网络问题。
+
+</details>
+
+<details>
+<summary>安装完成，但客户端找不到技能</summary>
+
+确认安装时选择了正确客户端，开启新会话，必要时重启客户端。`npx skills list -g` 可以确认工具记录的安装状态，但不证明客户端已经加载；原脚本安装的副本也不一定出现在该列表。仍找不到时，请在 Issue 中提供系统、客户端版本、安装命令和去除私人信息的错误提示。
+
+</details>
+
+<details>
+<summary>提示目录已存在、拒绝覆盖，或可能有重复副本</summary>
+
+先确认之前是用 `npx skills` 还是本项目脚本安装。不要直接删除技能目录或绕过保护：目录中可能有你自己的修改。沿用原方式更新；确需更换方式时，先备份个人改动，再使用原工具卸载或确认如何移除旧副本。
+
+</details>
+
+<details>
+<summary>Windows 备用安装提示找不到 pwsh</summary>
+
+备用脚本需要 PowerShell 7（`pwsh`），不是 Windows 自带的旧版 Windows PowerShell。安装 PowerShell 7 后重新打开终端，或使用前面的 `npx skills` 方式；该方式不需要运行本项目的 PowerShell 脚本。
+
+</details>
 
 ## 使用前了解
 

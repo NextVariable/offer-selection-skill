@@ -146,7 +146,7 @@ USAGE
 
 OPTIONS
     --platform PLATFORM   Explicit platform selection. One of:
-                          claude-code, github-copilot, cursor, windsurf,
+                          claude-code, workbuddy, github-copilot, cursor, windsurf,
                           cline, codex, gemini, kiro, trae, goose,
                           opencode, roo-code, kilo-code, factory,
                           junie, antigravity, universal
