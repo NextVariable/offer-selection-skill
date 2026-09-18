@@ -1,10 +1,26 @@
 # 安装与更新
 
-一行安装和首次使用见 [README](../README.md)。本页用于备用脚本安装、更新与排查。
+对话安装和首次使用见 [README](../README.md)。无法自动安装时，可使用以下方式。
 
-## 备用安装
+## 终端安装（Codex、Claude Code）
 
-WorkBuddy 可按以下步骤安装；Codex、Claude Code 不使用 npx 时也可采用此方式。先下载仓库：
+需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行：
+
+```bash
+npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
+```
+
+按提示选择使用的 AI Agent。刚安装 Node.js 或 Git 时，请先关闭并重新打开终端。
+
+## WorkBuddy 界面导入
+
+在 [GitHub 仓库](https://github.com/yunheliu68-ux/offer-selection-skill) 选择 **Code → Download ZIP**，下载后解压。
+
+打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后包含 `SKILL.md` 的完整文件夹，不要只上传单个 `SKILL.md`。
+
+## 脚本安装（可选）
+
+也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。先下载仓库：
 
 ```bash
 git clone https://github.com/yunheliu68-ux/offer-selection-skill.git
@@ -39,7 +55,9 @@ pwsh -File .\install.ps1 -Platform workbuddy
 
 ## 更新与卸载
 
-沿用原安装工具，不要混用；已有个人修改时先备份。
+已有个人修改时先备份，并沿用原安装方式更新或卸载。
+
+通过对话安装的用户，可让 AI Agent 按原方式更新或卸载；通过 WorkBuddy 界面导入的用户，可在技能管理中移除旧副本后导入新版。
 
 通过 npx 安装：
 
