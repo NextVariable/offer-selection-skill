@@ -19,7 +19,7 @@ How to read a case:
 
 These are not regression oracles and are not bound to any frozen run. They are
 plain-language illustrations of the methodology documented in
-`references/core-decision-engine.md`. The governed behavioral evidence lives in
+`skills/offer-selection-skill/references/core-decision-engine.md`. The governed behavioral evidence lives in
 `evals/` and is not shipped in the public release.
 
 ## Index

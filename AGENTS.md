@@ -7,13 +7,13 @@ offer, if any, is worth accepting for a specific user and goal.
 
 | Layer | Path | Who reads it |
 |---|---|---|
-| Runtime entrypoint | `SKILL.md` | runtime agent, every activation |
-| Execution semantics (single owner) | `references/core-decision-engine.md` | runtime agent, every run |
-| Path rules | `references/path-{private-sector,soe-public,local-stay,phd-academic}.md` | runtime agent, when the path activates |
-| Conditional priors and dated calibration | `domain/priors-and-calibration.md` | runtime agent when a prior trigger fires, and whenever the operative year has a mandatory cost calibration |
+| Runtime entrypoint | `skills/offer-selection-skill/SKILL.md` | runtime agent, every activation |
+| Execution semantics (single owner) | `skills/offer-selection-skill/references/core-decision-engine.md` | runtime agent, every run |
+| Path rules | `skills/offer-selection-skill/references/path-{private-sector,soe-public,local-stay,phd-academic}.md` | runtime agent, when the path activates |
+| Conditional priors and dated calibration | `skills/offer-selection-skill/references/priors-and-calibration.md` | runtime agent when a prior trigger fires, and whenever the operative year has a mandatory cost calibration |
 
 The governing decision engine is
-`SKILL.md → references/core-decision-engine.md` (+ relevant path files).
+`skills/offer-selection-skill/SKILL.md → skills/offer-selection-skill/references/core-decision-engine.md` (+ relevant path files).
 Do not maintain a second copy of the execution chain or any domain rule in
 this file or anywhere else.
 
@@ -27,7 +27,7 @@ this file or anywhere else.
   branches, promote a heuristic to a fact, or hard-code dynamic facts
   (tuition, ranking, visa, employer, credential, graduation policy).
 - Version number is single-sourced in `.claude-plugin/plugin.json` and copied
-  to the `SKILL.md` frontmatter; bump both and tag the commit when releasing.
+  to the `skills/offer-selection-skill/SKILL.md` frontmatter; bump both and tag the commit when releasing.
 - The skill loads only the files in the table above at runtime. Maintainer
   history and provenance are kept out of this repository.
 

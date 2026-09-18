@@ -1,8 +1,5 @@
 #!/bin/sh
-# install-template.sh — Cross-platform skill installation script
-# This file is a template. During skill generation, offer-selection-skill is replaced
-# with the actual skill name and the result is shipped as install.sh inside
-# every generated skill package.
+# Install the offer-selection-skill runtime package.
 #
 # POSIX-compatible (works in bash, dash, zsh, ash, etc.)
 # Exit codes:
@@ -18,6 +15,7 @@ set -eu
 # ---------------------------------------------------------------------------
 SKILL_NAME="offer-selection-skill"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILL_DIR="${SCRIPT_DIR}/skills/${SKILL_NAME}"
 MANIFEST="${SCRIPT_DIR}/.claude-plugin/plugin.json"
 
 # The single source of truth for the version is .claude-plugin/plugin.json.
@@ -44,10 +42,16 @@ runtime_allowlist() {
     printf '%s\n' \
         "SKILL.md" \
         "references" \
-        "domain/priors-and-calibration.md" \
         ".claude-plugin/plugin.json" \
         ".claude-plugin/marketplace.json" \
         "LICENSE"
+}
+
+runtime_source() {
+    case "$1" in
+        SKILL.md|references) printf '%s/%s\n' "$SKILL_DIR" "$1" ;;
+        *) printf '%s/%s\n' "$SCRIPT_DIR" "$1" ;;
+    esac
 }
 
 # Files that must exist after staging for the skill to be runnable.
@@ -59,11 +63,11 @@ required_runtime_files() {
         "references/path-soe-public.md" \
         "references/path-local-stay.md" \
         "references/path-phd-academic.md" \
-        "domain/priors-and-calibration.md"
+        "references/priors-and-calibration.md"
 }
 
 # Directories that must never appear in an installation.
-FORBIDDEN_DIRS=".git .workbuddy .DS_Store audits evals archive tools __pycache__"
+FORBIDDEN_DIRS=".git .workbuddy .DS_Store internal audits evals archive tools __pycache__"
 
 # ---------------------------------------------------------------------------
 # Version detection (manifest-first, verifiable fallback)
@@ -218,10 +222,10 @@ parse_args() {
 # SKILL.md validation
 # ---------------------------------------------------------------------------
 validate_skill_md() {
-    skill_md="${SCRIPT_DIR}/SKILL.md"
+    skill_md="${SKILL_DIR}/SKILL.md"
 
     if [ ! -f "$skill_md" ]; then
-        error "SKILL.md not found in ${SCRIPT_DIR}"
+        error "SKILL.md not found in ${SKILL_DIR}"
         error "Every skill package must contain a valid SKILL.md file."
         exit 1
     fi
@@ -501,7 +505,7 @@ resolve_install_path() {
 # a single-line value and a YAML folded block (`description: >-` followed by
 # indented lines), which is the format this repository ships. Returns via echo.
 extract_skill_description() {
-    skill_md="${SCRIPT_DIR}/SKILL.md"
+    skill_md="${SKILL_DIR}/SKILL.md"
     # awk: after the first `---`, collect `description:` and any continuation
     # lines that are more-indented than the key. Fold them into one line.
     awk '
@@ -538,7 +542,7 @@ extract_skill_description() {
 generate_plain_rule() {
     target_dir="$1"
     filename="$2"
-    skill_md="${SCRIPT_DIR}/SKILL.md"
+    skill_md="${SKILL_DIR}/SKILL.md"
 
     plain_file="${target_dir}/${filename}"
 
@@ -555,7 +559,7 @@ generate_plain_rule() {
 # Generate Junie guidelines.md (plain body, no frontmatter)
 generate_junie_guideline() {
     target_dir="$1"
-    skill_md="${SCRIPT_DIR}/SKILL.md"
+    skill_md="${SKILL_DIR}/SKILL.md"
 
     guideline_file="${target_dir}/guidelines.md"
 
@@ -613,6 +617,7 @@ install_universal_secondary() {
     # A custom path is an explicit containment boundary. Do not create a second
     # user-home install that the caller did not request.
     [ -n "$CUSTOM_PATH" ] && return 0
+    $PROJECT_LEVEL && return 0
 
     # Skip if primary target is already .agents/
     case "$PLATFORM" in
@@ -652,8 +657,7 @@ install_universal_secondary() {
 # Refuse to delete or overwrite anything that is not an explicit, strictly
 # skill-shaped destination. The installer may only ever remove
 # <somewhere>/offer-selection-skill and, even then, only after the directory
-# has proven it is owned by this installer (or satisfies the legacy contract —
-# see validate_existing_destination).
+# has a valid ownership marker (see validate_existing_destination).
 assert_safe_install_dir() {
     case "$INSTALL_DIR" in
         ""|"/"|"."|".."|"/.")
@@ -693,7 +697,7 @@ assert_safe_install_dir() {
         error "Refusing to install into a directory that is not a ${SKILL_NAME} install path."
         exit 1
     fi
-    if [ "$INSTALL_DIR" = "$SCRIPT_DIR" ]; then
+    if [ "$INSTALL_DIR" = "$SCRIPT_DIR" ] || [ "$INSTALL_DIR" = "$SKILL_DIR" ]; then
         error "Refusing to install directly into the source package: ${SCRIPT_DIR}"
         exit 1
     fi
@@ -739,24 +743,6 @@ PY
     return 1
 }
 
-# True if $1/SKILL.md has frontmatter `name: <expected>` exactly.
-frontmatter_name_is() {
-    skill_file="$1"
-    expected="$2"
-    [ -f "$skill_file" ] || return 1
-    awk -v want="$expected" '
-        NR == 1 && $0 == "---" { in_fm = 1; next }
-        in_fm && $0 == "---"   { exit }
-        in_fm && $0 ~ /^name:/ {
-            line = $0
-            sub(/^name:[ \t]*/, "", line)
-            sub(/[ \t\r]+$/, "", line)
-            if (line == want) found = 1
-        }
-        END { exit (found ? 0 : 1) }
-    ' "$skill_file"
-}
-
 # True if every runtime file exists under $1.
 has_all_runtime_files() {
     root_dir="$1"
@@ -768,10 +754,7 @@ has_all_runtime_files() {
 
 # Called before any overwrite. A destination may be replaced only when:
 #   - it does not exist yet (fresh install), or
-#   - it carries a valid ownership marker (managed upgrade), or
-#   - it satisfies the legacy contract for installs made before markers
-#     existed (basename + SKILL.md name + every runtime reference), in which
-#     case the replacement writes the marker and the user is told.
+#   - it carries a valid ownership marker (managed upgrade).
 # Anything else is refused untouched.
 validate_existing_destination() {
     if [ ! -e "$INSTALL_DIR" ] && [ ! -L "$INSTALL_DIR" ]; then
@@ -788,7 +771,8 @@ validate_existing_destination() {
                    has_all_runtime_files "$INSTALL_DIR"; then
                     info "Migrating installer-managed universal link to a standalone install."
                     $DRY_RUN && return 0
-                    rm -f "$INSTALL_DIR"
+                    # Keep the link until the staged package is verified. The
+                    # normal swap/rollback moves the link itself, not its target.
                     return 0
                 fi
                 ;;
@@ -812,16 +796,8 @@ validate_existing_destination() {
         exit 1
     fi
 
-    # Legacy migration: a pre-marker install made by an older version of this
-    # installer. Only accept it when the directory is provably skill-shaped.
-    if frontmatter_name_is "${INSTALL_DIR}/SKILL.md" "$SKILL_NAME" &&
-       has_all_runtime_files "$INSTALL_DIR"; then
-        warn "Existing install at ${INSTALL_DIR} has no ownership marker but matches the legacy install contract."
-        warn "Migrating it to a marker-managed install."
-        return 0
-    fi
-    error "Refusing to overwrite '${INSTALL_DIR}': it exists but is not a directory managed by this installer (no valid ownership marker, and no matching legacy skill layout)."
-    error "Choose a different destination or remove the directory yourself."
+    error "Refusing to overwrite '${INSTALL_DIR}': no valid installer ownership marker."
+    error "Back up personal changes and remove the old copy with its original installation method, or choose a new destination."
     exit 1
 }
 
@@ -879,7 +855,7 @@ prune_forbidden() {
 stage_runtime_files() {
     count=0
     for entry in $(runtime_allowlist); do
-        src="${SCRIPT_DIR}/${entry}"
+        src="$(runtime_source "$entry")"
         if [ ! -e "$src" ]; then
             error "Runtime allowlist entry missing from the package: ${entry}"
             error "Refusing to install an incomplete skill package."
@@ -996,11 +972,11 @@ install_files() {
         info "Would create directory: ${INSTALL_DIR}"
         info "Runtime allowlist (the complete install payload):"
         for entry in $(runtime_allowlist); do
-            if [ ! -e "${SCRIPT_DIR}/${entry}" ]; then
+            if [ ! -e "$(runtime_source "$entry")" ]; then
                 error "Would copy: ${entry}  (MISSING in the source package)"
                 exit 1
             fi
-            if [ -d "${SCRIPT_DIR}/${entry}" ]; then
+            if [ -d "$(runtime_source "$entry")" ]; then
                 info "Would copy: ${entry}/  (directory)"
             else
                 info "Would copy: ${entry}"

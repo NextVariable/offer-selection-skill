@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to offer-selection-skill are recorded here. Version source
-of truth: `.claude-plugin/plugin.json` (mirrored in `SKILL.md` frontmatter).
+of truth: `.claude-plugin/plugin.json` (mirrored in `skills/offer-selection-skill/SKILL.md` frontmatter).
 This project follows the governance rules in `AGENTS.md` / `CONTRIBUTING.md`;
 behavioral evidence conventions are in `evals/README.md`.
 
@@ -33,16 +33,16 @@ behavior or completed regression. The entries below record the changes:
   (an institution name or top-level domain alone confirms nothing); third-party
   summaries stay `Heuristic/Prior` unless the primary source is actually
   checked; partial support narrows the claim instead of stretching the source;
-  dynamic facts carry an operative period (`references/core-decision-engine.md`).
+  dynamic facts carry an operative period (`skills/offer-selection-skill/references/core-decision-engine.md`).
 - **recognition incremental value / cost clarification** — a supported
   recognition difference prevents manufactured equivalence but does not, by
   itself, settle the overall recommendation; Stage 5 must still weigh
   user-specific incremental value against incremental cost
-  (`references/path-private-sector.md`).
+  (`skills/offer-selection-skill/references/path-private-sector.md`).
 - **lean user output** — normal user answers lead with the conclusion,
   decisive causes and reversal conditions; the full stage/gate/evidence-state
   manifest is expanded only for eval, audit, an explicit request, or high-risk
-  facts. Reduces presentation, never research (`SKILL.md`).
+  facts. Reduces presentation, never research (`skills/offer-selection-skill/SKILL.md`).
 - **run-bound reviews** — every review is bound to one exact run record; a
   later PASS never erases a historical FAIL; aggregation is fixed (any FAIL →
   FAIL; else any PARTIAL → PARTIAL; else PASS).
@@ -54,14 +54,14 @@ behavior or completed regression. The entries below record the changes:
   (explicit `--commit`, or `HEAD` by default); a run without a commit cannot
   receive a run-bound review; legacy records keep their historical shape.
 - **installer security hardening** — `install.sh` / `install.ps1` install a
-  fixed runtime allowlist only (`SKILL.md`, `references/`,
-  `domain/priors-and-calibration.md`, `.claude-plugin/plugin.json`,
+  fixed runtime allowlist only (`skills/offer-selection-skill/SKILL.md`, `skills/offer-selection-skill/references/`,
+  `skills/offer-selection-skill/references/priors-and-calibration.md`, `.claude-plugin/plugin.json`,
   `.claude-plugin/marketplace.json`, `LICENSE`); the version is read from
   `.claude-plugin/plugin.json` instead of being hard-coded; staging + atomic
   replace; destination safety checks; post-install runtime-reference
   verification. Dev material (`audits`, `evals`, `archive`, `tools`, git,
   machine-local files) **and the repository's developer docs** (`README.md`,
-  `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`) are never shipped — `SKILL.md`
+  `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`) are never shipped — `skills/offer-selection-skill/SKILL.md`
   is the installed usage entry point.
 - **managed install destinations** (final RC hardening) — the installers
   require a custom destination to be absolute and to end exactly in
@@ -75,7 +75,7 @@ behavior or completed regression. The entries below record the changes:
   narratives whose machine-local paths had been normalized during privacy
   cleanup were restored byte-for-byte, because historical review markdown is
   treated as immutable evidence. The redaction record
-  (`audits/2026-09-08-public-release-redaction.md`) documents the correction;
+  (`internal/audits/2026-09-08-public-release-redaction.md`) documents the correction;
   one byte-immutable rollout keeps its original bytes for the same reason.
   These local paths remain visible in the public source tree/history and are
   never shipped by the installers.
@@ -100,7 +100,7 @@ behavior or completed regression. The entries below record the changes:
   (backup kept at a printed path, never deleted or overwritten); or no
   previous   install existed — instead of always claiming a restore. Unix
   battery result: 32/32 PASS locally (up from 24/24).
-- **Agent Skills frontmatter conformity** — `SKILL.md` frontmatter now uses
+- **Agent Skills frontmatter conformity** — `skills/offer-selection-skill/SKILL.md` frontmatter now uses
   only the official Agent Skills top-level fields (`name`, `description`,
   `license`, `metadata`); the non-standard top-level `activation` and
   `provenance` keys were removed and their content (activation path,
@@ -134,10 +134,10 @@ behavior or completed regression. The entries below record the changes:
 - **public README rewrite** for first-time external users, plus this
   `CHANGELOG.md`.
 - **privacy cleanup for public release** — documented in
-  `audits/2026-09-08-public-release-redaction.md`. Machine-local absolute
+  `internal/audits/2026-09-08-public-release-redaction.md`. Machine-local absolute
   paths were normalized to repo-relative paths in one plain historical audit
   (non-hash-bound, kept normalized); the private ChatGPT conversation
-  provenance URI was removed from `SKILL.md`. Ten review narratives and one
+  provenance URI was removed from `skills/offer-selection-skill/SKILL.md`. Ten review narratives and one
   hash-bound rollout were **not** rewritten: the reviews were restored to
   their original bytes after an interim normalization was recognised as a
   violation of review immutability (see "historical reviews restored"
@@ -197,17 +197,17 @@ decision-methodology, evidence, or version change.
   client run confirms discovery, invocation, reference loading and execution.
 - **Dead Cursor/Windsurf rule-adapter removal** (`install.sh` / `install.ps1`):
   the now-unused Cursor `.mdc` and Windsurf rule generators (and their stale
-  comments) were deleted, since both clients install the native SKILL.md
+  comments) were deleted, since both clients install the native skills/offer-selection-skill/SKILL.md
   package and the adapters are no longer invoked. Installer behavior is
   unchanged; the Unix safety battery still passes 37/37.
 - **Self-consistent public snapshot docs** (`tools/snapshot_docs.py`, new):
   the snapshot build now rewrites the snapshot copies of `CONTRIBUTING.md`,
   `AGENTS.md`, the PR template and `SECURITY.md` so they reference only the
-  files the snapshot ships — never the excluded `evals/` / `audits/` /
-  `archive/` / provenance tree or the eval tooling. The development repository's
+  files the snapshot ships — never the excluded `evals/` / `internal/audits/` /
+  `internal/archive/` / provenance tree or the eval tooling. The development repository's
   full governance docs are untouched; only the public copies are adjusted.
 - **Second Claude Code smoke run** (2026-09-09): an anonymous 985-CS
-  UCL-vs-CUHK technical-return case was run after the `SKILL.md` privacy-rule
+  UCL-vs-CUHK technical-return case was run after the `skills/offer-selection-skill/SKILL.md` privacy-rule
   addition and returned a mechanism-correct conditional answer, confirming the
   privacy rule does not break normal runs. WorkBuddy discovery is now confirmed
   in-session; Codex and WorkBuddy invocation/reference loading remain Pending.
@@ -220,12 +220,12 @@ index only.
 
 - **Private-sector non-technical Major-Gate scope** — the Major Eligibility
   Gate is not applicable for broad private-sector non-technical roles; the full
-  scope and its exceptions are owned by `references/path-private-sector.md`, the
-  engine semantics by `references/core-decision-engine.md`.
+  scope and its exceptions are owned by `skills/offer-selection-skill/references/path-private-sector.md`, the
+  engine semantics by `skills/offer-selection-skill/references/core-decision-engine.md`.
 - **Multi-offer hard-gate screening** — every offer is screened across the
   applicable gates before any shortlist is formed.
 - **Operative-year cost calibration** — the maintained 2026 all-in planning
-  baseline moved from core into `domain/priors-and-calibration.md`; core now
+  baseline moved from core into `skills/offer-selection-skill/references/priors-and-calibration.md`; core now
   makes reading it a precondition of any cost conclusion.
 - **Lower-bound budget arithmetic** — confirmed tuition plus mandatory fees is
   a Total Cost lower bound; a range straddling the Absolute Ceiling is
@@ -240,7 +240,7 @@ index only.
 ## v0.3.1 — released 2026-09-07
 
 - D1 bounded fallback fix (`fdc2d47`): missing employer-specific evidence does
-  not imply recognition equivalence (`references/path-private-sector.md`).
+  not imply recognition equivalence (`skills/offer-selection-skill/references/path-private-sector.md`).
 - Full regression at release: 9/9 Golden + 4/4 D1 boundary PASS
   (`2813da6`).
 - Metadata-only release commit (`e58966d`). `v0.3.0` tag untouched.

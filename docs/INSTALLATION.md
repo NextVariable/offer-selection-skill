@@ -16,7 +16,7 @@ npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill
 
 在 [GitHub 仓库](https://github.com/yunheliu68-ux/offer-selection-skill) 选择 **Code → Download ZIP**，下载后解压。
 
-打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后包含 `SKILL.md` 的完整文件夹，不要只上传单个 `SKILL.md`。
+打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后的 `skills/offer-selection-skill` 文件夹，不要只上传单个 `SKILL.md`。
 
 ## 脚本安装（可选）
 

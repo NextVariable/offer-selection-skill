@@ -133,7 +133,8 @@ def parse_frontmatter(text):
 
 def check():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    skill_md = os.path.join(root, "SKILL.md")
+    skill_root = os.path.join(root, "skills", "offer-selection-skill")
+    skill_md = os.path.join(skill_root, "SKILL.md")
     plugin_json = os.path.join(root, ".claude-plugin", "plugin.json")
     if not os.path.isfile(skill_md):
         die("SKILL.md not found at %s" % skill_md)
@@ -156,7 +157,7 @@ def check():
         die("top-level `name` is missing")
     if not NAME_RE.match(name):
         die("top-level `name` %r is not a valid skill name" % name)
-    dir_name = os.path.basename(root)
+    dir_name = os.path.basename(skill_root)
     if name != dir_name:
         die("top-level `name` %r does not match the skill directory name %r"
             % (name, dir_name))

@@ -10,7 +10,7 @@
 | v0.2.x and earlier | End of support |
 
 The current release line is declared in `.claude-plugin/plugin.json`
-(`version`) and mirrored in `SKILL.md` frontmatter. Only the listed versions
+(`version`) and mirrored in `skills/offer-selection-skill/SKILL.md` frontmatter. Only the listed versions
 receive security fixes.
 
 ## Reporting a vulnerability

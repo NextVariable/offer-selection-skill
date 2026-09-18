@@ -171,6 +171,23 @@ try {
         Ok "8. invalid marker preserved"
     } else { Bad "8. invalid marker preserved" }
 
+    # A complete unmarked copy is not an installer-owned destination.
+    $unmarked = Join-Path $T "unmarked\offer-selection-skill"
+    New-Item -ItemType Directory -Path (Split-Path $unmarked -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $p1 -Destination $unmarked -Recurse -Force
+    Remove-Item -LiteralPath (Join-Path $unmarked ".offer-selection-skill-install.json")
+    $r = Invoke-InstallerProcess -Arguments @("-Platform", "universal", "-Path", $unmarked)
+    if ($r.ExitCode -ne 0 -and
+        (Test-Path (Join-Path $unmarked "SKILL.md")) -and
+        -not (Test-Path (Join-Path $unmarked ".offer-selection-skill-install.json"))) {
+        Ok "unmarked complete skill refused and preserved"
+    } else { Bad "unmarked complete skill was replaced" }
+
+    $r = Invoke-InstallerProcess -Arguments @("-Platform", "claude-code", "-Project", "-DryRun")
+    if ($r.ExitCode -eq 0 -and $r.Stdout -notmatch "Would create universal link") {
+        Ok "project preview has no global secondary"
+    } else { Bad "project install escapes project scope" }
+
     # 9. Payload: dev docs / dev material / installer scripts are absent.
     $bad = @()
     foreach ($d in @("README.md","CONTRIBUTING.md","SECURITY.md","AGENTS.md","audits","evals","archive","tools",".git",".workbuddy",".DS_Store","install.sh","install.ps1")) {
@@ -181,7 +198,7 @@ try {
 
     # 10. Runtime references resolve + marker JSON parses.
     $missing = @()
-    foreach ($f in @("SKILL.md","references\core-decision-engine.md","references\path-private-sector.md","references\path-soe-public.md","references\path-local-stay.md","references\path-phd-academic.md","domain\priors-and-calibration.md")) {
+    foreach ($f in @("SKILL.md","references\core-decision-engine.md","references\path-private-sector.md","references\path-soe-public.md","references\path-local-stay.md","references\path-phd-academic.md","references\priors-and-calibration.md")) {
         if (-not (Test-Path -LiteralPath (Join-Path $p1 $f))) { $missing += $f }
     }
     if ($missing.Count -eq 0) { Ok "10. runtime references complete" }

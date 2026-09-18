@@ -27,10 +27,10 @@ Report security problems through the private channel in `SECURITY.md`.
 ## Development repository vs. public release
 
 The full development repository is **not** the public release. It contains
-internal behavioral evidence (`evals/`), audits (`audits/`), historical
-provenance (`archive/`), machine-local absolute paths, a personal author e-mail,
+internal behavioral evidence (`evals/`), audits (`internal/audits/`), historical
+provenance (`internal/archive/`), machine-local absolute paths, a personal author e-mail,
 and a private conversation-derived provenance document
-(`domain/source-of-truth.md`). None of these belong in a public repository.
+(`internal/source-of-truth.md`). None of these belong in a public repository.
 
 The public release is produced by `tools/build_release_snapshot.sh` as a clean
 snapshot: it carries only the runtime skill, installers, developer docs, and
