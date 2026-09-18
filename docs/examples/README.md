@@ -17,10 +17,9 @@ How to read a case:
 - **What this is NOT** — the boundary that must not be crossed (e.g. no fake
   numeric gap, no school ranking arithmetic, no invented certainty).
 
-These are not regression oracles and are not bound to any frozen run. They are
-plain-language illustrations of the methodology documented in
-`skills/offer-selection-skill/references/core-decision-engine.md`. The governed behavioral evidence lives in
-`evals/` and is not shipped in the public release.
+These examples explain the intended decision approach, not actual user outcomes
+or a guarantee of AI performance. The rules are maintained in
+[the decision engine](../../skills/offer-selection-skill/references/core-decision-engine.md).
 
 ## Index
 
