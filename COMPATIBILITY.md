@@ -6,9 +6,9 @@ matrix separates file installation from real host execution; a copied
 
 | Host | Native location | Installer test | Host discovery | Manual invocation | Reference loading | Researched answer |
 |---|---|---:|---:|---:|---:|---:|
-| Codex | `~/.agents/` | PASS (Unix) | PASS (Codex CLI 0.154.0-alpha.6.2) | PASS | PASS (core + private-sector path) | Not tested in current smoke (no live research) |
-| WorkBuddy | `~/.workbuddy/` | PASS (Unix) | PASS (listed in WorkBuddy 5.5.4) | Pending — new-task Send remained disabled | Pending | Pending |
-| Claude Code | `~/.claude/` | PASS (Unix) | PASS (2.1.260, headless) | PASS (current routing smoke, 2026-09-16) | PASS (current core + private-sector path); priors/skip observations are historical | Historical smoke PASS (2026-09-09); not revalidated for current runtime |
+| Codex | `~/.agents/skills/offer-selection-skill/` | PASS (Unix) | PASS (Codex CLI 0.154.0-alpha.6.2) | PASS | PASS (core + private-sector path) | Not tested in current smoke (no live research) |
+| WorkBuddy | `~/.workbuddy/skills/offer-selection-skill/` | PASS (Unix) | PASS (listed in WorkBuddy 5.5.4) | Pending — new-task Send remained disabled | Pending | Pending |
+| Claude Code | `~/.claude/skills/offer-selection-skill/` | PASS (Unix) | PASS (2.1.260, headless) | PASS (current routing smoke, 2026-09-16) | PASS (current core + private-sector path); priors/skip observations are historical | Historical smoke PASS (2026-09-09); not revalidated for current runtime |
 
 **Installer CI record (2026-09-16).** Linux and real `windows-latest` / `pwsh`
 installer checks passed in [GitHub Actions run 35026787716](https://github.com/yunheliu68-ux/offer-selection-skill/actions/runs/35026787716)
