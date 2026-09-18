@@ -4,8 +4,8 @@
 
 | Version | Status |
 |---|---|
-| v0.3.2 (release candidate) | Supported — pre-release, under review |
-| v0.3.1 | Supported (latest released) |
+| v0.3.2 | Supported — current official version |
+| v0.3.1 | Supported |
 | v0.3.0 | Supported |
 | v0.2.x and earlier | End of support |
 
