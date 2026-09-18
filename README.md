@@ -10,11 +10,11 @@ Offer Selection Skill 从你真正想去的岗位、行业或研究方向出发�
 
 它不是一个大学排名器，也不会用固定权重机械打分。你提供个人背景和已经拿到的 Offer，AI 助手按照既定决策流程研究公开信息、核验关键条件，再给出针对你的建议。
 
-支持 Codex、Claude Code、WorkBuddy 等 AI 客户端的本地技能安装。
+支持 Codex、Claude Code、WorkBuddy 等 AI Agent 的本地技能安装。
 
 ## 快速开始
 
-这是安装到 AI 客户端里的技能，不是独立软件。先准备支持本地 Skill 的客户端，并允许助手联网查资料；普通聊天窗口上传文件不等于完成本地安装。WorkBuddy 已验证文件安装和技能发现，完整调用仍待验证，详见 [兼容性](COMPATIBILITY.md)。
+这是安装到 AI Agent 里的技能，不是独立软件。先准备支持本地 Skill 的客户端，并允许助手联网查资料；普通聊天窗口上传文件不等于完成本地安装。WorkBuddy 已验证文件安装和技能发现，完整调用仍待验证，详见 [兼容性](COMPATIBILITY.md)。
 
 ### 在终端安装
 
@@ -131,7 +131,7 @@ B：[学校、项目全名、入学年份]
 
 ### 环境要求
 
-需要支持本地 Skill 且具备联网搜索能力的 AI 客户端，例如 Codex、Claude Code 或 WorkBuddy。macOS / Linux 使用 Bash；Windows 需要 PowerShell 7+（`pwsh`）。
+需要支持本地 Skill 且具备联网搜索能力的 AI Agent，例如 Codex、Claude Code 或 WorkBuddy。macOS / Linux 使用 Bash；Windows 需要 PowerShell 7+（`pwsh`）。
 
 ### 获取技能
 
