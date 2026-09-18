@@ -14,7 +14,7 @@
 
 ### 在终端安装
 
-先安装 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，再重新打开电脑终端：macOS 使用“终端”，Windows 使用 Windows Terminal 或 PowerShell，执行下方命令。
+需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行下方命令；刚安装这些工具的用户，请先关闭并重新打开终端。
 
 ```bash
 npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
