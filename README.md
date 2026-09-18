@@ -20,7 +20,7 @@
 npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
 ```
 
-安装后，在 AI Agent 中新建对话即可使用。
+Codex、Claude Code 可使用上方命令安装；WorkBuddy 安装步骤见 [安装说明](docs/INSTALLATION.md)。安装后，在 AI Agent 中新建对话即可使用。
 
 ### 在 AI 聊天框开始使用
 
@@ -30,11 +30,9 @@ npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill
 请使用 offer-selection-skill，帮我比较硕士 Offer。先问我需要的信息。
 ```
 
-不必一次填完所有背景，助手会逐步询问影响选择的必要信息。
+Claude Code 也可输入 `/offer-selection-skill` 调用。
 
-### 确认安装成功
-
-用 `npx skills list -g` 查看安装记录，再开启 AI Agent 的新会话，确认能找到 `offer-selection-skill`。找不到时，查看下方常见问题。
+如果提供的信息不足以判断，助手会追问需要补充的关键背景。
 
 ## 它会帮你看什么？
 
@@ -48,7 +46,8 @@ npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill
 
 ## 提供背景与完整示例（可选）
 
-在 Codex 中可直接发送前面的自然语言提问；使用本项目备用脚本安装到 Claude Code 后，也可输入 `/offer-selection-skill` 调用。缺少决定性信息时助手会逐步追问。如果希望一次提供完整信息，可以参考：
+如果希望一次提供完整背景，可以参考：
+
 ```
 本科背景：院校、专业、成绩
 已获 Offer：学校、项目全名、入学年份
@@ -60,7 +59,7 @@ npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill
 最纠结的问题（可选）：你希望重点比较的取舍
 ```
 
-学费、学制、课程、签证和公开招聘条件等，由具备联网能力的助手查证。奖学金、Offer 接受截止日期等个人专属条件，需要你补充。
+学费、学制、课程和政策等公开信息由助手查证；你实际获得的奖学金、Offer 接受截止日期等个人录取条件，请自行补充。
 
 <details>
 <summary>查看完整提问示例</summary>
@@ -111,98 +110,6 @@ B：[学校、项目全名、入学年份]
 
 分析也可能得出“两个项目没有明显差距”“需要先核实关键条件”，或“这几个都不值得接受”。它不会为了给出赢家而强行排序。
 
-## 备用安装方式
-
-<details>
-<summary>不使用 npx，或需要安装到 WorkBuddy：下载后运行原安装脚本</summary>
-
-这是与快速开始不同的一套安装工具。请选择一种方式并沿用；原安装器不会接管第三方工具安装的目录。
-
-### 环境要求
-
-需要支持本地 Skill 且具备联网搜索能力的 AI Agent，例如 Codex、Claude Code 或 WorkBuddy。macOS / Linux 使用 Bash；Windows 需要 PowerShell 7+（`pwsh`）。
-
-### 获取技能
-
-使用 Git 下载，并进入仓库目录：
-
-```bash
-git clone https://github.com/yunheliu68-ux/offer-selection-skill.git
-cd offer-selection-skill
-```
-
-也可以在 GitHub 页面选择 **Code → Download ZIP**，解压后在终端中进入包含 `SKILL.md`、`install.sh` 和 `install.ps1` 的目录。
-
-### macOS / Linux
-
-在仓库目录中，选择你使用的客户端，执行对应的一条命令：
-
-```bash
-# Codex
-bash install.sh --platform codex
-
-# Claude Code
-bash install.sh --platform claude-code
-
-# WorkBuddy
-bash install.sh --platform workbuddy
-```
-
-### Windows
-
-在仓库目录中，选择你使用的客户端，执行对应的一条命令：
-
-```powershell
-# Codex
-pwsh -File .\install.ps1 -Platform codex
-
-# Claude Code
-pwsh -File .\install.ps1 -Platform claude-code
-
-# WorkBuddy
-pwsh -File .\install.ps1 -Platform workbuddy
-```
-
-### 启用与更新
-
-安装后，刷新客户端技能列表或开启新会话，再按“怎么用”调用技能。
-
-更新时，获取仓库最新内容，再执行原安装命令。安装器会拒绝覆盖不属于它管理的已有目录。
-
-</details>
-
-## 更新与常见问题
-
-通过 `npx skills` 安装的用户，可在终端执行 `npx skills update offer-selection-skill -g` 更新；需要移除时执行 `npx skills remove offer-selection-skill -g` 并按提示确认客户端。用原脚本安装的用户，重新获取最新仓库后执行原安装命令，不要混用。
-
-<details>
-<summary>提示找不到 npx、Git，或下载失败</summary>
-
-找不到 `npx`：安装 Node.js LTS 后重新打开终端。找不到 `git`：先安装 Git。连接超时或下载失败：检查能否访问 npm 和 GitHub；不要用管理员权限反复运行来解决网络问题。
-
-</details>
-
-<details>
-<summary>安装完成，但客户端找不到技能</summary>
-
-确认安装时选择了正确客户端，开启新会话，必要时重启客户端。`npx skills list -g` 可以确认工具记录的安装状态，但不证明客户端已经加载；原脚本安装的副本也不一定出现在该列表。仍找不到时，请在 Issue 中提供系统、客户端版本、安装命令和去除私人信息的错误提示。
-
-</details>
-
-<details>
-<summary>提示目录已存在、拒绝覆盖，或可能有重复副本</summary>
-
-先确认之前是用 `npx skills` 还是本项目脚本安装。不要直接删除技能目录或绕过保护：目录中可能有你自己的修改。沿用原方式更新；确需更换方式时，先备份个人改动，再使用原工具卸载或确认如何移除旧副本。
-
-</details>
-
-<details>
-<summary>Windows 备用安装提示找不到 pwsh</summary>
-
-备用脚本需要 PowerShell 7（`pwsh`），不是 Windows 自带的旧版 Windows PowerShell。安装 PowerShell 7 后重新打开终端，或使用前面的 `npx skills` 方式；该方式不需要运行本项目的 PowerShell 脚本。
-
-</details>
-
 ## 使用前了解
 
 当前为 **v0.3.2 正式版**。建议用于辅助决策，关键资格与政策请以最新官方信息为准。详见 [发布状态](RELEASE_STATUS.md)。
@@ -211,6 +118,6 @@ pwsh -File .\install.ps1 -Platform workbuddy
 
 ## 进一步了解
 
-[决策示例](examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](COMPATIBILITY.md)
+[安装与更新](docs/INSTALLATION.md) · [决策示例](examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](COMPATIBILITY.md)
 
 使用问题欢迎通过 Issues 反馈。贡献请参阅 [贡献指南](CONTRIBUTING.md)，项目采用 [MIT License](LICENSE)。
