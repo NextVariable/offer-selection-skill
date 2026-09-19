@@ -17,7 +17,7 @@
 在 AI Agent 对话框中发送：
 
 ```text
-请帮我安装这个仓库中的 offer-selection-skill：https://github.com/yunheliu68-ux/offer-selection-skill
+请帮我安装这个仓库中的 offer-selection-skill：https://github.com/NextVariable/offer-selection-skill
 ```
 
 按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
