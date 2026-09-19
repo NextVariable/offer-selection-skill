@@ -7,14 +7,14 @@
 需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行：
 
 ```bash
-npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill -g
+npx skills add NextVariable/offer-selection-skill --skill offer-selection-skill -g
 ```
 
 按提示选择使用的 AI Agent。刚安装 Node.js 或 Git 时，请先关闭并重新打开终端。
 
 ## WorkBuddy 界面导入
 
-在 [GitHub 仓库](https://github.com/yunheliu68-ux/offer-selection-skill) 选择 **Code → Download ZIP**，下载后解压。
+在 [GitHub 仓库](https://github.com/NextVariable/offer-selection-skill) 选择 **Code → Download ZIP**，下载后解压。
 
 打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后的 `skills/offer-selection-skill` 文件夹，不要只上传单个 `SKILL.md`。
 
@@ -23,7 +23,7 @@ npx skills add yunheliu68-ux/offer-selection-skill --skill offer-selection-skill
 也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。先下载仓库：
 
 ```bash
-git clone https://github.com/yunheliu68-ux/offer-selection-skill.git
+git clone https://github.com/NextVariable/offer-selection-skill.git
 cd offer-selection-skill
 ```
 
