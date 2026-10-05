@@ -487,7 +487,7 @@ forbidden):
 Country/geography tie-break priors may affect a recommendation only when
 stronger variables are materially close and the mechanism is realistically
 accessible. Market-specific recognition priors have the separate evidence
-ladder in `path-private-sector.md`: they may support a labelled, provisional
+ladder in `references/path-private-sector.md`: they may support a labelled, provisional
 recognition judgment without an employer list, but never become a verified
 employer rule. Apply the uncertainty mapping to their decision impact. Do not count the same lab density, industry access, brand, ranking, or
 country evidence twice under different labels (anti-double-counting). The
