@@ -88,7 +88,7 @@ never as a national score.
   search hypotheses only. “Select country over offer” is shorthand for:
   country feasibility constrains the offer's ceiling; decompose it into
   post-study work access → target-role employability → employer friction →
-  long-term continuity (core / `path-local-stay.md`).
+  long-term continuity (core / `references/path-local-stay.md`).
 - Internship and recruiting access: Hong Kong may provide Hong Kong + Shenzhen
   + mainland recruiting access and China-compatible time zones; Singapore may
   provide local access and time-zone convenience; U.S./UK/Australia difficulty
