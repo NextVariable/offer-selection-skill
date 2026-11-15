@@ -119,3 +119,126 @@ B：[学校、项目全名、入学年份]
 [安装与更新](docs/INSTALLATION.md) · [决策示例](docs/examples/README.md) · [决策理念](docs/DECISION_PHILOSOPHY.md) · [架构说明](docs/ARCHITECTURE.md) · [兼容性](docs/COMPATIBILITY.md)
 
 使用问题欢迎通过 Issues 反馈。贡献请参阅 [贡献指南](docs/CONTRIBUTING.md)，项目采用 [MIT License](LICENSE)。
+
+---
+
+# Offer Selection Skill — English
+
+**The first Agent Skill on the web for choosing overseas master's offers, working backward from your background, career plans, and ROI to find the most suitable offer.**
+
+## How do you choose after receiving offers?
+
+The same offers can have very different value for people with different backgrounds and goals. Offer Selection Skill assesses the opportunities each programme can realistically provide for your career or academic plans, and whether they justify the tuition, living expenses, and time required.
+
+Local skill installation is supported for AI agents including Codex, Claude Code, and WorkBuddy.
+
+## Quick start
+
+Use an AI agent that supports local skills and enable web search.
+
+### Install
+
+Send this message to your AI agent:
+
+```text
+Please install offer-selection-skill from this repository: https://github.com/NextVariable/offer-selection-skill
+```
+
+Follow the agent's permission prompts and start a new conversation after installation. If automatic installation is unavailable, follow the [installation guide](docs/INSTALLATION.md).
+
+### Start using it in your AI chat
+
+Send this in a new conversation:
+
+```text
+Please use offer-selection-skill to compare my postgraduate offers.
+```
+
+If the information is insufficient for a decision, the assistant will ask for the missing background that matters.
+
+## What does it assess?
+
+| Your question | What the skill assesses |
+|---|---|
+| Which offer best supports returning to China for private-sector employment? | Whether the programme closes gaps for your target role given your education, internships, and skills, and whether you can access recruitment and internship windows. |
+| Which offer supports employment in state-owned enterprises or the public system? | The target role's subject, degree, and other eligibility requirements, before comparing programme value. |
+| Can I work locally while keeping a China-return fallback? | Local and China-return employment feasibility separately, including language, work access, recruiting opportunities, and switching costs. |
+| Which master's programme helps further academic study? | Relevant research training, outputs, supervisor support, and recommendation opportunities. |
+| Is a more expensive offer worth the extra cost? | What the additional total cost buys, and whether those opportunities are useful, accessible, and affordable for you. |
+
+## Background template and full example (optional)
+
+To provide your background in one message, use:
+
+```text
+Undergraduate background: institution, major, grades
+Offers received: institution, full programme name, intake year
+Goals: industry, role, and plans for China return, local employment, or academic study
+Experience: internships, research, and specific responsibilities or outputs
+Budget: preferred total budget and absolute affordability ceiling
+Recruiting readiness: relevant skills, résumé, and interview preparation
+
+Main concern (optional): the tradeoff you most want to compare
+```
+
+The assistant researches public information such as tuition, duration, curriculum, and policies. Please supply your personal offer terms, including scholarships actually awarded and acceptance deadlines.
+
+<details>
+<summary>View a complete example prompt</summary>
+
+This background is fictional. Replace it and the bracketed content with your actual circumstances.
+
+```text
+Please use offer-selection-skill to compare these postgraduate offers.
+
+My background:
+A computer science undergraduate degree from a mainland Chinese 985 university, with an average grade of 86.
+
+Internships:
+1. Software development at [company/industry, duration], mainly building internal tools; I independently owned a complete project.
+   My responsibilities and results: [what I did, what I delivered, actual impact]
+2. Product management at [company/industry, duration], helping build an AI agent product from zero to one.
+   My responsibilities and results: [stages owned, deliverables, launch or user feedback]
+
+Research/projects:
+[Research area or project, my responsibilities, specific outputs; write none if applicable]
+
+My offers:
+A: [institution, full programme name, intake year]
+B: [institution, full programme name, intake year]
+Both are formal admissions offers, with no scholarships currently awarded.
+
+My goals:
+Return to China for a product manager role after graduation. Employment is the priority; further academic study is not currently planned.
+No clear city preference.
+
+My budget and readiness:
+Preferred total budget: RMB 800,000. Absolute affordability ceiling: RMB 1,000,000.
+I can prepare for recruiting early, but need to improve product interviews, case presentation, and how I communicate project outcomes.
+
+What I most want to understand:
+Which gaps can each programme close?
+If one costs more, what does the extra spending buy?
+How do intake dates, graduation dates, and course schedules affect eligibility and timing for Chinese autumn recruitment, internships, and graduate hiring?
+Are the programme's internship opportunities realistically accessible given my background and goals?
+```
+
+</details>
+
+## What will you receive?
+
+A recommendation tailored to your circumstances: which offer to prioritise, the decisive reasons, the value of additional spending, major risks, and conditions to verify before accepting.
+
+The analysis may also conclude that two programmes have no material difference, that critical conditions need verification, or that none of the offers is worth accepting. It does not force a ranking just to name a winner.
+
+## Before using the skill
+
+The current release is **v0.3.2**. Use it to support decisions; verify critical eligibility requirements and policies against current official sources. See [release status](docs/RELEASE_STATUS.md).
+
+You do not need to supply your name, student ID, email, or a complete offer letter. Conversation storage and processing depend on your AI platform. See [privacy](docs/PRIVACY.md).
+
+## Further reading
+
+[Installation and updates](docs/INSTALLATION.md) · [Decision examples](docs/examples/README.md) · [Decision philosophy](docs/DECISION_PHILOSOPHY.md) · [Architecture](docs/ARCHITECTURE.md) · [Compatibility](docs/COMPATIBILITY.md)
+
+Report usage problems through Issues. See the [contribution guide](docs/CONTRIBUTING.md). The project uses the [MIT License](LICENSE).
