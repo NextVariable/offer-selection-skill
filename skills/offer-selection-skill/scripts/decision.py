@@ -175,10 +175,15 @@ def costs(offer, budget, shock=None):
         gate = "unresolved"
     if gate == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
         gate = "unresolved"
+    basis = "ledger"
+    if (gate == "unresolved" and budget["ceiling"] is None and not milestones
+            and shock is None and offer["id"] in budget.get("affordable_by_user", [])):
+        gate, basis = "pass", "user_affordability_attestation"
     return {"cash": net, "opportunity_cost": add(opportunity),
             "economic_cost": add([net, add(opportunity)]), "ceiling_status": total_status,
             "target_status": against(net, budget.get("target")), "budget_gate": gate,
-            "milestones": milestones, "cashflow_checked": bool(milestones)}
+            "affordability_basis": basis, "milestones": milestones,
+            "cashflow_checked": bool(milestones)}
 
 
 def case_model(data):
@@ -191,7 +196,8 @@ def case_model(data):
     need(paths and len(set(paths)) == len(paths) and set(paths) <= PATHS, "invalid active paths")
     for key in ("country", "career", "phd_intent", "prestige", "risk_tolerance"):
         string(goal[key])
-    budget = fields(data["budget"], ("currency", "ceiling"), ("target", "liquidity", "stress"))
+    budget = fields(data["budget"], ("currency", "ceiling"),
+                    ("target", "liquidity", "stress", "affordable_by_user"))
     need(re.fullmatch(r"[A-Z]{3}", string(budget["currency"])), "expected currency code")
     for name in ("ceiling", "target"):
         if budget.get(name) is not None:
@@ -209,6 +215,9 @@ def case_model(data):
         need(texts(stress["categories"]), "stress requires named categories")
     offers, evidence = indexed(data["offers"]), indexed(data["evidence"])
     need(offers, "at least one offer is required")
+    attestations = texts(budget.get("affordable_by_user", []))
+    need(len(set(attestations)) == len(attestations) and set(attestations) <= offers.keys(),
+         "invalid user affordability attestations")
     for offer in offers.values():
         fields(offer, ("id", "title", "country", "operative_date", "cost_complete", "costs", "gates"),
                ("offsets_complete",))

@@ -19,9 +19,10 @@ exchange with the offline validator, not a second decision model.
    be resolved by the named authority. Explain that limit and continue with
    the supported conditional direction. Never disguise a prior as a fact.
 4. Decide: run `check`, then use the core and path rules to draft a Decision
-   JSON. Resolve validation errors by fixing the evidence or narrowing the
-   claim; never upgrade a claim just to make validation pass. Run `verify`
-   or `report`. Both report modes use that same Decision object.
+   JSON. Before either user-facing mode, run `verify` or `report` on that
+   complete object. Resolve any error by fixing evidence or narrowing the
+   claim. Keep a conditional direction when the validator cannot support
+   acceptance; do not silently replace its unresolved state in prose.
 5. Simulate on request: save the base case unchanged, run `scenario`, follow
    its reuse/recheck plan, and compare the two decisions through `compare`.
    If the new intention changes active paths, update only routing, scoped
@@ -54,7 +55,13 @@ allows it; a comparison must remain conditional if dates affect the gate.
   For multiple intents run each path. Keep a genuinely unresolved preference
   or priority explicit.
 - Budget: `currency, ceiling` (nullable), optional `target`, `liquidity`
-  (array of `{month,available}`), `stress:{percent,categories}`.
+  (array of `{month,available}`), `stress:{percent,categories}` and
+  `affordable_by_user` (offer IDs). Use that last field only when the user
+  explicitly states full-course affordability of the named offer. It is a
+  private constraint, not a verified price or a calculated margin. It
+  cannot override a supplied numeric ceiling, a payment constraint or a
+  stress scenario. A statement that only the master's stage is affordable
+  does not apply to the whole integrated programme.
   `available` is cumulative funding through the deadline, excluding award
   rows. Enumerate all material deadlines. Rows dated in the same month include
   only cash available before the corresponding payment; use distinct timeline

@@ -147,6 +147,26 @@ class BudgetCases(unittest.TestCase):
     def test_no_deadlines_unchecked(self):
         self.assertFalse(self.cost([row("fee", "expense", [10, 20])])["cashflow_checked"])
 
+    def test_user_affordability_is_separate_from_price_verification(self):
+        q = self.cost([row("fee", "expense", [0, None])], ceiling=None, affordable_by_user=["a"])
+        self.assertEqual((q["budget_gate"], q["ceiling_status"], q["affordability_basis"]),
+                         ("pass", "unresolved", "user_affordability_attestation"))
+
+    def test_user_affordability_never_overrides_numeric_ceiling(self):
+        q = self.cost([row("fee", "expense", [101, 101])], affordable_by_user=["a"])
+        self.assertEqual(q["budget_gate"], "fail")
+
+    def test_user_affordability_never_overrides_cashflow(self):
+        q = self.cost([row("fee", "expense", [90, 90])], ceiling=None, affordable_by_user=["a"],
+                      liquidity=[{"month": 0, "available": [80, 80]}])
+        self.assertEqual(q["budget_gate"], "fail")
+
+    def test_user_affordability_not_reused_for_stress_case(self):
+        q = self.cost([row("fee", "expense", [90, 90], category="housing")],
+                      ceiling=None, affordable_by_user=["a"],
+                      stress={"percent": 20, "categories": ["housing"]})
+        self.assertEqual((q["budget_gate"], q["stress"]["budget_gate"]), ("pass", "unresolved"))
+
 
 class EvidenceCases(unittest.TestCase):
     def test_employer_scope_match(self):
