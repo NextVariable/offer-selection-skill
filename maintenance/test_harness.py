@@ -611,6 +611,26 @@ class AuditRegressionTests(HarnessCase):
         self.assertTrue(state["scenarios"]["cap"]["stale"])
         self.assertTrue(harness.status(state)["scenarios"]["cap"]["stale"])
 
+    def test_report_rechecks_freshness_before_rendering(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        with self.assertRaises(ValueError):
+            harness.report(state, "quick")
+        self.assertTrue(state["decision_state"]["stale"])
+
+    def test_scenario_rechecks_base_freshness(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        row = harness.scenario(state, {"field": "ceiling", "value": 400000}, "stale-base")
+        self.assertTrue(any(e["state"] != "confirmed" for e in row["case"]["evidence"]))
+        self.assertNotEqual(row["summary"]["a"]["paths"]["private"], "pass")
+
     def test_load_removes_crash_residue_after_state_loads(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "state.json"

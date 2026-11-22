@@ -9,8 +9,9 @@
 - 断网、额度不足、部分结果或来源未打开导致的 blocked 任务可在 `resume` 时重试；证据矛盾仍保持 blocked。
 - Checkpoint 记录 Case digest，`resume` 返回 `checkpoint_drift`；Checkpoint 明确为审计标记而非回滚快照。
 - 证据变化后 Scenario 标记 stale，避免把旧反事实摘要当作当前结果。
+- `report` 与 `scenario` 在输出前重新核验证据时效，过期来源不能再生成报告或反事实结论。
 - 新增按职业路径的覆盖诊断，列出未声明或未确认的研究类别；只提示，不新增 Gate，也不改变推荐。
-- 新增 9 项审核回归（Harness 共 50 项）和 v1/v2 过期资格对照。
+- 新增 11 项审核回归（Harness 共 52 项）和 v1/v2 过期资格对照。
 
 ## v2.0.0-rc1 候选版 — 2026-11-23
 
