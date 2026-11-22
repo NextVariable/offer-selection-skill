@@ -46,16 +46,48 @@ DEFAULT_MAX_SUPPLEMENTS = 3
 IDENTIFIER_KEY = re.compile(
     r"(?:^|_)(?:name|email|phone|mobile|student_?id|passport|national_?id|address|"
     r"wechat|whatsapp|linkedin)(?:$|_)", re.I)
-# Execution-coverage roster derived from the existing core gate paragraph and
-# the four path files. It is a diagnostic prompt, never a decision rule: a gap
-# does not pass or fail a gate, it only says that the case never declared any
-# research object of that kind for the active path.
-PATH_COVERAGE = {
-    "private": {"credential", "eligibility", "market", "cost"},
-    "soe": {"credential", "eligibility", "timing", "cost"},
-    "local": {"work", "market", "access", "cost"},
-    "phd": {"academic", "programme", "cost"},
+# Minimum research coverage per activated career path, grounded in the four
+# path files. This is a coverage contract, not a second decision rule: it never
+# scores offers, decides a gate or ranks priorities. It only states which
+# research objects each active path must at least account for.
+#
+# "hard"   = a decisive qualification/eligibility check. While it is neither
+#            confirmed nor explicitly not-applicable, the harness refuses an
+#            unconditional recommendation or unconditional eligibility
+#            confirmation. A conditional conclusion with explicit flip
+#            conditions stays available.
+# "decisive" = decision-critical context that must stay visible in the coverage
+#            record, but a gap never blocks a stop and never forces more rounds.
+# Any kind not listed stays optional and can never block.
+RESEARCH_CONTRACT = {
+    "private": {
+        "eligibility": "hard",
+        "credential": "decisive",
+        "market": "decisive",
+        "cost": "decisive",
+    },
+    "soe": {
+        "credential": "hard",
+        "eligibility": "hard",
+        "timing": "hard",
+        "cost": "decisive",
+    },
+    "local": {
+        "work": "hard",
+        "market": "decisive",
+        "access": "decisive",
+        "cost": "decisive",
+    },
+    "phd": {
+        "academic": "decisive",
+        "programme": "decisive",
+        "cost": "decisive",
+    },
 }
+COVERAGE_STATUSES = ("confirmed", "unresolved", "not_applicable")
+REVIEW_VERDICTS = ("supported", "partial", "unsupported", "unresolved")
+REVIEWER_TYPES = ("human", "model")
+AUTOMATED_REVIEWER_LABELS = {"model", "automated", "auto", "agent", "ai"}
 
 
 def need(condition, message):
@@ -84,7 +116,7 @@ def short_hash(text):
 
 
 def trace(document, event, **fields):
-    record = {"at": now_iso(), "event": event}
+    record = {"at": now_iso(), "event": event, "source": "harness.py"}
     record.update(fields)
     document.setdefault("trace", []).append(record)
     document["updated_at"] = record["at"]
@@ -115,6 +147,9 @@ def load_state(path):
     need(isinstance(state, dict), "state must be a JSON object")
     need(state.get("schema") == VERSION, f"unknown harness schema: {state.get('schema')}")
     need(isinstance(state.get("case"), dict), "state is missing the case")
+    # States created before the coverage contract stay resumable.
+    state.setdefault("coverage", {})
+    state.setdefault("semantic_reviews", [])
     enforce_retention(state)
     # A crash between write and replace can leave a copy of the previous state.
     # Once the real file loads, that residue has no recovery value.
@@ -184,50 +219,135 @@ def evidence_fingerprint_index(case):
     return index
 
 
-def coverage(state):
-    """Report declared vs confirmed research kinds for each active path.
+def _coverage_sources(state, path, kind):
+    """Return the gates, evidence and tasks that bear on one contract slot."""
+    case = state["case"]
+    gates = [g for offer in case["offers"] for g in offer["gates"]
+             if g["path"] == path and g["kind"] == kind]
+    evidence = [e for e in case["evidence"]
+                if e["kind"] == kind and e["path"] in {path, "*"}]
+    tasks = [t for t in state["research"]["tasks"]
+             if t["kind"] == kind and t["path"] in {path, "*"}]
+    return gates, evidence, tasks
 
-    This is deliberately advisory. A missing kind means the case never declared
-    a gate, evidence item or task of that kind; it does not prove the topic is
-    irrelevant, and it never changes a gate or recommendation.
+
+def _coverage_status(state, path, kind):
+    """Resolve one contract slot to confirmed / unresolved / not_applicable / missing.
+
+    Precedence: an explicit human not-applicable or unresolved disposition is
+    authoritative; otherwise a decided gate or verified evidence confirms the
+    slot; otherwise any declaration leaves it unresolved; an undeclared slot is
+    missing. Missing is never a pass.
+    """
+    gates, evidence, tasks = _coverage_sources(state, path, kind)
+    disposition = state.get("coverage", {}).get(path, {}).get(kind)
+    if disposition and disposition["status"] in {"not_applicable", "unresolved"}:
+        return disposition["status"], disposition
+    if any(g["status"] in {"pass", "fail"} for g in gates) or any(
+            e["state"] == "confirmed" for e in evidence):
+        return "confirmed", disposition
+    if any(g["status"] == "not_applicable" for g in gates):
+        return "not_applicable", disposition
+    if gates or evidence or tasks:
+        return "unresolved", disposition
+    return "missing", disposition
+
+
+def coverage(state):
+    """Audit the required research contract for every active path.
+
+    Each contract slot resolves to confirmed, unresolved, not_applicable or
+    missing. A hard slot that is not confirmed/not-applicable blocks an
+    unconditional recommendation; a decisive gap is reported without blocking;
+    optional research is never required. A missing slot is never treated as a
+    pass. Human not-applicable judgements keep their reason and reviewer.
     """
     case = state["case"]
     paths = sorted(set(case["goal"]["paths"]))
-    rows, gaps, open_topics = {}, [], []
+    rows, gaps, unconfirmed, hard_gaps, decisive_gaps = {}, [], [], [], []
     for path in paths:
-        required = PATH_COVERAGE.get(path, set())
-        declared, confirmed = set(), set()
-        for offer in case["offers"]:
-            for gate in offer["gates"]:
-                if gate["path"] in {path, "*"}:
-                    declared.add(gate["kind"])
-                    if gate["status"] in {"pass", "fail"}:
-                        confirmed.add(gate["kind"])
-        for entry in case["evidence"]:
-            if entry["path"] in {path, "*"}:
-                declared.add(entry["kind"])
-                if entry["state"] == "confirmed":
-                    confirmed.add(entry["kind"])
-        for task in state["research"]["tasks"]:
-            if task["path"] in {path, "*"}:
-                declared.add(task["kind"])
-        missing = sorted(required - declared)
-        unconfirmed = sorted(required & declared - confirmed)
+        contract = RESEARCH_CONTRACT.get(path, {})
+        status, reasons = {}, {}
+        declared = set()
+        for kind in sorted(contract):
+            current, disposition = _coverage_status(state, path, kind)
+            status[kind] = current
+            if disposition:
+                reasons[kind] = {
+                    "reason": disposition.get("reason"), "reviewer": disposition.get("reviewer"),
+                    "at": disposition.get("at"),
+                }
+            gates, evidence, tasks = _coverage_sources(state, path, kind)
+            if gates or evidence or tasks:
+                declared.add(kind)
+        confirmed = sorted(k for k, v in status.items() if v == "confirmed")
+        unresolved = sorted(k for k, v in status.items() if v == "unresolved")
+        not_applicable = sorted(k for k, v in status.items() if v == "not_applicable")
+        missing = sorted(k for k, v in status.items() if v == "missing")
+        hard = sorted(k for k, v in contract.items() if v == "hard"
+                      and status[k] not in {"confirmed", "not_applicable"})
+        decisive = sorted(k for k, v in contract.items() if v == "decisive"
+                          and status[k] not in {"confirmed", "not_applicable"})
+        declared_extra = sorted((declared | {e["kind"] for e in case["evidence"]
+                                             if e["path"] in {path, "*"}}) - set(contract))
         rows[path] = {
-            "required": sorted(required),
-            "declared": sorted(required & declared),
-            "confirmed": sorted(required & confirmed),
-            "missing": missing,
-            "unconfirmed": unconfirmed,
+            "required": sorted(contract), "classes": dict(contract),
+            "declared": sorted(declared), "confirmed": confirmed,
+            "unresolved": unresolved, "not_applicable": not_applicable,
+            "missing": missing, "hard_gaps": hard, "decisive_gaps": decisive,
+            "optional_declared": declared_extra, "dispositions": reasons,
         }
-        gaps.extend({"path": path, "kind": kind} for kind in missing)
-        open_topics.extend({"path": path, "kind": kind} for kind in unconfirmed)
+        gaps.extend({"path": path, "kind": kind, "class": contract[kind], "status": status[kind]}
+                    for kind in missing)
+        unconfirmed.extend({"path": path, "kind": kind, "class": contract[kind]}
+                           for kind in unresolved)
+        hard_gaps.extend({"path": path, "kind": kind} for kind in hard)
+        decisive_gaps.extend({"path": path, "kind": kind} for kind in decisive)
     return {
-        "paths": rows, "gaps": gaps, "unconfirmed": open_topics,
-        "note": ("Coverage is derived from declared gates, evidence and tasks. "
-                 "A missing kind is not a pass; research it or record why the active "
-                 "path makes it not applicable."),
+        "paths": rows, "gaps": gaps, "unconfirmed": unconfirmed,
+        "hard_gaps": hard_gaps, "decisive_gaps": decisive_gaps,
+        "hard_blocking": bool(hard_gaps),
+        "note": ("Coverage is derived from declared gates, evidence and tasks plus explicit "
+                 "human dispositions. A missing or unresolved hard item blocks an "
+                 "unconditional recommendation, not a conditional one with flip conditions. "
+                 "Decisive gaps are recorded without blocking; optional research is never "
+                 "required. not_applicable needs a human reason and reviewer."),
     }
+
+
+def record_coverage(state, payload):
+    """Record an explicit coverage judgement with a traceable reason.
+
+    `not_applicable` is a human judgement and therefore needs both a reason and
+    a human reviewer; a model may not mark a required topic inapplicable.
+    `confirmed` is refused unless verified evidence or a decided gate already
+    supports the slot, so the status cannot be asserted into existence.
+    """
+    need(isinstance(payload, dict), "coverage disposition must be a JSON object")
+    for key in ("path", "kind", "status"):
+        need(key in payload, f"coverage disposition is missing {key}")
+    path, kind, status = payload["path"], payload["kind"], payload["status"]
+    need(path in state["case"]["goal"]["paths"], "coverage path is not active")
+    need(kind in decision.KINDS, "unknown coverage kind")
+    need(status in COVERAGE_STATUSES, "invalid coverage status")
+    reason = str(payload.get("reason", "")).strip()
+    reviewer = str(payload.get("reviewer", "")).strip()
+    if status == "not_applicable":
+        need(reason, "not_applicable requires a reason")
+        need(reviewer, "not_applicable requires a human reviewer")
+        need(reviewer.lower() not in AUTOMATED_REVIEWER_LABELS,
+             "not_applicable is a human judgement, not a model decision")
+    elif status == "unresolved":
+        need(reason, "unresolved coverage requires a reason")
+    elif status == "confirmed":
+        need(_coverage_status(state, path, kind)[0] == "confirmed",
+             "confirmed coverage needs verified evidence or a decided gate")
+    entry = {"status": status, "reason": reason, "reviewer": reviewer or "runtime",
+             "at": now_iso()}
+    state.setdefault("coverage", {}).setdefault(path, {})[kind] = entry
+    trace(state, "coverage_disposition", path=path, kind=kind, status=status,
+          reviewer=entry["reviewer"])
+    return {"disposition": entry, "coverage": coverage(state)}
 
 
 def plan_tasks(state):
@@ -629,6 +749,78 @@ def _evidence_defects(entry, operative, as_of, max_age_days):
     return defects
 
 
+def _review_index(state):
+    index = {}
+    for record in state.get("semantic_reviews", []):
+        index.setdefault(record["claim_id"], []).append(record)
+    return index
+
+
+def _downgrade_evidence(state, entry, reason):
+    """Downgrade a confirmed claim and propagate the change through gates/costs."""
+    if entry["state"] != "confirmed":
+        return False
+    entry["state"] = "unresolved"
+    trace(state, "evidence_state_changed", evidence=entry["id"], state="unresolved",
+          reason=reason)
+    state["case"] = decision.audit(state["case"])["input"]
+    mark_derived_stale(state, reason)
+    return True
+
+
+def record_review(state, payload):
+    """Store an auditable semantic review of one claim.
+
+    A review can lower certainty (unsupported/partial/unresolved) but can never
+    promote a claim to confirmed: that still requires an opened authoritative
+    source and the evidence verification chain. Model reviews are explicitly
+    not official confirmation.
+    """
+    need(isinstance(payload, dict), "semantic review must be a JSON object")
+    for key in ("claim_id", "source_url", "locator", "reviewer_type", "verdict", "rationale"):
+        need(key in payload, f"semantic review is missing {key}")
+    entry = next((e for e in state["case"]["evidence"] if e["id"] == payload["claim_id"]), None)
+    need(entry is not None, "unknown claim in semantic review")
+    url = str(payload["source_url"])
+    need(url.startswith(("http://", "https://")), "semantic review needs an http(s) source URL")
+    urls = {s.get("url") for s in entry.get("sources", [])}
+    need(url in urls, "semantic review source URL is not recorded on the claim")
+    locator = str(payload["locator"]).strip()
+    need(locator, "semantic review needs a specific locator")
+    reviewer_type = payload["reviewer_type"]
+    need(reviewer_type in REVIEWER_TYPES, "invalid reviewer type")
+    verdict = payload["verdict"]
+    need(verdict in REVIEW_VERDICTS, "invalid semantic review verdict")
+    rationale = str(payload["rationale"]).strip()
+    need(rationale, "semantic review needs a short rationale")
+    reviewed_at = str(payload.get("reviewed_at", now_iso()))
+    date.fromisoformat(reviewed_at[:10])
+    offer = next(o for o in state["case"]["offers"] if o["id"] == entry["offer"])
+    programme = str(payload.get("programme") or offer["title"]).strip()
+    intake = str(payload.get("intake") or entry["scope"]).strip()
+    need(programme, "semantic review needs the applicable programme")
+    need(intake, "semantic review needs the applicable intake")
+
+    record = {
+        "claim_id": entry["id"], "source_url": url, "locator": locator,
+        "reviewer_type": reviewer_type, "verdict": verdict, "reviewed_at": reviewed_at,
+        "rationale": rationale, "programme": programme, "intake": intake,
+        "official_confirmation": False,
+    }
+    if reviewer_type == "model":
+        record["note"] = "model review is not official confirmation"
+    state.setdefault("semantic_reviews", []).append(record)
+    trace(state, "semantic_review_recorded", evidence=entry["id"], reviewer=reviewer_type,
+          verdict=verdict, locator=locator)
+
+    downgraded = False
+    if verdict in {"unsupported", "partial", "unresolved"}:
+        downgraded = _downgrade_evidence(
+            state, entry, f"semantic review marked the claim {verdict}")
+    return {"review": record, "evidence_state": entry["state"], "downgraded": downgraded,
+            "official_confirmation": False, "coverage": coverage(state)}
+
+
 def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
     case = state["case"]
     when = date.fromisoformat(as_of) if as_of else today()
@@ -637,6 +829,9 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
     report = {}
     changed = []
     review = []
+    reviewed = _review_index(state)
+    human_reviewed = {record["claim_id"] for record in state.get("semantic_reviews", [])
+                      if record["reviewer_type"] == "human"}
     by_fp = evidence_fingerprint_index(case)
     contradictions = set()
     for group in by_fp.values():
@@ -669,8 +864,12 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
             "status": status, "defects": defects, "authority": authority,
             "checked_at": now_iso(), "semantic_review": "model_or_human",
             "applicable": decision.applicable_label(entry),
+            "semantic_reviews": reviewed.get(entry["id"], []),
+            "human_reviewed": entry["id"] in human_reviewed,
         }
-        if entry["state"] == "confirmed":
+        if entry["state"] == "confirmed" and entry["id"] not in human_reviewed:
+            # A model review or source inspection does not replace a human
+            # semantic review of the exact claim.
             review.append(entry["id"])
         if status == "unresolved" and entry["state"] == "confirmed":
             entry["state"] = "unresolved"
@@ -699,8 +898,11 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
         "evidence": len(report), "downgraded": changed, "gate_changes": gate_changes,
         "contradictions": sorted(contradictions),
         "semantic_review_required": review,
+        "semantic_review_records": len(state.get("semantic_reviews", [])),
+        "semantic_reviews": state.get("semantic_reviews", []),
         "note": ("Programmatic checks cover structure, scope, period, freshness and dependency. "
-                 "Whether a source truly entails the claim still needs model or human review."),
+                 "Whether a source truly entails the claim still needs model or human review; "
+                 "a recorded review can lower certainty but never replaces official confirmation."),
     }
     trace(state, "calculation", kind="evidence_verification", downgraded=len(changed),
           contradictions=len(contradictions))
@@ -713,26 +915,41 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
 
 def preflight_recommendation(state, decision_doc):
     kind = decision_doc.get("conclusion", {}).get("type")
-    if kind not in DECISIVE_CONCLUSIONS:
+    if kind not in DECISIVE_CONCLUSIONS and kind != "conditional":
         return
-    pending = open_tasks(state, classes=("hard_gate",))
-    if pending:
+    if kind in DECISIVE_CONCLUSIONS:
+        pending = open_tasks(state, classes=("hard_gate",))
+        if pending:
+            raise ValueError(
+                "recommendation blocked: open hard-gate research task(s) "
+                + ", ".join(t["id"] for t in pending)
+                + "; research them or return a conditional/defer conclusion")
+        unresolved = [e["id"] for e in state["case"]["evidence"]
+                      if e["state"] != "confirmed" and e["impact"] == "critical"
+                      and e["kind"] in HARD_KINDS]
+        if unresolved:
+            raise ValueError("recommendation blocked: critical eligibility evidence is unresolved: "
+                             + ", ".join(unresolved))
+    cov = coverage(state)
+    if kind in DECISIVE_CONCLUSIONS and cov["hard_gaps"]:
         raise ValueError(
-            "recommendation blocked: open hard-gate research task(s) "
-            + ", ".join(t["id"] for t in pending)
-            + "; research them or return a conditional/defer conclusion")
-    unresolved = [e["id"] for e in state["case"]["evidence"]
-                  if e["state"] != "confirmed" and e["impact"] == "critical"
-                  and e["kind"] in HARD_KINDS]
-    if unresolved:
-        raise ValueError("recommendation blocked: critical eligibility evidence is unresolved: "
-                         + ", ".join(unresolved))
+            "recommendation blocked: required research is unresolved for "
+            + ", ".join(f"{gap['path']}/{gap['kind']}" for gap in cov["hard_gaps"])
+            + "; confirm it, record a human not_applicable reason, or return a "
+              "conditional conclusion with explicit flip conditions")
+    if kind == "conditional" and cov["hard_gaps"]:
+        # A conditional recommendation is the permitted release valve when a
+        # decisive qualification cannot be proven, but it only works with a
+        # stated reversal condition naming what would flip it.
+        need(str(decision_doc.get("reversal", "")).strip(),
+             "conditional release requires explicit flip conditions")
+    return cov
 
 
 def store_decision(state, decision_doc):
     need(state["phase"] in {"research", "adjudicate", "decide"}, "decision is out of stage order")
     verification = verify_evidence(state)
-    preflight_recommendation(state, decision_doc)
+    cov = preflight_recommendation(state, decision_doc)
     computed = decision.validate(state["case"], decision_doc)
     state["decision"] = copy.deepcopy(decision_doc)
     state["decision_state"] = {
@@ -742,13 +959,24 @@ def store_decision(state, decision_doc):
     }
     state["phase"] = "decide"
     metric(state, "decisions")
-    cov = coverage(state)
+    cov = cov or coverage(state)
+    if decision_doc["conclusion"]["type"] == "conditional" and cov["hard_gaps"]:
+        trace(state, "coverage_conditional_release",
+              hard_gaps=",".join(f"{gap['path']}/{gap['kind']}" for gap in cov["hard_gaps"]),
+              reversal=str(decision_doc.get("reversal", ""))[:300])
     trace(state, "decision_stored", conclusion=decision_doc["conclusion"]["type"],
           headline=decision_doc["headline"], coverage_gaps=len(cov["gaps"]),
-          coverage_unconfirmed=len(cov["unconfirmed"]))
+          coverage_unconfirmed=len(cov["unconfirmed"]),
+          coverage_hard_gaps=len(cov["hard_gaps"]),
+          coverage_decisive_gaps=len(cov["decisive_gaps"]))
     if cov["gaps"]:
         trace(state, "coverage_gap", path=",".join(sorted({g["path"] for g in cov["gaps"]})),
-              kinds=",".join(sorted({g["kind"] for g in cov["gaps"]})))
+              kinds=",".join(sorted({f"{g['kind']}:{g['class']}" for g in cov["gaps"]})))
+    if cov["decisive_gaps"]:
+        # Non-critical gaps stay visible without turning into a blocker.
+        trace(state, "coverage_warning",
+              path=",".join(sorted({g["path"] for g in cov["decisive_gaps"]})),
+              kinds=",".join(sorted({g["kind"] for g in cov["decisive_gaps"]})))
     for offer_id, row in computed["offers"].items():
         trace(state, "calculation", kind="budget", offer=offer_id,
               cash=row["cost"]["cash"], gate=row["cost"]["budget_gate"])
@@ -966,6 +1194,8 @@ def init_state(case, retention_days=DEFAULT_RETENTION_DAYS):
         },
         "evidence_meta": {},
         "verification": {},
+        "coverage": {},
+        "semantic_reviews": [],
         "decision": None,
         "decision_state": {"stale": False},
         "scenarios": {},
@@ -1013,6 +1243,7 @@ def status(state):
             "unresolved": sum(e["state"] != "confirmed" for e in state["case"]["evidence"]),
             "contradictions": sum(1 for row in state.get("verification", {}).values()
                                   if "contradictory" in " ".join(row.get("defects", []))),
+            "semantic_reviews": len(state.get("semantic_reviews", [])),
         },
         "decision": {
             "present": state.get("decision") is not None,
@@ -1067,6 +1298,14 @@ def main():
     evidence.add_argument("--as-of")
     evidence.add_argument("--max-age-days", type=int, default=DEFAULT_MAX_AGE_DAYS)
 
+    coverage_cmd = sub.add_parser("coverage")
+    coverage_cmd.add_argument("--state", required=True)
+    coverage_cmd.add_argument("--record", help="JSON disposition for one path/kind slot")
+
+    review_cmd = sub.add_parser("review")
+    review_cmd.add_argument("--state", required=True)
+    review_cmd.add_argument("review")
+
     decide = sub.add_parser("decide")
     decide.add_argument("--state", required=True)
     decide.add_argument("decision")
@@ -1118,6 +1357,13 @@ def main():
             out = record_result(state, decision.load(args.result))
         elif args.command == "evidence":
             out = verify_evidence(state, args.as_of, args.max_age_days)
+        elif args.command == "coverage":
+            if args.record:
+                out = record_coverage(state, decision.load(args.record))
+            else:
+                out = coverage(state)
+        elif args.command == "review":
+            out = record_review(state, decision.load(args.review))
         elif args.command == "decide":
             out = store_decision(state, decision.load(args.decision))
         elif args.command == "report":

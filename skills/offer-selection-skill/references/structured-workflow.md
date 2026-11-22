@@ -69,9 +69,21 @@ adds a second gate, cost or scoring rule; `decision.py` remains authoritative.
   locator cannot close a hard gate; errors retry up to the task limit.
 - `evidence` rechecks scope, period, freshness, authority and conflicts, then
   propagates a downgrade through `decision.audit`.
-- `decide` refuses a recommendation while a hard-gate task is open, validates
-  the decision with `decision.py`, and marks the stored decision stale if the
-  case or evidence later changes.
+- `coverage` reports the required research contract per active path
+  (`confirmed` / `unresolved` / `not_applicable` / `missing`). A missing or
+  unresolved hard item blocks an unconditional recommendation; decisive gaps
+  are reported without blocking. `coverage --record` stores an explicit
+  disposition; `not_applicable` needs a human reason and reviewer.
+- `review` stores an auditable semantic review of one claim (source URL,
+  locator, reviewer type, supported/partial/unsupported/unresolved, time,
+  rationale, programme and intake). A review can lower certainty but never
+  promotes a claim to confirmed, and a model review is not official
+  confirmation.
+- `decide` refuses an unconditional recommendation while a hard-gate task or a
+  required hard research item is unresolved; a conditional conclusion with
+  explicit flip conditions stays available. It validates the decision with
+  `decision.py` and marks the stored decision stale if the case or evidence
+  later changes.
 - `report` renders Quick or Full from that one validated decision.
 - `scenario` stores a named counterfactual without mutating the base case.
 - `checkpoint` / `resume` preserve verified evidence and reopen expired facts.

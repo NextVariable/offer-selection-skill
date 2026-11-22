@@ -45,10 +45,10 @@ scripts/harness.py（v2，新增，965 行，仅标准库）
 
 - 宿主仍负责模型调用、联网与判断。Harness 不抓网页、不调用模型、不做领域裁决。
 - 程序检查覆盖结构、范围、适用期、访问时效、权威性、依赖与算术。
-- “来源是否真正支持该主张”无法由程序证明，验证摘要固定输出 `semantic_review_required`，交由模型复核或人工裁定。
+- 语义支持无法由程序证明：`semantic_review_required` 可进一步记录为可审计复核（来源与定位、reviewer 类型、supported/partial/unsupported/unresolved、时间、依据、项目与届别）。任何复核都不能替代官方确认，模型复核尤其不能。
 - 本地单文件 JSON，原子替换；无数据库、服务、账号或通用 Agent Runtime。
 
-CLI 子命令：`init / plan / next / record / evidence / decide / report / scenario / checkpoint / resume / status / trace / privacy`。普通用户仍只用自然语言，不手工操作 CLI。
+CLI 子命令：`init / plan / next / record / evidence / coverage / review / decide / report / scenario / checkpoint / resume / status / trace / privacy`。普通用户仍只用自然语言，不手工操作 CLI。
 
 ## 2. 与 v1.0 的实质差异
 
@@ -65,7 +65,7 @@ CLI 子命令：`init / plan / next / record / evidence / decide / report / scen
 | 反事实 | `decision.scenario`，返回新文档 | 命名场景独立存储，校验 base digest 未变 |
 | 隐私 | 文档建议 | 默认 7 天保留期 + `--purge` |
 | 观测 | 无 | 追加式 trace + 计数 metrics |
-| 测试 | 78 + 发布契约 + 安装器 | 另加 41 项 Harness 测试与冻结真实来源案例 |
+| 测试 | 78 + 发布契约 + 安装器 | 另加 69 项 Harness 测试与冻结真实来源案例 |
 
 没有新增 Gate、国家/学校固定分值、权重或第二条推荐链。
 
@@ -141,8 +141,8 @@ CLI 子命令：`init / plan / next / record / evidence / decide / report / scen
 ## 6. 下一轮最值得修复的问题
 
 1. **P0 — 原生宿主验收**：在 Codex CLI 与 Claude Code 中各跑一次真实 v2 流程（含断点恢复与预算反事实），记录宿主、模型、工具调用和失败点。
-2. **P1 — 语义支持复核流程**：把 `semantic_review_required` 变成明确的复核记录（谁、哪段文本、支持/不支持、裁定时间），避免“形式通过”被误读为“主张成立”。
-3. **P1 — 四条路径的行为覆盖**：用 SOE/local-stay/PhD 的冻结案例验证硬门槛分类与 Gate 重开，而不只依赖 v1 回归。
+2. **P1 — 语义支持复核流程（已在 RC Final Hardening 完成）**：`review` 记录 Claim ID、来源 URL 与定位、reviewer 类型、Supported/Partial/Unsupported/Unresolved、时间、依据、项目与届别；复核可降级但不能替代官方确认。
+3. **P1 — 四条路径的行为覆盖（已在 RC Final Hardening 完成）**：private / soe / local / phd 均有冻结测试，覆盖缺失、未确认、不适用、条件性放行与路径隔离。
 4. **P1 — 成本可观测性**：在 trace 中增加每任务的工具调用数与耗时，便于比较 v1/v2 的真实执行成本。
 5. **P2 — 并发与损坏恢复**：状态写入已有原子替换，但多进程竞争和半写文件恢复尚未测试。
 6. **P2 — 自动补查边界**：当前只给路径；若要自动补查，必须先定义次数、来源类型和停止条件，避免无限搜索。

@@ -40,6 +40,8 @@ around the engine rather than another decision model:
 | Case State | harness, validated by `decision.py` | The one case document; no parallel copy of profile or offers |
 | Research Task State | harness | Task class (`hard_gate`/`decisive`/`optional`), dependency, status, attempts, verification route, stop condition |
 | Evidence State | harness + `decision.py` | Claim/source mapping, scope/period/freshness/authority checks, conflicts, downgrade propagation through `decision.audit` |
+| Coverage State | harness | Per-path required research contract (`hard`/`decisive`/optional) with human `not_applicable` reasons |
+| Review State | harness | Append-only semantic-review records per claim; a review can lower certainty, never promote a claim |
 | Gate State | `decision.py` | Gate semantics, `Unknown ≠ Pass`, and recommendation feasibility |
 | Decision State | `decision.py` + digest | Validated decision, case digest, stale marker if evidence/gates change |
 | Scenario State | harness | Named counterfactual isolated from the base case |
@@ -58,9 +60,20 @@ Boundaries:
   default seven-day profile retention. Expiry performs an actual profile
   deletion on the next CLI access, not only a warning. Checkpoints are audit
   markers; `resume` always re-verifies the live state instead of rolling back.
-- Coverage is a diagnostic derived from declared gates, evidence and tasks per
-  active path. It reports missing or unconfirmed kinds without creating a new
-  gate or changing a recommendation.
+- Coverage is a lightweight required-research contract grounded in the four
+  path files. Each active path declares `hard` slots (a decisive
+  qualification/eligibility check), `decisive` slots (decision-critical
+  context) and everything else optional. A missing or unresolved hard slot
+  blocks an unconditional recommendation while still allowing a conditional
+  conclusion with explicit flip conditions; a decisive gap is reported without
+  blocking and never forces more rounds; optional research is never required.
+  A slot may be `not_applicable` only with a human reason and reviewer, and a
+  missing slot is never a pass. This adds no gate, score or ranking rule.
+- Semantic reviews are append-only, auditable records per claim (source URL,
+  locator, reviewer type, supported/partial/unsupported/unresolved, time,
+  rationale, programme and intake). Partial, unsupported or unresolved reviews
+  downgrade the claim through `decision.audit`; no review ever promotes a claim
+  to confirmed, and a model review is explicitly not official confirmation.
 - The trace is append-only and records research starts/finishes, source
   checks, evidence and gate changes, calculations, validation failures,
   retries, resume, checkpoint drift, coverage gaps, scenario creation and the

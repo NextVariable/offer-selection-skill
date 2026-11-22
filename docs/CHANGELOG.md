@@ -1,5 +1,15 @@
 # 更新记录
 
+## RC Final Hardening — 2026-11-23
+
+整合独立审核修复（`7284197`）后的最终硬化。
+
+- 新增 Required Research Contract：按 private / soe / local / phd 定义 `hard` 与 `decisive` 最低研究覆盖；`hard` 缺失或未确认时只禁止无条件推荐/资格确认，仍允许带明确翻转条件的 conditional 结论；`decisive` 缺失只记录，不阻断；其他类别始终 optional。
+- 覆盖状态区分 `confirmed` / `unresolved` / `not_applicable` / `missing`；`missing` 永不视为 pass。`not_applicable` 必须附带人类复核理由与 reviewer，模型不能自行豁免必需类别。
+- 新增 `coverage` 与 `review` 命令；覆盖判断与语义复核都写入可追溯 trace。
+- `semantic_review_required` 升级为可审计记录：Claim ID、来源 URL 与定位、reviewer 类型、Supported/Partial/Unsupported/Unresolved、复核时间、依据、适用项目与届别。复核只能降低确定性，不能把主张提升为 confirmed；模型复核明确不等于官方确认。
+- 新增 16 项覆盖/复核冻结测试（Harness 共 69 项），覆盖四条路径的缺失、未确认、不适用、条件性放行（含 open hard-gate 场景）、路径隔离和语义复核降级。
+
 ## 未发布的独立审核修复 — 2026-11-23
 
 基于 `d926f20` 的独立审核分支，未合并回 PR #4。
