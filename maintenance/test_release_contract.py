@@ -2,6 +2,7 @@
 
 import ast
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -78,6 +79,19 @@ class ReleaseContract(unittest.TestCase):
             self.assertIn("scripts/decision.py", files)
             self.assertIn("references/core-decision-engine.md", files)
             self.assertNotIn("docs/RELEASE_STATUS.md", files)
+
+    def test_custom_path_install_needs_no_host_client(self):
+        # A clean machine/CI runner has no ~/.claude, ~/.cursor, ... directories.
+        # --path is an explicit destination and must not depend on detection.
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "clean-home"
+            home.mkdir()
+            dest = Path(temp) / "root" / "offer-selection-skill"
+            env = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / ".config")}
+            result = subprocess.run([str(ROOT / "maintenance/install.sh"), "--path", str(dest)],
+                                    capture_output=True, text=True, env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((dest / "SKILL.md").is_file())
 
     def test_local_stay_covers_post_initial_visa_path(self):
         rule = (ROOT / "skills/offer-selection-skill/references/path-local-stay.md").read_text()

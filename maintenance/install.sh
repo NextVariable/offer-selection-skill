@@ -1176,7 +1176,19 @@ print_activation_instructions() {
 # Install for a single platform
 # ---------------------------------------------------------------------------
 install_single() {
-    detect_platform
+    if [ -n "$CUSTOM_PATH" ]; then
+        # An explicit destination never depends on the host layout. Validate a
+        # user-supplied --platform, but do not require any client directory to
+        # exist: a clean machine or CI runner must be able to install to --path.
+        # Without --platform the payload is the neutral universal package.
+        if [ -n "$PLATFORM" ]; then
+            detect_platform
+        else
+            PLATFORM="universal"
+        fi
+    else
+        detect_platform
+    fi
     resolve_install_path
     if $DRY_RUN; then
         WORK_DIR="$INSTALL_DIR"
