@@ -759,6 +759,7 @@ def store_decision(state, decision_doc):
 
 def report(state, mode="quick"):
     need(state.get("decision"), "no validated decision is stored; run decide first")
+    verify_evidence(state)
     if state["decision_state"].get("stale"):
         raise ValueError("decision is stale: evidence or gates changed after it was stored; rerun decide")
     current = digest(state["case"])
@@ -774,6 +775,7 @@ def scenario(state, change, name):
     need(isinstance(name, str) and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", name),
          "scenario name must be a lowercase identifier")
     need(name not in state["scenarios"], "scenario name already exists")
+    verify_evidence(state)
     base_digest = digest(state["case"])
     result = decision.scenario(state["case"], change)
     need(digest(state["case"]) == base_digest, "counterfactual mutated the base case")
