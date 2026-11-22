@@ -21,4 +21,4 @@ v2 候选版在 v1.0.0 的 Skill 分发方式上新增：
 - 来源是否真正支持具体主张仍需模型辅助复核或人工裁定；程序检查只覆盖形式、范围、时效与依赖。
 - 不创建 v2.0.0 Stable Release，不合并 `main`。
 
-详见[兼容性](COMPATIBILITY.md)、[架构](ARCHITECTURE.md)、[隐私](PRIVACY.md)和[已知限制](KNOWN_LIMITATIONS.md)。
+详见[兼容性](COMPATIBILITY.md)、[架构](ARCHITECTURE.md)、[隐私](PRIVACY.md)、[已知限制](KNOWN_LIMITATIONS.md)和 [v2.0 RC 验收报告](V2_RC_ACCEPTANCE.md)。
