@@ -2,12 +2,12 @@
 
 对话安装和首次使用见 [README](../README.md)。无法自动安装时，可使用以下方式。
 
-## 安装 v1.0.0 候选版
+## 安装 v1.0.0
 
-打开终端，在一个尚无同名目录的位置下载候选分支：
+打开终端，在一个尚无同名目录的位置下载正式标签：
 
 ```bash
-git clone --branch codex/v1-decision-engine --single-branch https://github.com/NextVariable/offer-selection-skill.git
+git clone --branch v1.0.0 --single-branch https://github.com/NextVariable/offer-selection-skill.git
 cd offer-selection-skill
 ```
 
@@ -31,13 +31,13 @@ npx skills add NextVariable/offer-selection-skill --skill offer-selection-skill 
 
 ## WorkBuddy 界面导入
 
-在 [GitHub 仓库](https://github.com/NextVariable/offer-selection-skill) 先选定要试用的分支，再选择 **Code → Download ZIP** 并解压。
+在 [GitHub 仓库](https://github.com/NextVariable/offer-selection-skill) 先选定版本标签或分支，再选择 **Code → Download ZIP** 并解压。
 
 打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后的 `skills/offer-selection-skill` 文件夹，不要只上传单个 `SKILL.md`。
 
 ## 脚本安装（可选）
 
-也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。以下命令下载默认分支。试用 v1.0 时使用上面的候选版分支命令：
+也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。以下命令下载默认分支。如需安装确切的 v1.0.0 版本，使用上面的标签命令：
 
 ```bash
 git clone https://github.com/NextVariable/offer-selection-skill.git

@@ -14,10 +14,10 @@ v1.0 的原生端到端验收覆盖 Codex CLI。其他宿主的安装和验证�
 
 ### 安装
 
-仓库默认分支目前提供 v0.3.2。要试用 v1.0 候选版，请按[候选版安装步骤](docs/INSTALLATION.md#安装-v100-候选版)选择明确的版本。也可以在 Codex 对话中发送：
+请按[安装步骤](docs/INSTALLATION.md#安装-v100)安装 `v1.0.0`。也可以在 Codex 对话中发送：
 
 ```text
-请从 https://github.com/NextVariable/offer-selection-skill 的 codex/v1-decision-engine 分支安装 offer-selection-skill。
+请从 https://github.com/NextVariable/offer-selection-skill 的 v1.0.0 标签安装 offer-selection-skill。
 ```
 
 按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
@@ -114,7 +114,7 @@ B：[学校、项目全名、入学年份]
 
 ## 使用前了解
 
-本分支为 **v1.0.0 候选版**。支持运行 Python 3.10+ 的 Agent 可以调用离线计算与校验模块。公开正式版为 v0.3.2。关键资格与政策请以适用期的官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)及[使用示例](docs/examples/13-structured-decision.md)。
+当前版本为 **v1.0.0**，正式支持 Codex CLI。Python 3.10+ 用于离线计算与校验。关键资格与政策请以适用期的官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)及[使用示例](docs/examples/13-structured-decision.md)。
 
 无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](docs/PRIVACY.md)。
 
