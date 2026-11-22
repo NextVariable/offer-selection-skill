@@ -77,6 +77,12 @@ allows it; a comparison must remain conditional if dates affect the gate.
   cannot override a supplied numeric ceiling, a payment constraint or a
   stress scenario. A statement that only the master's stage is affordable
   does not apply to the whole integrated programme.
+  If the user's ceiling applies only to the master's stage, record
+  `horizon:"masters"` and tag every row `stage:"masters"` or `"doctoral"`.
+  Keep doctoral funding, progression and affordability as separate
+  research decisions, including when one offer is integrated. The default
+  `whole_offer` includes both stages. Copy the same horizon into budget-only
+  counterfactuals. Set `cost_complete` for the declared horizon.
   `available` is cumulative funding through the deadline, excluding award
   rows. Enumerate all material deadlines. Rows dated in the same month include
   only cash available before the corresponding payment; use distinct timeline
@@ -85,7 +91,7 @@ allows it; a comparison must remain conditional if dates affect the gate.
 - Offer: `id,title,country,operative_date,cost_complete,costs,gates`; optional
   `offsets_complete` is true only when all plausible material offsets have
   bounded amounts and times for the relevant cash checks.
-  Cost row: `id,kind,amount,month,basis`, optional `category,evidence_ids`.
+  Cost row: `id,kind,amount,month,basis`, optional `category,evidence_ids,stage`.
   Kinds `expense,award,opportunity`. Unknown timing uses null. Leave
   `cost_complete:false` until material cash items and offsets are covered
   by scoped ranges; include each line once. Cost claims linked in

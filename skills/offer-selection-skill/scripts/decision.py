@@ -133,8 +133,10 @@ def costs(offer, budget, shock=None):
     awards = []
     opportunity = []
     seen = set()
+    horizon = budget.get("horizon", "whole_offer")
+    excluded = []
     for row in seq(offer["costs"]):
-        fields(row, ("id", "kind", "amount", "month", "basis"), ("category", "evidence_ids"))
+        fields(row, ("id", "kind", "amount", "month", "basis"), ("category", "evidence_ids", "stage"))
         key = identifier(row["id"])
         need(key not in seen, f"duplicate cost component {key}")
         seen.add(key)
@@ -145,6 +147,13 @@ def costs(offer, budget, shock=None):
         if month is not None:
             integer(month, 240)
         amount = bounds(row["amount"])
+        stage = row.get("stage")
+        need(stage is None or stage in {"masters", "doctoral"}, f"invalid cost stage: {key}")
+        if horizon == "masters":
+            need(stage is not None, f"master-stage budget needs an explicit stage: {key}")
+            if stage == "doctoral":
+                excluded.append(key)
+                continue
         if shock and kind == "expense" and row.get("category") in shock["categories"]:
             rate = 100 + shock["percent"]
             # Round each edge outward in the input currency's minor units.
@@ -172,7 +181,7 @@ def costs(offer, budget, shock=None):
             status = against(outflow, cash[0]) if against(outflow, cash[0]) == "pass" else "unresolved"
         milestones.append({"month": m, "outflow": outflow, "available": cash, "status": status})
     gate = rollup([total_status, *(m["status"] for m in milestones)])
-    if not offer["cost_complete"] and gate == "pass":
+    if (not offer["cost_complete"] or (horizon == "masters" and not gross)) and gate == "pass":
         gate = "unresolved"
     if gate == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
         gate = "unresolved"
@@ -183,6 +192,7 @@ def costs(offer, budget, shock=None):
     return {"cash": net, "opportunity_cost": add(opportunity),
             "economic_cost": add([net, add(opportunity)]), "ceiling_status": total_status,
             "target_status": against(net, budget.get("target")), "budget_gate": gate,
+            "budget_horizon": horizon, "excluded_cost_ids": excluded,
             "affordability_basis": basis, "milestones": milestones,
             "cashflow_checked": bool(milestones)}
 
@@ -226,7 +236,8 @@ def case_model(data):
     for key in ("country", "career", "phd_intent", "prestige", "risk_tolerance"):
         string(goal[key])
     budget = fields(data["budget"], ("currency", "ceiling"),
-                    ("target", "liquidity", "stress", "affordable_by_user"))
+                    ("target", "liquidity", "stress", "affordable_by_user", "horizon"))
+    need(budget.get("horizon", "whole_offer") in {"whole_offer", "masters"}, "invalid budget horizon")
     need(re.fullmatch(r"[A-Z]{3}", string(budget["currency"])), "expected currency code")
     for name in ("ceiling", "target"):
         if budget.get(name) is not None:
@@ -374,9 +385,10 @@ def audit(data):
             if cost["amount"] != [0, None] and any(
                     evidence[c]["state"] != "confirmed" for c in cost.get("evidence_ids", [])):
                 cost["amount"] = [0, None]
-                offer["cost_complete"] = False
-                if cost["kind"] == "award":
-                    offer["offsets_complete"] = False
+                if revised["budget"].get("horizon") != "masters" or cost.get("stage") != "doctoral":
+                    offer["cost_complete"] = False
+                    if cost["kind"] == "award":
+                        offer["offsets_complete"] = False
                 changes.append({"offer": oid, "cost": cost["id"], "reasons": ["support unresolved"]})
     analyze(revised)
     return {"input": revised, "changes": changes}

@@ -63,6 +63,26 @@ def second_offer(data):
 
 
 class BudgetCases(unittest.TestCase):
+    def test_master_ceiling_excludes_doctoral_expenses_and_awards(self):
+        q = self.cost([row("masters-fee", "expense", [82, 82], stage="masters"),
+                       row("doctoral-fee", "expense", [300, 300], stage="doctoral"),
+                       row("doctor-award", "award", [40, 40], stage="doctoral")], horizon="masters")
+        self.assertEqual((q["cash"], q["budget_gate"], q["excluded_cost_ids"]),
+                         ((82, 82), "pass", ["doctoral-fee", "doctor-award"]))
+
+    def test_master_ceiling_rejects_untagged_rows(self):
+        with self.assertRaisesRegex(ValueError, "explicit stage"):
+            self.cost([row("combined", "expense", [300, 300])], horizon="masters")
+
+    def test_no_master_rows_is_unresolved(self):
+        q = self.cost([row("doctoral-only", "expense", [80, 80], stage="doctoral")], horizon="masters")
+        self.assertEqual(q["budget_gate"], "unresolved")
+
+    def test_whole_offer_still_includes_both_stages(self):
+        q = self.cost([row("masters-fee", "expense", [82, 82], stage="masters"),
+                       row("doctor-fee", "expense", [300, 300], stage="doctoral")])
+        self.assertEqual((q["budget_horizon"], q["budget_gate"]), ("whole_offer", "fail"))
+
     def cost(self, items, **budget):
         data = base()
         data["offers"][0]["costs"] = items
@@ -208,6 +228,20 @@ class EvidenceCases(unittest.TestCase):
         data = base()
         data["evidence"][0]["sources"][0]["scope"] = "general university policy"
         self.assertEqual(engine.audit(data)["input"]["evidence"][0]["state"], "unresolved")
+
+    def test_unverified_doctoral_fee_does_not_reopen_master_budget(self):
+        data = base()
+        data["budget"]["horizon"] = "masters"
+        offer = data["offers"][0]
+        offer["costs"][0]["stage"] = "masters"
+        fee = claim("doctor-fee", "cost")
+        del fee["sources"][0]["inspection"]
+        data["evidence"].append(fee)
+        offer["costs"].append(row("doctor", "expense", [300, 300], stage="doctoral",
+                                  evidence_ids=["doctor-fee"]))
+        fixed = engine.audit(data)["input"]
+        result = engine.analyze(fixed)["offers"]["a"]["cost"]
+        self.assertEqual((result["budget_gate"], result["excluded_cost_ids"]), ("pass", ["doctor"]))
 
     def test_quick_shows_checked_sources_and_shares_full_prefix(self):
         d, out = base(), decision()
