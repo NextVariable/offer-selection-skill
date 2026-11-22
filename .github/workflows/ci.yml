@@ -47,6 +47,11 @@ jobs:
           grep -q "FALLBACK_VERSION=\"${PLUGIN}\"" maintenance/install.sh
           grep -q "\$FallbackVersion = \"${PLUGIN}\"" maintenance/install.ps1
 
+      - name: Release contract, privacy and path scan
+        run: |
+          python3 -m unittest maintenance.test_release_contract
+          python3 -m compileall -q skills/offer-selection-skill/scripts maintenance
+
   windows-installer-safety:
     runs-on: windows-latest
     timeout-minutes: 10
