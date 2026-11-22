@@ -1,0 +1,360 @@
+{
+  "schema": "offer-decision/v1",
+  "as_of": "2026-11-23",
+  "profile": {
+    "undergraduate": "China business bachelor, 2.1 equivalent",
+    "internships": [
+      "one marketing internship"
+    ],
+    "english": "IELTS 7.0"
+  },
+  "goal": {
+    "paths": [
+      "private"
+    ],
+    "country": "China",
+    "career": "marketing in a private company",
+    "phd_intent": "no",
+    "prestige": "moderate",
+    "risk_tolerance": "moderate"
+  },
+  "budget": {
+    "currency": "GBP",
+    "ceiling": 5600000,
+    "target": 5300000
+  },
+  "offers": [
+    {
+      "id": "warwick",
+      "title": "Warwick MSc Marketing & Strategy",
+      "country": "United Kingdom",
+      "operative_date": "2027-09-01",
+      "cost_complete": true,
+      "costs": [
+        {
+          "id": "w_tuition",
+          "kind": "expense",
+          "amount": [
+            3950000,
+            3950000
+          ],
+          "month": 9,
+          "basis": "2027 entry international tuition, one-year full-time",
+          "evidence_ids": [
+            "e_w_tuition"
+          ]
+        },
+        {
+          "id": "w_living",
+          "kind": "expense",
+          "amount": [
+            1500000,
+            1500000
+          ],
+          "month": 9,
+          "basis": "user-provided all-in living estimate",
+          "evidence_ids": []
+        }
+      ],
+      "gates": [
+        {
+          "id": "w_entry",
+          "path": "private",
+          "scope": "2027 entry MSc Marketing & Strategy entry requirements",
+          "kind": "eligibility",
+          "status": "unresolved",
+          "evidence_ids": []
+        }
+      ]
+    },
+    {
+      "id": "glasgow",
+      "title": "Glasgow International Strategic Marketing MSc",
+      "country": "United Kingdom",
+      "operative_date": "2027-09-01",
+      "cost_complete": true,
+      "costs": [
+        {
+          "id": "g_tuition",
+          "kind": "expense",
+          "amount": [
+            3481500,
+            3481500
+          ],
+          "month": 9,
+          "basis": "2027-28 international tuition, 12-month full-time",
+          "evidence_ids": [
+            "e_g_tuition"
+          ]
+        },
+        {
+          "id": "g_living",
+          "kind": "expense",
+          "amount": [
+            1500000,
+            1500000
+          ],
+          "month": 9,
+          "basis": "user-provided all-in living estimate",
+          "evidence_ids": []
+        }
+      ],
+      "gates": [
+        {
+          "id": "g_entry",
+          "path": "private",
+          "scope": "2027 entry International Strategic Marketing entry requirements",
+          "kind": "eligibility",
+          "status": "unresolved",
+          "evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e_w_tuition",
+      "offer": "warwick",
+      "path": "*",
+      "kind": "cost",
+      "scope": "2027 entry international tuition",
+      "state": "confirmed",
+      "impact": "critical",
+      "claim": "2027 entry EU/International tuition is GBP 39,500 for the one-year full-time MSc",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.wbs.ac.uk/courses/masters/marketing-and-strategy/",
+          "authority": "institution",
+          "scope": "2027 entry international tuition",
+          "accessed": "2026-11-23",
+          "locator": "Fees and funding",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "2027 entry EU/International fees: GBP 39,500; duration 1 year; start September 2027."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_g_tuition",
+      "offer": "glasgow",
+      "path": "*",
+      "kind": "cost",
+      "scope": "2027-28 international tuition",
+      "state": "confirmed",
+      "impact": "critical",
+      "claim": "2027-28 International & EU full-time tuition is GBP 34,815 for the 12-month MSc",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.gla.ac.uk/postgraduate/taught/internationalstrategicmarketing/",
+          "authority": "institution",
+          "scope": "2027-28 international tuition",
+          "accessed": "2026-11-23",
+          "locator": "Fees & funding > Tuition fees for 2027-28",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "Tuition fees for 2027-28: International & EU full-time fee GBP 34,815; MSc 12 months full-time."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_w_programme",
+      "offer": "warwick",
+      "path": "*",
+      "kind": "programme",
+      "scope": "2027 entry MSc Marketing & Strategy",
+      "state": "confirmed",
+      "impact": "material",
+      "claim": "The 2027 entry MSc Marketing & Strategy is one year full-time on Warwick campus, starting September 2027, with applications due 2 August 2027",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.wbs.ac.uk/courses/masters/marketing-and-strategy/requirements/",
+          "authority": "institution",
+          "scope": "2027 entry MSc Marketing & Strategy",
+          "accessed": "2026-11-23",
+          "locator": "Overview > key facts",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "Application deadline 2 August 2027; start date September 2027; duration 1 year; Warwick campus; full-time."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_g_programme",
+      "offer": "glasgow",
+      "path": "*",
+      "kind": "programme",
+      "scope": "2027 entry International Strategic Marketing",
+      "state": "confirmed",
+      "impact": "material",
+      "claim": "The International Strategic Marketing MSc is 12 months full-time, teaching starts in September at the Gilmorehill campus",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.gla.ac.uk/postgraduate/taught/internationalstrategicmarketing/",
+          "authority": "institution",
+          "scope": "2027 entry International Strategic Marketing",
+          "accessed": "2026-11-23",
+          "locator": "Overview",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "MSc: 12 months full-time; teaching start September; Glasgow Gilmorehill campus."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_w_entry",
+      "offer": "warwick",
+      "path": "private",
+      "kind": "eligibility",
+      "scope": "2027 entry MSc Marketing & Strategy entry requirements",
+      "state": "confirmed",
+      "impact": "critical",
+      "claim": "Entry requires at least a 2.1 UK degree or overseas equivalent, welcomes applicants from all academic fields, and requires IELTS 7.0 overall with specified component minima",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.wbs.ac.uk/courses/masters/marketing-and-strategy/requirements/",
+          "authority": "institution",
+          "scope": "2027 entry MSc Marketing & Strategy entry requirements",
+          "accessed": "2026-11-23",
+          "locator": "Entry requirements > academic and English language",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "At least a 2.1 degree or overseas equivalent; welcomes applicants from all academic fields; IELTS 7.0 overall with no more than two components at 6.0/6.5."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_g_entry",
+      "offer": "glasgow",
+      "path": "private",
+      "kind": "eligibility",
+      "scope": "2027 entry International Strategic Marketing entry requirements",
+      "state": "confirmed",
+      "impact": "critical",
+      "claim": "Entry requires a 2.1 Hons or non-UK equivalent in Business Management, Marketing or Commerce, and IELTS 6.5 overall with no subtest below 6.0",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.gla.ac.uk/postgraduate/taught/internationalstrategicmarketing/entryrequirements/",
+          "authority": "institution",
+          "scope": "2027 entry International Strategic Marketing entry requirements",
+          "accessed": "2026-11-23",
+          "locator": "Entry requirements > academic and English language",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "2.1 Hons or non-UK equivalent in Business Management, Marketing or Commerce; IELTS 6.5 overall with no subtest less than 6.0."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_w_brand",
+      "offer": "warwick",
+      "path": "private",
+      "kind": "market",
+      "scope": "Warwick marketing recognition",
+      "state": "confirmed",
+      "impact": "material",
+      "claim": "Warwick Business School states it is ranked 1st among UK universities and 6th in the world in the QS Business Masters Rankings 2027, and Warwick is top 25 globally for Marketing studies in QS 2026",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.wbs.ac.uk/courses/masters/marketing-and-strategy/",
+          "authority": "institution",
+          "scope": "Warwick marketing recognition",
+          "accessed": "2026-11-23",
+          "locator": "Overview > rankings",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "Ranked 1st for UK universities and 6th in the world (QS Business Masters Rankings 2027); top 25 globally for Marketing studies (QS World University Rankings by Subject 2026)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_g_brand",
+      "offer": "glasgow",
+      "path": "private",
+      "kind": "market",
+      "scope": "Glasgow marketing recognition",
+      "state": "confirmed",
+      "impact": "material",
+      "claim": "Glasgow states the programme is QS top 70 in the Business Masters Rankings 2027, CIM accredited, and delivered by a triple-accredited business school",
+      "period": {
+        "from": "2026-01-01",
+        "through": "2027-12-31"
+      },
+      "sources": [
+        {
+          "url": "https://www.gla.ac.uk/postgraduate/taught/internationalstrategicmarketing/",
+          "authority": "institution",
+          "scope": "Glasgow marketing recognition",
+          "accessed": "2026-11-23",
+          "locator": "Overview",
+          "inspection": {
+            "access": "opened",
+            "support": "supported",
+            "observation": "Ranked QS top 70 (Business Masters Rankings 2027); CIM accredited; Adam Smith Business School is triple accredited."
+          }
+        }
+      ]
+    },
+    {
+      "id": "e_w_china",
+      "offer": "warwick",
+      "path": "private",
+      "kind": "market",
+      "scope": "China private-sector employer recognition of Warwick MSc",
+      "state": "unresolved",
+      "impact": "material",
+      "claim": "Whether target China private-sector employers treat this exact Warwick MSc as a preferred credential is not verified"
+    },
+    {
+      "id": "e_g_china",
+      "offer": "glasgow",
+      "path": "private",
+      "kind": "market",
+      "scope": "China private-sector employer recognition of Glasgow MSc",
+      "state": "unresolved",
+      "impact": "material",
+      "claim": "Whether target China private-sector employers treat this exact Glasgow MSc as a preferred credential is not verified"
+    }
+  ]
+}
