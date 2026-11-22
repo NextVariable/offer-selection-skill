@@ -165,8 +165,17 @@ def costs(offer, budget, shock=None):
             awards.append((month, amount))
         else:
             opportunity.append(amount)
+    # An incomplete expense ledger cannot establish affordability. An incomplete
+    # funding ledger cannot establish unaffordability from the listed rows.
+    def bounded_status(status):
+        if status == "pass" and (not offer["cost_complete"] or not gross):
+            return "unresolved"
+        if status == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
+            return "unresolved"
+        return status
+
     net = _net(add(a for _, a in gross), add(a for _, a in awards))
-    total_status = against(net, budget["ceiling"])
+    total_status = bounded_status(against(net, budget["ceiling"]))
     milestones = []
     for node in budget.get("liquidity", []):
         m = node["month"]
@@ -179,19 +188,16 @@ def costs(offer, budget, shock=None):
         status = against(outflow, cash[1])
         if status != "fail":
             status = against(outflow, cash[0]) if against(outflow, cash[0]) == "pass" else "unresolved"
-        milestones.append({"month": m, "outflow": outflow, "available": cash, "status": status})
+        milestones.append({"month": m, "outflow": outflow, "available": cash,
+                           "status": bounded_status(status)})
     gate = rollup([total_status, *(m["status"] for m in milestones)])
-    if (not offer["cost_complete"] or not gross) and gate == "pass":
-        gate = "unresolved"
-    if gate == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
-        gate = "unresolved"
     basis = "ledger"
     if (gate == "unresolved" and budget["ceiling"] is None and not milestones
             and shock is None and offer["id"] in budget.get("affordable_by_user", [])):
         gate, basis = "pass", "user_affordability_attestation"
     return {"cash": net, "opportunity_cost": add(opportunity),
             "economic_cost": add([net, add(opportunity)]), "ceiling_status": total_status,
-            "target_status": against(net, budget.get("target")), "budget_gate": gate,
+            "target_status": bounded_status(against(net, budget.get("target"))), "budget_gate": gate,
             "budget_horizon": horizon, "excluded_cost_ids": excluded,
             "affordability_basis": basis, "milestones": milestones,
             "cashflow_checked": bool(milestones)}

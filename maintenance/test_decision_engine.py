@@ -160,15 +160,24 @@ class BudgetCases(unittest.TestCase):
     def test_incomplete_ledger_cannot_prove_pass(self):
         d = base()
         d["offers"][0]["cost_complete"] = False
-        self.assertEqual(engine.analyze(d)["offers"]["a"]["cost"]["budget_gate"], "unresolved")
+        d["budget"].update(target=50, liquidity=[{"month": 0, "available": [50, 50]}])
+        cost = engine.analyze(d)["offers"]["a"]["cost"]
+        self.assertEqual(cost["cash"], (40, 40))
+        self.assertEqual((cost["ceiling_status"], cost["target_status"], cost["budget_gate"],
+                          cost["milestones"][0]["status"]), ("unresolved",) * 4)
 
     def test_lower_bound_failure_needs_bounded_offsets(self):
         d = base()
         offer = d["offers"][0]
         offer.update(cost_complete=False, costs=[row("fee", "expense", [101, 101])])
-        self.assertEqual(engine.analyze(d)["offers"]["a"]["cost"]["budget_gate"], "unresolved")
+        d["budget"]["liquidity"] = [{"month": 0, "available": [100, 100]}]
+        cost = engine.analyze(d)["offers"]["a"]["cost"]
+        self.assertEqual((cost["ceiling_status"], cost["budget_gate"],
+                          cost["milestones"][0]["status"]), ("unresolved",) * 3)
         offer["offsets_complete"] = True
-        self.assertEqual(engine.analyze(d)["offers"]["a"]["cost"]["budget_gate"], "fail")
+        cost = engine.analyze(d)["offers"]["a"]["cost"]
+        self.assertEqual((cost["ceiling_status"], cost["budget_gate"],
+                          cost["milestones"][0]["status"]), ("fail",) * 3)
 
     def test_no_deadlines_unchecked(self):
         self.assertFalse(self.cost([row("fee", "expense", [10, 20])])["cashflow_checked"])
