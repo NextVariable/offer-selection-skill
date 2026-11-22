@@ -512,6 +512,39 @@ class QuickReportCases(unittest.TestCase):
         self.assertIn("### 待核实", quick)
         self.assertIn("未确认；影响关键", quick)
 
+    def test_quick_renders_cost_ledger_with_source_and_applicable_period(self):
+        d, out = base(), decision()
+        d["offers"][0]["costs"] = [row("tuition", "expense", [0, None], month=None,
+                                       basis="2026/27 USD 72,450 for two semesters; 2027/28 pending")]
+        d["offers"][0]["cost_complete"] = False
+        fee = claim("fee", kind="cost", scope="2026/27 tuition and mandatory fees",
+                    claim="Published tuition is USD 72,450 for two semesters",
+                    period={"from": "2026-09-01", "through": "2027-08-31"},
+                    operative_date="2026-09-01")
+        fee["sources"][0].update(scope=fee["scope"], locator="Tuition table, L205-244")
+        d["evidence"].append(fee)
+        out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy",
+                                     evidence_ids=["course", "fee"])
+        out["conclusion"] = {"type": "defer", "choices": []}
+        out["risks"] = ["Cost ledger remains incomplete"]
+        quick, full = (engine.render(d, out, mode) for mode in ("quick", "full"))
+        for text in ("tuition（expense）：未量化（上界未定）",
+                     "2026/27 USD 72,450 for two semesters; 2027/28 pending",
+                     "Published tuition is USD 72,450 for two semesters",
+                     "适用 2026-09-01 至 2027-08-31",
+                     "Tuition table, L205-244",
+                     "https://example.edu/programmes/example"):
+            self.assertIn(text, quick)
+        self.assertTrue(full.startswith(quick))
+
+    def test_quick_prints_quantified_rows_without_agent_text(self):
+        d, out = base(), decision()
+        d["budget"].update(ceiling=100000, target=90000)
+        d["offers"][0]["costs"] = [row("tuition", "expense", [72450, 72450], month=10,
+                                       basis="2026/27 published tuition")]
+        quick = engine.render(d, out, "quick")
+        self.assertIn("tuition（expense）：72,450；2026/27 published tuition", quick)
+
     def test_quick_omits_cost_section_without_budget_limit(self):
         d, out = base(), decision()
         d["budget"] = {"currency": "CNY", "ceiling": None}

@@ -547,7 +547,17 @@ def money_range(value):
     return f"{low:,} 起（上界未定）" if high is None else f"{low:,}–{high:,}"
 
 
-def budget_section(data, computed):
+def applicable_label(item):
+    period = item.get("period")
+    if period:
+        return f"适用 {period['from']} 至 {period['through']}"
+    if item.get("operative_date"):
+        return f"适用日期 {item['operative_date']}"
+    accessed = sorted({s["accessed"] for s in item.get("sources", []) if s.get("accessed")})
+    return f"核验日期 {accessed[0]}" if accessed else "适用期未标注"
+
+
+def budget_section(data, computed, decision, known):
     budget = data["budget"]
     if budget.get("ceiling") is None and budget.get("target") is None:
         return []
@@ -559,6 +569,12 @@ def budget_section(data, computed):
     if budget.get("target") is not None:
         terms.append(f"目标 {budget['target']:,}")
     lines = ["", "### 费用与预算", "", "- " + "；".join(terms)]
+    cited = {}
+    for row in decision["assessments"]:
+        cited.setdefault(row["offer"], [])
+        for cid in row["evidence_ids"]:
+            if cid not in cited[row["offer"]]:
+                cited[row["offer"]].append(cid)
     for offer in data["offers"]:
         cost = computed["offers"][offer["id"]]["cost"]
         low, high = cost["cash"]
@@ -586,6 +602,40 @@ def budget_section(data, computed):
         if not cost["cashflow_checked"]:
             bits.append("付款节点未核对")
         lines.append(f"- {offer['title']}：" + "；".join(bits))
+        # Per-row ledger from the same verified decision input. This is rendered
+        # for every cost row, quantified or not, so a Quick report never depends
+        # on the Agent re-typing amounts by hand.
+        for component in offer["costs"]:
+            row_low, row_high = component["amount"]
+            if row_high is None:
+                amount = ("未量化（上界未定）" if row_low == 0
+                          else f"未量化（下界 {row_low:,}，上界未定）")
+            elif row_low == row_high:
+                amount = f"{row_low:,}"
+            else:
+                amount = f"{row_low:,}–{row_high:,}"
+            stage = f"，{component['stage']}" if component.get("stage") else ""
+            excluded = "；本预算口径排除" if component["id"] in cost["excluded_cost_ids"] else ""
+            lines.append(f"  - {component['id']}（{component['kind']}{stage}）："
+                         f"{amount}；{component['basis']}{excluded}")
+        # Confirmed cost evidence already carried by the input: show the claim,
+        # its applicable period and the opened scoped source. Unconfirmed rows
+        # stay in the 待核实 section instead of being presented as costs.
+        ids = [cid for component in offer["costs"] for cid in component.get("evidence_ids", [])]
+        ids += cited.get(offer["id"], [])
+        for cid in dict.fromkeys(ids):
+            item = known.get(cid)
+            if not item or item["kind"] != "cost" or item["offer"] != offer["id"] \
+                    or item["state"] != "confirmed":
+                continue
+            sources = [src for src in item.get("sources", [])
+                       if src["authority"] in AUTHORITY and src["scope"] == item["scope"]
+                       and inspect_source(src)]
+            if not sources:
+                continue
+            lines.append(f"  - 依据（{cid}）：{item['claim']}（{applicable_label(item)}）")
+            for src in sources:
+                lines.append(f"    - {src['authority']} · {src['locator']} · <{src['url']}>")
     return lines
 
 
@@ -634,7 +684,7 @@ def render(data, decision, mode):
         lines.extend(["", "### 关键状态", "", *(
             f"- {labels[r['offer']]} / {r['path']}：{r['gate']} · {r['score_state']}"
             for r in constrained)])
-    lines.extend(budget_section(data, computed))
+    lines.extend(budget_section(data, computed, decision, known))
     lines.extend(gap_section(data, decision, computed, known))
     cited = dict.fromkeys(i for r in decision["assessments"] for i in r["evidence_ids"])
     sources = {}
