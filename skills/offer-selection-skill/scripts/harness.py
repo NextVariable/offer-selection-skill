@@ -219,28 +219,46 @@ def evidence_fingerprint_index(case):
     return index
 
 
-def _coverage_sources(state, path, kind):
-    """Return the gates, evidence and tasks that bear on one contract slot."""
+def _coverage_sources(state, path, kind, offer=None):
+    """Return the gates, evidence and tasks that bear on one contract slot.
+
+    With `offer`, the slot is narrowed to that offer so one offer's proof can
+    never stand in for another offer's missing or unresolved qualification.
+    Without it the union is returned, which is only used to describe what an
+    active path has declared overall.
+    """
     case = state["case"]
-    gates = [g for offer in case["offers"] for g in offer["gates"]
-             if g["path"] == path and g["kind"] == kind]
+    gates = [g for row in case["offers"] if offer is None or row["id"] == offer
+             for g in row["gates"] if g["path"] == path and g["kind"] == kind]
     evidence = [e for e in case["evidence"]
-                if e["kind"] == kind and e["path"] in {path, "*"}]
+                if e["kind"] == kind and e["path"] in {path, "*"}
+                and (offer is None or e["offer"] == offer)]
     tasks = [t for t in state["research"]["tasks"]
-             if t["kind"] == kind and t["path"] in {path, "*"}]
+             if t["kind"] == kind and t["path"] in {path, "*"}
+             and (offer is None or t.get("offer_id") == offer)]
     return gates, evidence, tasks
 
 
-def _coverage_status(state, path, kind):
-    """Resolve one contract slot to confirmed / unresolved / not_applicable / missing.
+def _coverage_disposition(state, path, kind, offer=None):
+    """Prefer an offer-specific disposition, then the path-level judgement."""
+    by_path = state.get("coverage", {}).get(path, {})
+    if offer:
+        exact = by_path.get(f"{kind}@{offer}")
+        if exact:
+            return exact
+    return by_path.get(kind)
+
+
+def _offer_coverage_status(state, path, kind, offer):
+    """Resolve one contract slot for one offer.
 
     Precedence: an explicit human not-applicable or unresolved disposition is
     authoritative; otherwise a decided gate or verified evidence confirms the
     slot; otherwise any declaration leaves it unresolved; an undeclared slot is
-    missing. Missing is never a pass.
+    missing. Missing is never a pass. Only sources belonging to `offer` count.
     """
-    gates, evidence, tasks = _coverage_sources(state, path, kind)
-    disposition = state.get("coverage", {}).get(path, {}).get(kind)
+    gates, evidence, tasks = _coverage_sources(state, path, kind, offer)
+    disposition = _coverage_disposition(state, path, kind, offer)
     if disposition and disposition["status"] in {"not_applicable", "unresolved"}:
         return disposition["status"], disposition
     if any(g["status"] in {"pass", "fail"} for g in gates) or any(
@@ -253,22 +271,89 @@ def _coverage_status(state, path, kind):
     return "missing", disposition
 
 
-def coverage(state):
-    """Audit the required research contract for every active path.
+def _coverage_status(state, path, kind, offer=None):
+    """Resolve a contract slot, per offer when named, otherwise across offers.
 
-    Each contract slot resolves to confirmed, unresolved, not_applicable or
-    missing. A hard slot that is not confirmed/not-applicable blocks an
-    unconditional recommendation; a decisive gap is reported without blocking;
-    optional research is never required. A missing slot is never treated as a
-    pass. Human not-applicable judgements keep their reason and reviewer.
+    A path-level slot is satisfied only when every offer is confirmed or
+    explicitly not-applicable. Partial evidence therefore stays unresolved at
+    path level instead of letting the first confirmed offer speak for the rest.
+    """
+    if offer is not None:
+        return _offer_coverage_status(state, path, kind, offer)
+    statuses = [_offer_coverage_status(state, path, kind, row["id"])[0]
+                for row in state["case"]["offers"]]
+    if not statuses:
+        return "missing", _coverage_disposition(state, path, kind)
+    if all(current in {"confirmed", "not_applicable"} for current in statuses):
+        return ("not_applicable" if all(current == "not_applicable" for current in statuses)
+                else "confirmed"), _coverage_disposition(state, path, kind)
+    if any(current in {"confirmed", "unresolved"} for current in statuses):
+        return "unresolved", _coverage_disposition(state, path, kind)
+    return "missing", _coverage_disposition(state, path, kind)
+
+
+def _slot_row(contract, status, reasons, declared):
+    confirmed = sorted(k for k, v in status.items() if v == "confirmed")
+    unresolved = sorted(k for k, v in status.items() if v == "unresolved")
+    not_applicable = sorted(k for k, v in status.items() if v == "not_applicable")
+    missing = sorted(k for k, v in status.items() if v == "missing")
+    hard = sorted(k for k, v in contract.items() if v == "hard"
+                  and status[k] not in {"confirmed", "not_applicable"})
+    decisive = sorted(k for k, v in contract.items() if v == "decisive"
+                      and status[k] not in {"confirmed", "not_applicable"})
+    return {
+        "confirmed": confirmed, "unresolved": unresolved,
+        "not_applicable": not_applicable, "missing": missing,
+        "hard_gaps": hard, "decisive_gaps": decisive,
+        "declared": sorted(declared), "dispositions": reasons,
+    }
+
+
+def coverage(state):
+    """Audit the required research contract per offer and active path.
+
+    Every active path is checked once per offer and required kind. The path row
+    keeps a readable aggregate, but its `offers` map is authoritative: offer A's
+    confirmed eligibility never covers offer B's unresolved eligibility. A hard
+    slot that is not confirmed/not-applicable for a given offer blocks an
+    unconditional recommendation naming that offer; a decisive gap is reported
+    without blocking; optional research is never required. A missing slot is
+    never a pass. Human not-applicable judgements keep their reason and reviewer.
     """
     case = state["case"]
     paths = sorted(set(case["goal"]["paths"]))
+    offer_ids = [row["id"] for row in case["offers"]]
     rows, gaps, unconfirmed, hard_gaps, decisive_gaps = {}, [], [], [], []
     for path in paths:
         contract = RESEARCH_CONTRACT.get(path, {})
-        status, reasons = {}, {}
-        declared = set()
+        status, reasons, declared = {}, {}, set()
+        offer_rows = {}
+        for offer in offer_ids:
+            offer_status, offer_reasons, offer_declared = {}, {}, set()
+            for kind in sorted(contract):
+                current, disposition = _offer_coverage_status(state, path, kind, offer)
+                offer_status[kind] = current
+                if disposition:
+                    offer_reasons[kind] = {
+                        "reason": disposition.get("reason"),
+                        "reviewer": disposition.get("reviewer"),
+                        "at": disposition.get("at"),
+                    }
+                gates, evidence, tasks = _coverage_sources(state, path, kind, offer)
+                if gates or evidence or tasks:
+                    offer_declared.add(kind)
+            slot = _slot_row(contract, offer_status, offer_reasons, offer_declared)
+            offer_rows[offer] = slot
+            for kind in slot["hard_gaps"]:
+                hard_gaps.append({"offer": offer, "path": path, "kind": kind})
+            for kind in slot["decisive_gaps"]:
+                decisive_gaps.append({"offer": offer, "path": path, "kind": kind})
+            gaps.extend({"offer": offer, "path": path, "kind": kind,
+                         "class": contract[kind], "status": offer_status[kind]}
+                        for kind in slot["missing"])
+            unconfirmed.extend({"offer": offer, "path": path, "kind": kind,
+                                "class": contract[kind]}
+                               for kind in slot["unresolved"])
         for kind in sorted(contract):
             current, disposition = _coverage_status(state, path, kind)
             status[kind] = current
@@ -280,38 +365,28 @@ def coverage(state):
             gates, evidence, tasks = _coverage_sources(state, path, kind)
             if gates or evidence or tasks:
                 declared.add(kind)
-        confirmed = sorted(k for k, v in status.items() if v == "confirmed")
-        unresolved = sorted(k for k, v in status.items() if v == "unresolved")
-        not_applicable = sorted(k for k, v in status.items() if v == "not_applicable")
-        missing = sorted(k for k, v in status.items() if v == "missing")
-        hard = sorted(k for k, v in contract.items() if v == "hard"
-                      and status[k] not in {"confirmed", "not_applicable"})
-        decisive = sorted(k for k, v in contract.items() if v == "decisive"
-                          and status[k] not in {"confirmed", "not_applicable"})
+        slot = _slot_row(contract, status, reasons, declared)
         declared_extra = sorted((declared | {e["kind"] for e in case["evidence"]
                                              if e["path"] in {path, "*"}}) - set(contract))
         rows[path] = {
             "required": sorted(contract), "classes": dict(contract),
-            "declared": sorted(declared), "confirmed": confirmed,
-            "unresolved": unresolved, "not_applicable": not_applicable,
-            "missing": missing, "hard_gaps": hard, "decisive_gaps": decisive,
+            "declared": slot["declared"], "confirmed": slot["confirmed"],
+            "unresolved": slot["unresolved"], "not_applicable": slot["not_applicable"],
+            "missing": slot["missing"], "hard_gaps": slot["hard_gaps"],
+            "decisive_gaps": slot["decisive_gaps"],
             "optional_declared": declared_extra, "dispositions": reasons,
+            "offers": offer_rows,
         }
-        gaps.extend({"path": path, "kind": kind, "class": contract[kind], "status": status[kind]}
-                    for kind in missing)
-        unconfirmed.extend({"path": path, "kind": kind, "class": contract[kind]}
-                           for kind in unresolved)
-        hard_gaps.extend({"path": path, "kind": kind} for kind in hard)
-        decisive_gaps.extend({"path": path, "kind": kind} for kind in decisive)
     return {
         "paths": rows, "gaps": gaps, "unconfirmed": unconfirmed,
         "hard_gaps": hard_gaps, "decisive_gaps": decisive_gaps,
         "hard_blocking": bool(hard_gaps),
-        "note": ("Coverage is derived from declared gates, evidence and tasks plus explicit "
-                 "human dispositions. A missing or unresolved hard item blocks an "
-                 "unconditional recommendation, not a conditional one with flip conditions. "
-                 "Decisive gaps are recorded without blocking; optional research is never "
-                 "required. not_applicable needs a human reason and reviewer."),
+        "note": ("Coverage is checked for every offer against each active path and required "
+                 "kind, then aggregated per path. A hard item unresolved or missing for one "
+                 "offer blocks an unconditional recommendation naming that offer, even when "
+                 "another offer is confirmed; a conditional conclusion with flip conditions "
+                 "stays available. Decisive gaps are recorded without blocking; optional "
+                 "research is never required. not_applicable needs a human reason and reviewer."),
     }
 
 
@@ -330,6 +405,9 @@ def record_coverage(state, payload):
     need(path in state["case"]["goal"]["paths"], "coverage path is not active")
     need(kind in decision.KINDS, "unknown coverage kind")
     need(status in COVERAGE_STATUSES, "invalid coverage status")
+    offer = str(payload.get("offer", "")).strip()
+    need(not offer or offer in {row["id"] for row in state["case"]["offers"]},
+         "coverage disposition names an offer outside the case")
     reason = str(payload.get("reason", "")).strip()
     reviewer = str(payload.get("reviewer", "")).strip()
     if status == "not_applicable":
@@ -340,13 +418,16 @@ def record_coverage(state, payload):
     elif status == "unresolved":
         need(reason, "unresolved coverage requires a reason")
     elif status == "confirmed":
-        need(_coverage_status(state, path, kind)[0] == "confirmed",
-             "confirmed coverage needs verified evidence or a decided gate")
+        need(_coverage_status(state, path, kind, offer or None)[0] == "confirmed",
+             "confirmed coverage needs verified evidence or a decided gate for that offer")
     entry = {"status": status, "reason": reason, "reviewer": reviewer or "runtime",
              "at": now_iso()}
-    state.setdefault("coverage", {}).setdefault(path, {})[kind] = entry
+    if offer:
+        entry["offer"] = offer
+    key = f"{kind}@{offer}" if offer else kind
+    state.setdefault("coverage", {}).setdefault(path, {})[key] = entry
     trace(state, "coverage_disposition", path=path, kind=kind, status=status,
-          reviewer=entry["reviewer"])
+          offer=offer or "*", reviewer=entry["reviewer"])
     return {"disposition": entry, "coverage": coverage(state)}
 
 
@@ -913,30 +994,44 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
 # Decision integration and execution control
 # ---------------------------------------------------------------------------
 
+def _chosen_offers(decision_doc):
+    """Offers this conclusion actually names; empty means every offer matters."""
+    choices = decision_doc.get("conclusion", {}).get("choices") or []
+    return {row.get("offer") for row in choices
+            if isinstance(row, dict) and row.get("offer")}
+
+
 def preflight_recommendation(state, decision_doc):
     kind = decision_doc.get("conclusion", {}).get("type")
     if kind not in DECISIVE_CONCLUSIONS and kind != "conditional":
         return
+    chosen = _chosen_offers(decision_doc)
+
     if kind in DECISIVE_CONCLUSIONS:
-        pending = open_tasks(state, classes=("hard_gate",))
+        pending = [t for t in open_tasks(state, classes=("hard_gate",))
+                   if not chosen or t.get("offer_id") in chosen]
         if pending:
             raise ValueError(
                 "recommendation blocked: open hard-gate research task(s) "
                 + ", ".join(t["id"] for t in pending)
                 + "; research them or return a conditional/defer conclusion")
         unresolved = [e["id"] for e in state["case"]["evidence"]
-                      if e["state"] != "confirmed" and e["impact"] == "critical"
+                      if (not chosen or e["offer"] in chosen)
+                      and e["state"] != "confirmed" and e["impact"] == "critical"
                       and e["kind"] in HARD_KINDS]
         if unresolved:
             raise ValueError("recommendation blocked: critical eligibility evidence is unresolved: "
                              + ", ".join(unresolved))
     cov = coverage(state)
-    if kind in DECISIVE_CONCLUSIONS and cov["hard_gaps"]:
-        raise ValueError(
-            "recommendation blocked: required research is unresolved for "
-            + ", ".join(f"{gap['path']}/{gap['kind']}" for gap in cov["hard_gaps"])
-            + "; confirm it, record a human not_applicable reason, or return a "
-              "conditional conclusion with explicit flip conditions")
+    if kind in DECISIVE_CONCLUSIONS:
+        gaps = [gap for gap in cov["hard_gaps"]
+                if not chosen or gap.get("offer") in chosen]
+        if gaps:
+            raise ValueError(
+                "recommendation blocked: required research is unresolved for "
+                + ", ".join(f"{gap['offer']}/{gap['path']}/{gap['kind']}" for gap in gaps)
+                + "; confirm it, record a human not_applicable reason, or return a "
+                  "conditional conclusion with explicit flip conditions")
     if kind == "conditional" and cov["hard_gaps"]:
         # A conditional recommendation is the permitted release valve when a
         # decisive qualification cannot be proven, but it only works with a

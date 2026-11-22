@@ -702,6 +702,28 @@ def path_case(path, gates=None, evidence_rows=None):
     return case
 
 
+def split_coverage_case():
+    """Two offers on one path: A's eligibility is proven, B's is still open."""
+    case = base_case(offers=2)
+    case["offers"][0]["gates"] = [{
+        "id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+        "kind": "eligibility", "status": "pass", "evidence_ids": ["entry_a"],
+    }]
+    case["offers"][1]["gates"] = [{
+        "id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+        "kind": "eligibility", "status": "unresolved", "evidence_ids": [],
+    }]
+    entry = path_evidence("eligibility", "private", "2027 intake MSc Marketing")
+    entry["id"] = "entry_a"
+    case["evidence"] = [fee_evidence(), entry]
+    return case
+
+
+def choose(offer):
+    return {"conclusion": {"type": "recommend",
+                           "choices": [{"offer": offer, "path": "private"}]}}
+
+
 class ResearchCoverageContractTests(HarnessCase):
     def test_private_contract_flags_hard_eligibility_and_decisive_gaps(self):
         state = harness.init_state(path_case("private"))
@@ -810,6 +832,55 @@ class ResearchCoverageContractTests(HarnessCase):
         self.assertIn("market", row["unresolved"])
         self.assertIn("market", row["decisive_gaps"])
         self.assertNotIn("market", row["confirmed"])
+
+    def test_one_offer_confirmation_does_not_cover_another_offer(self):
+        state = harness.init_state(split_coverage_case())
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertIn("eligibility", row["offers"]["a"]["confirmed"])
+        self.assertIn("eligibility", row["offers"]["b"]["unresolved"])
+        self.assertNotIn("eligibility", row["confirmed"])
+        self.assertIn("eligibility", row["unresolved"])
+        self.assertIn({"offer": "b", "path": "private", "kind": "eligibility"},
+                      cov["hard_gaps"])
+        self.assertTrue(cov["hard_blocking"])
+
+    def test_recommending_the_confirmed_offer_survives_the_other_offer(self):
+        state = harness.init_state(split_coverage_case())
+        harness.preflight_recommendation(state, choose("a"))
+
+    def test_recommending_the_unresolved_offer_is_blocked_by_its_own_gap(self):
+        state = harness.init_state(split_coverage_case())
+        with self.assertRaisesRegex(ValueError, "b/private/eligibility"):
+            harness.preflight_recommendation(state, choose("b"))
+
+    def test_cost_confirmation_is_also_per_offer(self):
+        state = harness.init_state(base_case(offers=2))
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertIn("cost", row["offers"]["a"]["confirmed"])
+        self.assertIn("cost", row["offers"]["b"]["missing"])
+        self.assertNotIn("cost", row["confirmed"])
+        self.assertIn({"offer": "b", "path": "private", "kind": "cost",
+                       "class": "decisive", "status": "missing"}, cov["gaps"])
+
+    def test_offer_level_not_applicable_clears_only_that_offer(self):
+        state = harness.init_state(split_coverage_case())
+        base = {"offer": "b", "path": "private", "kind": "eligibility",
+                "status": "not_applicable", "reason": "该项目不设单独的资格门槛"}
+        with self.assertRaisesRegex(ValueError, "human judgement"):
+            harness.record_coverage(state, {**base, "reviewer": "model"})
+        out = harness.record_coverage(state, {**base, "reviewer": "human"})
+        self.assertEqual(out["coverage"]["hard_gaps"], [])
+        self.assertEqual(out["coverage"]["paths"]["private"]["offers"]["b"]["not_applicable"],
+                         ["eligibility"])
+        self.assertIn("eligibility", out["coverage"]["paths"]["private"]["confirmed"])
+
+    def test_path_level_confirmation_cannot_mask_an_offer(self):
+        state = harness.init_state(split_coverage_case())
+        with self.assertRaisesRegex(ValueError, "that offer"):
+            harness.record_coverage(state, {"path": "private", "kind": "eligibility",
+                                            "status": "confirmed"})
 
 
 class SemanticReviewRecordTests(HarnessCase):
