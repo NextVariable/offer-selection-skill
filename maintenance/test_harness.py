@@ -552,6 +552,122 @@ class FrozenRealSourceCaseTests(HarnessCase):
         self.assertEqual(harness.digest(state["case"]), before)
 
 
+class AuditRegressionTests(HarnessCase):
+    def test_retention_expiry_purges_profile_and_keeps_decision_renderable(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.scenario(state, {"field": "ceiling", "value": 400000}, "cap")
+        state["privacy"]["expires_at"] = "2026-11-22"
+        info = harness.privacy(state)
+        self.assertTrue(info["expired"])
+        self.assertTrue(info["auto_purged_on_expiry"])
+        self.assertEqual(state["case"]["profile"], {})
+        self.assertEqual(state["scenarios"]["cap"]["case"]["profile"], {})
+        self.assertTrue(harness.report(state, "quick"))
+
+    def test_resume_does_not_clear_stale_when_case_digest_changed(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        state["case"]["offers"][0]["costs"][0]["amount"] = [350000, 350000]
+        harness.resume(state)
+        self.assertTrue(state["decision_state"]["stale"])
+        self.assertTrue(harness.status(state)["decision"]["stale"])
+
+    def test_resume_reopens_tasks_for_downgraded_evidence(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.checkpoint(state)
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        out = harness.resume(state)
+        self.assertTrue(out["checkpoint_drift"]["detected"])
+        self.assertTrue(out["checkpoint_drift"]["evidence_no_longer_confirmed"])
+        self.assertTrue(out["open_tasks"])
+        self.assertTrue(any(t["state"] != "confirmed" for t in state["case"]["evidence"]))
+        self.assertEqual(state["phase"], "research")
+
+    def test_resume_reopens_transiently_blocked_task(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        for _ in range(task["max_attempts"]):
+            harness.record_result(state, {"task_id": task["id"], "status": "error",
+                                          "error": "quota exhausted"})
+        self.assertEqual(task["status"], "blocked")
+        self.assertEqual(task["blocked_reason"], "tool_error")
+        harness.resume(state)
+        self.assertEqual(task["status"], "todo")
+        self.assertEqual(task["attempts"], 0)
+
+    def test_scenario_is_marked_stale_when_base_evidence_changes(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.scenario(state, {"field": "ceiling", "value": 400000}, "cap")
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        harness.verify_evidence(state)
+        self.assertTrue(state["scenarios"]["cap"]["stale"])
+        self.assertTrue(harness.status(state)["scenarios"]["cap"]["stale"])
+
+    def test_load_removes_crash_residue_after_state_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "state.json"
+            state = harness.init_state(base_case())
+            target.write_text(json.dumps(state), encoding="utf-8")
+            residue = Path(str(target) + ".tmp")
+            residue.write_text(json.dumps(state), encoding="utf-8")
+            harness.load_state(target)
+            self.assertFalse(residue.exists())
+
+    def test_coverage_flags_undeclared_path_topics_without_changing_decision(self):
+        case = base_case()
+        case["goal"]["paths"] = ["soe"]
+        case["offers"][0]["gates"] = []
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        cov = harness.coverage(state)
+        self.assertIn("credential", cov["paths"]["soe"]["missing"])
+        self.assertIn("eligibility", cov["paths"]["soe"]["missing"])
+        self.assertIn("timing", cov["paths"]["soe"]["missing"])
+        self.assertTrue(harness.status(state)["coverage"]["gaps"])
+
+
+class AuditComparisonTests(HarnessCase):
+    def test_v1_accepts_expired_eligibility_where_v2_blocks(self):
+        base = ROOT / "docs" / "examples" / "v2-harness"
+        case = json.loads((base / "case.json").read_text(encoding="utf-8"))
+        decision_doc = json.loads((base / "decision.json").read_text(encoding="utf-8"))
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        for offer_id, filename in (("warwick", "gate-warwick.json"),
+                                   ("glasgow", "gate-glasgow.json")):
+            task = next(t for t in state["research"]["tasks"]
+                        if t["kind"] == "eligibility" and t["offer_id"] == offer_id)
+            result = json.loads((base / filename).read_text(encoding="utf-8"))
+            result["task_id"] = task["id"]
+            harness.record_result(state, result)
+
+        v1_case = json.loads(json.dumps(state["case"]))
+        for entry in v1_case["evidence"]:
+            if entry["id"] in {"e_w_entry", "e_g_entry"}:
+                for row in entry["sources"]:
+                    row["accessed"] = "2020-01-01"
+        decision.audit(v1_case)
+        decision.validate(v1_case, decision_doc)
+
+        for entry in state["case"]["evidence"]:
+            if entry["id"] in {"e_w_entry", "e_g_entry"}:
+                for row in entry["sources"]:
+                    row["accessed"] = "2020-01-01"
+        harness.verify_evidence(state)
+        states = {e["id"]: e["state"] for e in state["case"]["evidence"]}
+        self.assertEqual(states["e_w_entry"], "unresolved")
+        with self.assertRaises(ValueError):
+            harness.store_decision(state, decision_doc)
+
+
 class CliTests(HarnessCase):
     def run_cli(self, *args, cwd):
         return subprocess.run([sys.executable, str(SCRIPTS / "harness.py"), *args],
@@ -570,6 +686,32 @@ class CliTests(HarnessCase):
             self.assertTrue(json.loads(plan.stdout)["tasks"])
             status = self.run_cli("status", "--state", str(state_path), cwd=tmp)
             self.assertEqual(json.loads(status.stdout)["phase"], "research")
+
+    def test_cli_resume_keeps_completed_work_and_reopens_transient_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_path = Path(tmp) / "case.json"
+            state_path = Path(tmp) / "state.json"
+            case_path.write_text(json.dumps(base_case(), ensure_ascii=False), encoding="utf-8")
+            self.run_cli("init", str(case_path), "--state", str(state_path), cwd=tmp)
+            planned = json.loads(self.run_cli("plan", "--state", str(state_path), cwd=tmp).stdout)
+            programme = next(t for t in planned["tasks"] if t["kind"] == "programme")
+            gate = next(t for t in planned["tasks"] if t["kind"] == "eligibility")
+            ok_path = Path(tmp) / "ok.json"
+            ok_path.write_text(json.dumps(programme_result(programme), ensure_ascii=False),
+                               encoding="utf-8")
+            self.assertEqual(self.run_cli("record", "--state", str(state_path), str(ok_path),
+                                          cwd=tmp).returncode, 0)
+            fail_path = Path(tmp) / "fail.json"
+            fail_path.write_text(json.dumps({"task_id": gate["id"], "status": "error",
+                                             "error": "network down"}), encoding="utf-8")
+            for _ in range(gate["max_attempts"]):
+                self.run_cli("record", "--state", str(state_path), str(fail_path), cwd=tmp)
+            resumed = json.loads(self.run_cli("resume", "--state", str(state_path),
+                                              cwd=tmp).stdout)
+            self.assertIn(gate["id"], resumed["reopened_tasks"])
+            self.assertEqual(resumed["open_tasks"], [gate["id"]])
+            status = json.loads(self.run_cli("status", "--state", str(state_path), cwd=tmp).stdout)
+            self.assertEqual(status["tasks"]["done"], 1)
 
     def test_cli_rejects_incomplete_result_without_writing(self):
         with tempfile.TemporaryDirectory() as tmp:
