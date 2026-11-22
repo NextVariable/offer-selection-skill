@@ -11,6 +11,8 @@ Research whether the route is taught MSc, research master, MRes/MPhil, or integr
 
 For committed PhD intent, materially stronger research transformation can outweigh overall university rank. For uncertain intent, separately evaluate academic preparation and employment fallback; longer integrated routes can be academically superior but costlier and less flexible.
 
+If internal PhD progression or funding falls through, check whether the same offer still supports an affordable master's exit and viable external funded applications before switching offers. Compare that branch against the alternative without assuming external admission or funding.
+
 For a research/STEM ecosystem comparison, read the conditional prior and its
 programme-level boundaries in `references/priors-and-calibration.md` (§1). Core
 controls its use; the country label alone is not a research advantage.

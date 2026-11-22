@@ -153,7 +153,7 @@ fi
 #     dev material is absent.
 INSTALL="$T/1/offer-selection-skill"
 ACTUAL="$(ls -A "$INSTALL" | sort)"
-EXPECTED="$(printf '%s\n' .claude-plugin .offer-selection-skill-install.json LICENSE SKILL.md references | sort)"
+EXPECTED="$(printf '%s\n' .claude-plugin .offer-selection-skill-install.json LICENSE SKILL.md references scripts | sort)"
 if [ "$ACTUAL" = "$EXPECTED" ]; then
   ok "10. payload exact match"
 else
@@ -175,7 +175,8 @@ fi
 MISSING=""
 for f in SKILL.md references/core-decision-engine.md references/path-private-sector.md \
          references/path-soe-public.md references/path-local-stay.md \
-         references/path-phd-academic.md references/priors-and-calibration.md; do
+         references/path-phd-academic.md references/priors-and-calibration.md \
+         references/structured-workflow.md scripts/decision.py; do
   [ -f "$INSTALL/$f" ] || MISSING="$MISSING $f"
 done
 if [ -z "$MISSING" ]; then

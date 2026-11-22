@@ -30,7 +30,7 @@ $HomeDir = $env:USERPROFILE
 
 function Get-RuntimeSource {
     param([string]$Entry)
-    if ($Entry -in "SKILL.md", "references") { return Join-Path $SkillDir $Entry }
+    if ($Entry -in "SKILL.md", "references", "scripts\decision.py") { return Join-Path $SkillDir $Entry }
     return Join-Path $ScriptDir $Entry
 }
 
@@ -42,7 +42,7 @@ $MarkerSchema = "offer-selection-skill-install/v1"
 
 # Single source of truth for the version is .claude-plugin/plugin.json. This
 # constant is only a last-resort fallback; a release check keeps it in sync.
-$FallbackVersion = "0.4.0"
+$FallbackVersion = "1.0.0"
 
 # Runtime allowlist - the ONLY things a normal user installation may receive.
 # Anything not listed here (git metadata, audits, evals, archive, tools,
@@ -53,6 +53,7 @@ $FallbackVersion = "0.4.0"
 $RuntimeAllowlist = @(
     "SKILL.md"
     "references"
+    "scripts\decision.py"
     ".claude-plugin\plugin.json"
     ".claude-plugin\marketplace.json"
     "LICENSE"
@@ -67,6 +68,8 @@ $RequiredRuntimeFiles = @(
     "references\path-local-stay.md"
     "references\path-phd-academic.md"
     "references\priors-and-calibration.md"
+    "references\structured-workflow.md"
+    "scripts\decision.py"
 )
 
 # Directories that must never appear in an installation.

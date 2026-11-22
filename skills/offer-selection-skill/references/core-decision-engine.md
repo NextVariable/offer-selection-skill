@@ -183,8 +183,9 @@ estimate. Skipping an applicable calibration check leaves cost conclusions
 unresolved.
 
 Use lower-bound arithmetic before debating a midpoint. Confirmed tuition plus
-unavoidable mandatory fees, net of any applicable award (bound unresolved
-awards conservatively), sets a cash-cost lower bound. Tuition must
+unavoidable mandatory fees, net of the largest defensible applicable award,
+sets a cash-cost lower bound. Do not assume an unresolved award when proving
+affordability. Tuition must
 never be mistaken for, or nearly equated with, an all-in total. If that lower
 bound exceeds the Absolute Ceiling, the Budget Gate fails without needing a
 precise living-cost estimate. If tuition alone consumes most of the ceiling,
@@ -216,9 +217,14 @@ Research applicable budget, credential, major, ranking/school-list,
 graduation/fresh-graduate, age/degree/licensing/nationality/security, work
 authorization, career feasibility, prerequisite, supervisor, funding, and
 progression gates. Output `pass / conditional / fail / unresolved` with
-evidence. Passing allows competition; it does not imply competitiveness. A
-failed decisive gate caps the path recommendation regardless of other
-strengths.
+evidence. Passing allows competition; it does not establish competitiveness,
+incremental value or a reason to accept. If only one offer can enter the
+target pool, distinguish “only feasible option” from an acceptance
+recommendation. Justify the latter and its tier with that offer's own
+transformation and cost, or leave the offer's value judgment conditional.
+A confirmed failed gate closes the affected path regardless of preference.
+Reopen it only on evidence that changes the gate, or assess a different
+path when the user is considering it.
 
 Named hard gates: Budget Gate; Credential Gate (degree, 留服 recognition,
 awarding institution); Major Eligibility Gate (employer accepted-major
@@ -404,9 +410,11 @@ pool — it remains **Critical at the path level**. But the same timing fact is
 not Critical on a path where viable alternative channels keep the path open;
 there apply the worth-accepting test before assigning Material or Non-material.
 
-Apply the impact test per offer and path. Maintain an unknown decisive
-hard gate as unresolved and show the branches; continue judging any unaffected
-option. For incomplete market evidence, use relevant, converging observations
+Apply the impact test per offer and path. An offer-wide feasibility condition
+such as affordability affects every path that uses that offer. Preserve the
+score restriction in each affected path while describing conditional strengths.
+Maintain an unknown decisive hard gate as unresolved and show the branches;
+continue judging any unaffected option. For incomplete market evidence, use relevant, converging observations
 and labelled priors to infer a direction if warranted. Explain the mechanism,
 confidence and the plausible evidence that could reverse it. A direction that
 survives plausible variation can be stated now; a direction that depends on a

@@ -32,6 +32,9 @@ jobs:
       - name: SKILL.md frontmatter compliance
         run: python3 maintenance/check_frontmatter.py
 
+      - name: Offer Decision Engine fixtures
+        run: python3 -m unittest discover -s maintenance -p 'test_decision_engine.py'
+
       - name: Installer syntax and safety battery
         run: |
           bash -n maintenance/install.sh maintenance/test_installer.sh

@@ -1,0 +1,572 @@
+"""Local, network-free validation and arithmetic for Offer Decision v1."""
+
+import argparse
+import json
+import re
+import sys
+from datetime import date
+from pathlib import Path
+from urllib.parse import urlsplit
+
+
+VERSION = "offer-decision/v1"
+PATHS = {"private", "soe", "local", "phd"}
+CHANGES = {
+    "country": {"market", "work", "credential", "eligibility", "timing", "access"},
+    "career": {"market", "eligibility", "access", "timing"},
+    "ceiling": set(),
+    "internships": set(),
+    "phd_intent": {"research", "academic", "eligibility", "timing"},
+    "prestige": set(),
+    "risk_tolerance": set(),
+}
+IMPACTS = {"critical", "material", "minor"}
+STATUS = {"pass", "fail", "unresolved"}
+KINDS = {"programme", "cost", "academic", "market", "credential", "work",
+         "eligibility", "timing", "access", "network", "research"}
+AUTHORITY = {"government", "employer", "institution"}
+
+
+def need(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def obj(value):
+    need(isinstance(value, dict), "expected a JSON object")
+    return value
+
+
+def seq(value):
+    need(isinstance(value, list), "expected a JSON array")
+    return value
+
+
+def fields(value, required, optional=()):
+    value = obj(value)
+    missing = set(required) - value.keys()
+    extra = value.keys() - set(required) - set(optional)
+    need(not missing and not extra, f"missing fields: {sorted(missing)}; unexpected: {sorted(extra)}")
+    return value
+
+
+def string(value):
+    need(isinstance(value, str) and bool(value.strip()), "expected a non-empty string")
+    return value
+
+
+def identifier(value):
+    need(re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", string(value)), f"invalid ID: {value}")
+    return value
+
+
+def integer(value, upper=None):
+    need(type(value) is int and value >= 0 and (upper is None or value <= upper),
+         f"invalid nonnegative integer: {value}")
+    return value
+
+
+def indexed(rows):
+    index = {}
+    for row in seq(rows):
+        key = identifier(obj(row)["id"])
+        need(key not in index, f"duplicate ID: {key}")
+        index[key] = row
+    return index
+
+
+def texts(values):
+    return [string(v) for v in seq(values)]
+
+
+def day(value):
+    value = string(value)
+    result = date.fromisoformat(value)
+    need(result.isoformat() == value, f"expected ISO date: {value}")
+    return result
+
+
+def bounds(value):
+    low, high = seq(value)
+    integer(low)
+    if high is not None:
+        integer(high)
+        need(high >= low, "inverted money range")
+    return low, high
+
+
+def add(ranges):
+    low, high = 0, 0
+    for lo, hi in ranges:
+        low += lo
+        high = None if high is None or hi is None else high + hi
+    return low, high
+
+
+def _net(spend, funding):
+    sl, sh = spend
+    fl, fh = funding
+    # A missing upper award amount cannot establish an infeasible best case.
+    return (0 if fh is None else max(0, sl - fh),
+            None if sh is None else max(0, sh - fl))
+
+
+def against(amount, limit):
+    if limit is None:
+        return "unresolved"
+    low, high = amount
+    if low > limit:
+        return "fail"
+    if high is not None and high <= limit:
+        return "pass"
+    return "unresolved"
+
+
+def rollup(states):
+    return "fail" if "fail" in states else "unresolved" if "unresolved" in states else "pass"
+
+
+def costs(offer, budget, shock=None):
+    """Same-month receipts are available only when confirmed before payment."""
+    gross = []
+    awards = []
+    opportunity = []
+    seen = set()
+    for row in seq(offer["costs"]):
+        fields(row, ("id", "kind", "amount", "month", "basis"), ("category", "evidence_ids"))
+        key = identifier(row["id"])
+        need(key not in seen, f"duplicate cost component {key}")
+        seen.add(key)
+        kind = row["kind"]
+        need(kind in {"expense", "award", "opportunity"}, f"unknown cost kind: {kind}")
+        string(row["basis"])
+        month = row["month"]
+        if month is not None:
+            integer(month, 240)
+        amount = bounds(row["amount"])
+        if shock and kind == "expense" and row.get("category") in shock["categories"]:
+            rate = 100 + shock["percent"]
+            # Round each edge outward in the input currency's minor units.
+            amount = (amount[0] * rate // 100,
+                      None if amount[1] is None else (amount[1] * rate + 99) // 100)
+        if kind == "expense":
+            gross.append((month, amount))
+        elif kind == "award":
+            awards.append((month, amount))
+        else:
+            opportunity.append(amount)
+    net = _net(add(a for _, a in gross), add(a for _, a in awards))
+    total_status = against(net, budget["ceiling"])
+    milestones = []
+    for node in budget.get("liquidity", []):
+        m = node["month"]
+        due = add((a if month is not None else (0, a[1]))
+                  for month, a in gross if month is None or month <= m)
+        receipt = add((a if month is not None else (0, a[1]))
+                      for month, a in awards if month is None or month <= m)
+        outflow = _net(due, receipt)
+        cash = bounds(node["available"])
+        status = against(outflow, cash[1])
+        if status != "fail":
+            status = against(outflow, cash[0]) if against(outflow, cash[0]) == "pass" else "unresolved"
+        milestones.append({"month": m, "outflow": outflow, "available": cash, "status": status})
+    gate = rollup([total_status, *(m["status"] for m in milestones)])
+    if not offer["cost_complete"] and gate == "pass":
+        gate = "unresolved"
+    if gate == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
+        gate = "unresolved"
+    return {"cash": net, "opportunity_cost": add(opportunity),
+            "economic_cost": add([net, add(opportunity)]), "ceiling_status": total_status,
+            "target_status": against(net, budget.get("target")), "budget_gate": gate,
+            "milestones": milestones, "cashflow_checked": bool(milestones)}
+
+
+def case_model(data):
+    fields(data, ("schema", "as_of", "profile", "goal", "budget", "offers", "evidence"))
+    need(data["schema"] == VERSION, "unknown schema version")
+    when = day(data["as_of"])
+    obj(data["profile"])
+    goal = fields(data["goal"], ("paths", "country", "career", "phd_intent", "prestige", "risk_tolerance"))
+    paths = texts(goal["paths"])
+    need(paths and len(set(paths)) == len(paths) and set(paths) <= PATHS, "invalid active paths")
+    for key in ("country", "career", "phd_intent", "prestige", "risk_tolerance"):
+        string(goal[key])
+    budget = fields(data["budget"], ("currency", "ceiling"), ("target", "liquidity", "stress"))
+    need(re.fullmatch(r"[A-Z]{3}", string(budget["currency"])), "expected currency code")
+    for name in ("ceiling", "target"):
+        if budget.get(name) is not None:
+            integer(budget[name])
+    seen = set()
+    for node in seq(budget.get("liquidity", [])):
+        fields(node, ("month", "available"))
+        month = integer(node["month"], 240)
+        need(month not in seen, "duplicate cashflow month")
+        seen.add(month)
+        bounds(node["available"])
+    if "stress" in budget:
+        stress = fields(budget["stress"], ("percent", "categories"))
+        integer(stress["percent"], 500)
+        need(texts(stress["categories"]), "stress requires named categories")
+    offers, evidence = indexed(data["offers"]), indexed(data["evidence"])
+    need(offers, "at least one offer is required")
+    for offer in offers.values():
+        fields(offer, ("id", "title", "country", "operative_date", "cost_complete", "costs", "gates"),
+               ("offsets_complete",))
+        for key in ("title", "country"):
+            string(offer[key])
+        day(offer["operative_date"])
+        need(type(offer["cost_complete"]) is bool, "cost_complete must be boolean")
+        if "offsets_complete" in offer:
+            need(type(offer["offsets_complete"]) is bool and
+                 (not offer["cost_complete"] or offer["offsets_complete"]),
+                 "a complete cost ledger requires bounded offsets")
+        need(offer["costs"] or not offer["cost_complete"], "complete cost ledger cannot be empty")
+        indexed(offer["gates"])
+    for entry in evidence.values():
+        fields(entry, ("id", "offer", "path", "kind", "scope", "state", "impact", "claim"),
+               ("period", "sources", "effect", "operative_date"))
+        need(entry["offer"] in offers and entry["path"] in {*PATHS, "*"}, "evidence scope mismatch")
+        need(entry["kind"] in KINDS and entry["impact"] in IMPACTS, "invalid evidence kind or impact")
+        need(entry["state"] in {"confirmed", "prior", "unresolved"}, "invalid evidence state")
+        string(entry["scope"])
+        string(entry["claim"])
+        if "effect" in entry:
+            texts(entry["effect"])
+        sources = seq(entry.get("sources", []))
+        for source in sources:
+            fields(source, ("url", "authority", "scope", "accessed", "locator"))
+            url = urlsplit(string(source["url"]))
+            need(url.scheme in {"http", "https"} and url.hostname and url.path.strip("/")
+                 and not url.username and not url.password, "expected a source page URL")
+            need(day(source["accessed"]) <= when, "source access date is in the future")
+            string(source["scope"])
+            string(source["locator"])
+            need(source["authority"] in AUTHORITY | {"market", "alumni", "community"}, "invalid authority")
+        if entry["state"] == "confirmed":
+            period = fields(entry.get("period"), ("from", "through"))
+            operative = day(entry.get("operative_date", offers[entry["offer"]]["operative_date"]))
+            need(day(period["from"]) <= operative
+                 <= day(period["through"]), f"out-of-period evidence {entry['id']}")
+            need(any(s["authority"] in AUTHORITY and s["scope"] == entry["scope"] for s in sources),
+                 f"confirmed claim lacks scoped authority: {entry['id']}")
+    return paths, offers, evidence
+
+
+def analyze(data):
+    paths, offers, evidence = case_model(data)
+    budget = data["budget"]
+    results = {}
+    for oid, offer in offers.items():
+        totals = costs(offer, budget)
+        for component in offer["costs"]:
+            for cid in texts(component.get("evidence_ids", [])):
+                item = evidence.get(cid)
+                need(item and item["offer"] == oid and item["kind"] == "cost" and item["path"] == "*",
+                     f"out-of-scope cost evidence: {cid}")
+        if "stress" in budget:
+            totals["stress"] = costs(offer, budget, budget["stress"])
+        gate_rows = indexed(offer["gates"])
+        output = {}
+        for row in gate_rows.values():
+            fields(row, ("id", "path", "scope", "kind", "status", "evidence_ids"))
+            need(row["path"] in {*paths, "*"} and row["kind"] in KINDS, "unknown gate path or kind")
+            string(row["scope"])
+            need(row["status"] in STATUS | {"not_applicable"}, "invalid gate status")
+            if row["status"] == "not_applicable":
+                need(not row["evidence_ids"] and row["path"] != "*",
+                     "not_applicable is a path judgement without external proof")
+            support = []
+            for cite in texts(row["evidence_ids"]):
+                item = evidence.get(cite)
+                need(item and item["offer"] == oid and item["path"] in {row["path"], "*"}
+                     and item["scope"] == row["scope"] and item["kind"] == row["kind"],
+                     f"wrong evidence for gate {row['id']}: {cite}")
+                support.append(item)
+            if row["status"] in {"pass", "fail"}:
+                need(any(s["state"] == "confirmed" for s in support)
+                     and not any(s["state"] == "unresolved" and s["impact"] == "critical" for s in support),
+                     f"decided gate lacks sufficient direct evidence: {row['id']}")
+        for path in paths:
+            relevant = [g for g in gate_rows.values() if g["path"] in {path, "*"}]
+            # A missing path roster is unknown; an explicit inapplicability judgment
+            # belongs to the model and does not count as an externally verified gate.
+            path_roster = any(g["path"] == path for g in relevant)
+            states = [totals["budget_gate"], *(r["status"] for r in relevant)]
+            if not path_roster:
+                states.append("unresolved")
+            pending = [i["id"] for i in evidence.values()
+                       if i["offer"] == oid and i["path"] in {path, "*"}
+                       and i["state"] != "confirmed" and i["impact"] in {"critical", "material"}]
+            score_state = ("nrsy" if rollup(states) == "unresolved" or
+                           any(evidence[i]["impact"] == "critical" for i in pending)
+                           else "provisional" if pending else "confirmed")
+            output[path] = {"gate": rollup(states), "score_state": score_state,
+                            "checks": {r["id"]: r["status"] for r in relevant},
+                            "uncertain_evidence": pending}
+        results[oid] = {"cost": totals, "paths": output}
+    return {"schema": VERSION, "currency": budget["currency"], "offers": results}
+
+
+def research(data):
+    _, offers, evidence = case_model(data)
+    tasks = []
+    for oid, offer in offers.items():
+        def task(priority, path, kind, focus, key):
+            tasks.append({"priority": priority, "offer_id": oid, "offer": offer["title"],
+                          "country": offer["country"], "path": path, "topic": kind,
+                          "scope": focus, "operative_date": offer["operative_date"], "key": key})
+        if not offer["cost_complete"]:
+            task(0, "*", "cost", "official tuition, mandatory costs and applicable dates", "cost")
+        if not any(row["offer"] == oid and row["kind"] == "programme" for row in evidence.values()):
+            task(1, "*", "programme", "official programme delivery, duration and course structure", "programme")
+        for row in offer["gates"]:
+            if row["status"] == "unresolved":
+                task(0, row["path"], row["kind"], row["scope"], row["id"])
+        for row in evidence.values():
+            if row["offer"] == oid and row["state"] != "confirmed" and row["impact"] != "minor":
+                task(0 if row["impact"] == "critical" else 1, row["path"], row["kind"],
+                     row["scope"], row["id"])
+    dedup = {}
+    for task in sorted(tasks, key=lambda v: (v["priority"], v["offer_id"], v["key"])):
+        key = tuple(task[k] for k in ("offer_id", "path", "topic", "scope"))
+        dedup.setdefault(key, task)
+    return {"schema": VERSION, "tasks": list(dedup.values())}
+
+
+def validate(data, decision):
+    computed = analyze(data)
+    fields(decision, ("schema", "conclusion", "headline", "reasons", "risks", "reversal", "assessments"))
+    need(decision["schema"] == VERSION, "unknown decision schema")
+    for field in ("headline", "reversal"):
+        string(decision[field])
+    need(texts(decision["reasons"]), "provide decisive reasons")
+    texts(decision["risks"])
+    evidence = indexed(data["evidence"])
+    seen = {}
+    for row in seq(decision["assessments"]):
+        fields(row, ("offer", "path", "gate", "score_state", "stance", "value",
+                     "competitiveness", "evidence_ids"), ("score",))
+        oid, path = row["offer"], row["path"]
+        key = oid, path
+        need(oid in computed["offers"] and path in computed["offers"][oid]["paths"]
+             and key not in seen, "unknown or duplicate assessment")
+        result = computed["offers"][oid]["paths"][path]
+        need(row["gate"] == result["gate"], f"gate disagrees: {key}")
+        state = row["score_state"]
+        precision = {"nrsy": 0, "provisional": 1, "confirmed": 2}
+        need(state in precision and precision[state] <= precision[result["score_state"]],
+             f"score state too certain: {key}")
+        out = row["stance"]
+        need(out in {"recommend", "conditional", "defer", "reject", "viable"}, "invalid stance")
+        if result["gate"] == "fail":
+            need(out == "reject", f"failed gate cannot support acceptance: {key}")
+        if state == "nrsy" or result["gate"] == "unresolved":
+            need(out in {"conditional", "defer", "reject"}, f"decisive uncertainty: {key}")
+        ids = texts(row["evidence_ids"])
+        for cid in ids:
+            item = evidence.get(cid)
+            need(item and item["offer"] == oid and item["path"] in {path, "*"},
+                 f"out-of-scope decision claim: {cid}")
+        if out == "recommend":
+            need(any(evidence[c]["state"] == "confirmed" and
+                     evidence[c]["kind"] not in {"eligibility", "credential", "work", "timing"} for c in ids),
+                 f"recommendation lacks a confirmed basis beyond eligibility: {key}")
+        if "score" in row:
+            need(state == "confirmed", "only confirmed score state permits integers")
+            score = integer(row["score"], 100)
+            need(out not in {"conditional", "defer"} and (out != "reject" or score < 60)
+                 and (out != "recommend" or score >= 80), "score conflicts with stance")
+        string(row["value"])
+        string(row["competitiveness"])
+        seen[key] = out
+    need(len(seen) == len(computed["offers"]) * len(data["goal"]["paths"]), "incomplete assessment matrix")
+    if any(p["gate"] != "pass" or p["uncertain_evidence"]
+           for offer in computed["offers"].values() for p in offer["paths"].values()):
+        need(decision["risks"], "material gates or uncertainties need a risk explanation")
+    conclusion = fields(decision["conclusion"], ("type", "choices"), ("parity_basis",))
+    kind = conclusion["type"]
+    need(kind in {"recommend", "conditional", "parity_with_choice", "equivalent", "none", "defer"},
+         "unknown conclusion type")
+    choices = set()
+    for target in seq(conclusion["choices"]):
+        fields(target, ("offer", "path"))
+        key = target["offer"], target["path"]
+        need(key in seen and key not in choices and seen[key] != "reject", "invalid choice")
+        choices.add(key)
+    if kind in {"recommend", "parity_with_choice"}:
+        need(len(choices) == 1 and all(seen[c] == "recommend" for c in choices),
+             "definitive choice requires a supported path")
+    elif kind == "conditional":
+        need(choices and all(seen[c] != "defer" for c in choices), "conditional choice needs viable branches")
+    else:
+        need(not choices, "this conclusion cannot select offers")
+    if kind in {"equivalent", "parity_with_choice"}:
+        need(len(computed["offers"]) > 1 and string(conclusion.get("parity_basis")),
+             "parity requires an affirmative explanation")
+        need(all(x in {"recommend", "viable"} for x in seen.values())
+             and all(p["score_state"] == "confirmed" for o in computed["offers"].values()
+                     for p in o["paths"].values()), "comparison contains unresolved/rejected paths")
+    if kind == "none":
+        need(all(x == "reject" for x in seen.values()), "none requires every path rejected")
+    if kind == "defer":
+        need(any(x == "defer" for x in seen.values()), "defer requires a deferred assessment")
+    return computed
+
+
+def scenario(base, change):
+    case_model(base)
+    fields(change, ("field", "value"))
+    field, value = change["field"], change["value"]
+    need(field in CHANGES, "unsupported scenario variable")
+    target = {"ceiling": "budget", "internships": "profile"}.get(field, "goal")
+    if field == "ceiling":
+        if value is not None:
+            integer(value)
+    elif field == "internships":
+        texts(value)
+    else:
+        string(value)
+    need(base[target].get(field) != value, "scenario must actually change one field")
+    revised = {**base, target: {**base[target], field: value}}
+    stale = {e["id"] for e in base["evidence"] if e["kind"] in CHANGES[field]}
+    if field in {"career", "country", "phd_intent"}:
+        # Scope may vary with the goal. Conservatively reopen affected hard gates.
+        reopened = []
+        for offer in base["offers"]:
+            gates = []
+            for g in offer["gates"]:
+                if g["kind"] in CHANGES[field] or stale.intersection(g["evidence_ids"]):
+                    gates.append({**g, "status": "unresolved", "evidence_ids": []})
+                else:
+                    gates.append(g)
+            reopened.append({**offer, "gates": gates})
+        revised["offers"] = reopened
+    revised["evidence"] = [e for e in base["evidence"] if e["id"] not in stale]
+    return {"hypothetical": True, "change": change, "before": base[target].get(field),
+            "reuse_evidence_ids": sorted(e["id"] for e in revised["evidence"]),
+            "recheck_evidence_ids": sorted(stale), "review_routes": field in {"country", "career", "phd_intent"},
+            "rerun": ["budget", "gates", "competitiveness", "value", "recommendation"] if field == "ceiling"
+            else ["gates", "graduation_profile", "competitiveness", "value", "recommendation"],
+            "input": revised}
+
+
+def render(data, decision, mode):
+    computed = validate(data, decision)
+    lines = [decision["headline"], "", f"结论类型：`{decision['conclusion']['type']}`"]
+    if decision["conclusion"]["choices"]:
+        labels = {o["id"]: o["title"] for o in data["offers"]}
+        lines += ["", "选择：" + "、".join(
+            f"{labels[c['offer']]} / {c['path']}" for c in decision["conclusion"]["choices"])]
+    if decision["conclusion"].get("parity_basis"):
+        lines += ["", "结果接近的依据：" + decision["conclusion"]["parity_basis"]]
+    for title, items in (("主要依据", decision["reasons"]), ("关键风险", decision["risks"]),
+                         ("翻转条件", [decision["reversal"]])):
+        lines.extend(["", f"### {title}", "", *(f"- {item}" for item in items)])
+    if mode == "full":
+        known = indexed(data["evidence"])
+        labels = {o["id"]: o["title"] for o in data["offers"]}
+        for row in decision["assessments"]:
+            offer = computed["offers"][row["offer"]]
+            lines += ["", f"### {labels[row['offer']]} / {row['path']}", "",
+                      f"- 门槛：{row['gate']}，评分状态：{row['score_state']}，建议：{row['stance']}",
+                      f"- 竞争力：{row['competitiveness']}", f"- 个人增量：{row['value']}",
+                      f"- 费用与检查（{computed['currency']} 最小货币单位）："
+                      + json.dumps(offer["cost"], ensure_ascii=False),
+                      "- 路径门槛：" + json.dumps(offer["paths"][row["path"]]["checks"], ensure_ascii=False)]
+            if "score" in row:
+                lines.append(f"- 分数：{row['score']}")
+            for cid in dict.fromkeys(row["evidence_ids"] + offer["paths"][row["path"]]["uncertain_evidence"]):
+                item = known[cid]
+                lines.append(f"- {item['state']} · {item['claim']} " + " ".join(
+                    f"<{s['url']}>" for s in item.get("sources", [])))
+    return "\n".join(lines)
+
+
+def load(path):
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            need(key not in value, f"duplicate JSON key: {key}")
+            value[key] = item
+        return value
+
+    def bad_constant(value):
+        raise ValueError(f"non-JSON number: {value}")
+
+    return json.loads(Path(path).read_text(encoding="utf-8"), object_pairs_hook=unique,
+                      parse_constant=bad_constant)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    for command in ("plan", "check", "verify", "scenario", "compare", "report"):
+        item = sub.add_parser(command)
+        item.add_argument("input")
+        if command in {"verify", "report"}:
+            item.add_argument("decision")
+        if command in {"scenario", "compare"}:
+            item.add_argument("change")
+        if command == "compare":
+            item.add_argument("before")
+            item.add_argument("after")
+            item.add_argument("--why", required=True)
+            item.add_argument("--reassessed")
+        if command == "report":
+            item.add_argument("--mode", choices=("quick", "full"), default="quick")
+    args = parser.parse_args()
+    try:
+        data = load(args.input)
+        if args.command == "plan":
+            out = research(data)
+        elif args.command == "check":
+            out = analyze(data)
+        elif args.command == "verify":
+            out = validate(data, load(args.decision))
+        elif args.command == "report":
+            out = render(data, load(args.decision), args.mode)
+        else:
+            change = scenario(data, load(args.change))
+            out = change
+            if args.command == "compare":
+                before, after = load(args.before), load(args.after)
+                validate(data, before)
+                revised = change["input"]
+                if args.reassessed:
+                    supplied = load(args.reassessed)
+                    case_model(supplied)
+                    # Only new scoped evidence, path routing and gate checks may
+                    # differ from the single-variable counterfactual.
+                    for root in ("schema", "as_of", "budget", "profile"):
+                        need(supplied[root] == revised[root], f"scenario changed unrelated {root}")
+                    if change["review_routes"]:
+                        need({k: v for k, v in supplied["goal"].items() if k != "paths"}
+                             == {k: v for k, v in revised["goal"].items() if k != "paths"},
+                             "scenario changed unrelated goal fields")
+                    else:
+                        need(supplied["goal"] == revised["goal"], "scenario changed unrelated goal")
+                    fixed = lambda inp: [{k: v for k, v in o.items() if k != "gates"} for o in inp["offers"]]
+                    need(fixed(supplied) == fixed(revised), "scenario changed offer or cost facts")
+                    if not change["review_routes"]:
+                        need(supplied == revised, "this scenario has no scope to reassess")
+                    actual = indexed(supplied["evidence"])
+                    need(all(actual.get(e["id"]) == e for e in revised["evidence"]),
+                         "scenario modified reusable evidence")
+                    revised = supplied
+                validate(revised, after)
+                out = {"hypothetical": True, "change": change["change"],
+                       "before_value": change["before"], "before": before["conclusion"],
+                       "after": after["conclusion"], "before_summary": before["headline"],
+                       "after_summary": after["headline"], "why": string(args.why),
+                       "reversal": after["reversal"]}
+        # ASCII JSON is portable even when a Windows terminal uses a legacy encoding.
+        if isinstance(out, str):
+            sys.stdout.buffer.write((out + "\n").encode("utf-8"))
+        else:
+            print(json.dumps(out, indent=2))
+    except (ValueError, TypeError, KeyError, OSError) as exc:
+        parser.exit(2, f"invalid decision input: {exc}\n")
+
+
+if __name__ == "__main__":
+    main()

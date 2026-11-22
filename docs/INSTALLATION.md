@@ -53,6 +53,10 @@ pwsh -File .\maintenance/install.ps1 -Platform workbuddy
 
 安装后开启 AI Agent 的新会话，按 [README 中的示例](../README.md#在-ai-聊天框开始使用) 调用。
 
+v1 可执行校验使用 Python 3.10+。确认宿主允许终端调用后，可以在技能目录运行
+`python3 scripts/decision.py --help`（Windows 用 `py -3`）。没有本地执行权限时，
+宿主可沿用文字规则，并标明程序检查未执行。
+
 ## 更新与卸载
 
 已有个人修改时先备份，并沿用原安装方式更新或卸载。

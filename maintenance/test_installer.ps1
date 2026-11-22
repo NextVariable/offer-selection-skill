@@ -198,7 +198,7 @@ try {
 
     # 10. Runtime references resolve + marker JSON parses.
     $missing = @()
-    foreach ($f in @("SKILL.md","references\core-decision-engine.md","references\path-private-sector.md","references\path-soe-public.md","references\path-local-stay.md","references\path-phd-academic.md","references\priors-and-calibration.md")) {
+    foreach ($f in @("SKILL.md","references\core-decision-engine.md","references\path-private-sector.md","references\path-soe-public.md","references\path-local-stay.md","references\path-phd-academic.md","references\priors-and-calibration.md","references\structured-workflow.md","scripts\decision.py")) {
         if (-not (Test-Path -LiteralPath (Join-Path $p1 $f))) { $missing += $f }
     }
     if ($missing.Count -eq 0) { Ok "10. runtime references complete" }

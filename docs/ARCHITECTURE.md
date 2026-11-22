@@ -1,5 +1,18 @@
 # Architecture
 
+## v1 execution boundary
+
+The host agent gathers the profile, plans research and reads public sources.
+It converts observations into scoped evidence and interprets graduation
+profiles and career value using the existing path references. The shipped
+standard-library Python module checks the case and decision exchange, cash
+ranges, deadlines, gate declarations and permitted score precision. It has
+no network access and does not infer hiring, prestige, academic success or
+source truth. The two report modes project the same validated decision.
+Counterfactuals keep the original case fixed and explicitly reopen changed
+scopes. The [runtime workflow](../skills/offer-selection-skill/references/structured-workflow.md)
+defines the exchange and CLI.
+
 How the skill is structured, loaded, and governed.
 
 ## The decision pipeline

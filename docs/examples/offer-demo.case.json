@@ -1,0 +1,42 @@
+{
+  "schema": "offer-decision/v1",
+  "as_of": "2026-11-22",
+  "profile": {"internships": ["one shallow placement"], "readiness": "moderate"},
+  "goal": {
+    "paths": ["private"], "country": "China", "career": "broad private nontechnical",
+    "phd_intent": "no", "prestige": "neutral", "risk_tolerance": "moderate"
+  },
+  "budget": {
+    "currency": "CNY", "target": 60000000, "ceiling": 65000000,
+    "liquidity": [{"month": 0, "available": [30000000, 30000000]},
+                  {"month": 12, "available": [65000000, 65000000]}]
+  },
+  "offers": [
+    {
+      "id": "a", "title": "Fictional Offer A", "country": "China", "operative_date": "2027-09-01",
+      "cost_complete": true,
+      "costs": [
+        {"id": "first", "kind": "expense", "amount": [35000000, 35000000], "month": 0, "basis": "Fictional confirmed registration payment"},
+        {"id": "later", "kind": "expense", "amount": [31000000, 31000000], "month": 12, "basis": "Fictional remainder"},
+        {"id": "award", "kind": "award", "amount": [12000000, 12000000], "month": 1, "basis": "Fictional award paid after registration"}
+      ],
+      "gates": [
+        {"id": "major", "path": "private", "scope": "broad private nontechnical", "kind": "eligibility", "status": "not_applicable", "evidence_ids": []}
+      ]
+    },
+    {
+      "id": "b", "title": "Fictional Offer B", "country": "China", "operative_date": "2027-09-01",
+      "cost_complete": true,
+      "costs": [
+        {"id": "first", "kind": "expense", "amount": [20000000, 20000000], "month": 0, "basis": "Fictional registration payment"},
+        {"id": "later", "kind": "expense", "amount": [38000000, 38000000], "month": 12, "basis": "Fictional remainder"}
+      ],
+      "gates": [
+        {"id": "major", "path": "private", "scope": "broad private nontechnical", "kind": "eligibility", "status": "not_applicable", "evidence_ids": []}
+      ]
+    }
+  ],
+  "evidence": [
+    {"id": "recruit", "offer": "b", "path": "private", "kind": "access", "scope": "programme internships for the target role", "state": "unresolved", "impact": "critical", "claim": "Access to an internship that repairs the primary gap is unknown"}
+  ]
+}

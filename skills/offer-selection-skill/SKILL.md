@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: Francis and OpenAI Codex
-  version: "0.4.0"
+  version: "1.0.0"
   activation: /offer-selection-skill
   maintainer: Francis
   created: "2026-09-04"
@@ -78,6 +78,13 @@ Use what the user has already supplied; apply core's "Iterative clarification"
 to missing, ambiguous or conflicting private inputs and goals.
 
 ## Execution overview
+
+For decisions and counterfactuals, load
+[`references/structured-workflow.md`](references/structured-workflow.md).
+Use its case and decision contract and the shipped local validator when
+command execution is available. The selected output mode changes detail,
+using the same validated decision. Quick Decision is the default; use Full
+Decision Audit on request.
 
 Execute the canonical stage order and semantics in
 `references/core-decision-engine.md`. Do not reorder or redefine them here.
