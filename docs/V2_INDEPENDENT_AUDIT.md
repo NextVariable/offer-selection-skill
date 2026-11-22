@@ -108,12 +108,12 @@
 | 发布契约 | 10 passed（含 `harness.py` 安装与仅标准库导入） |
 | 安装器安全 | PASS=37 FAIL=0 |
 | Frontmatter | PASS（2.0.0-rc1） |
-| GitHub Actions `ci`（Linux 3.10/3.12、macOS、Windows） | **success**（运行 45048388128） |
+| GitHub Actions `ci`（Linux 3.10/3.12、macOS、Windows） | **success**（运行 45048602911，head `0f6bc9d`） |
 | `py_compile` / `git diff --check` | 通过 |
 
 新增回归覆盖：报告与反事实前重新核验时效、到期自动清除、digest 不一致、证据降级后重规划、瞬时 blocked 重试、checkpoint 漂移、scenario stale、四路径覆盖诊断、`.tmp` 清理、CLI 中断恢复、v1/v2 过期资格对照。
 
-CI：<https://github.com/NextVariable/offer-selection-skill/actions/runs/45048388128>（audit head `e8ebba3`，三个作业全部 success）。
+CI：<https://github.com/NextVariable/offer-selection-skill/actions/runs/45048602911>（audit head `0f6bc9d`，四个矩阵作业全部 success）。
 
 ## 6. 剩余问题
 
