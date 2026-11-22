@@ -464,5 +464,106 @@ class ScenarioCases(unittest.TestCase):
             self.assertIn("duplicate JSON key", result.stderr)
 
 
+class QuickReportCases(unittest.TestCase):
+    def test_quick_shows_cost_range_headroom_and_gate(self):
+        d, out = base(), decision()
+        d["budget"]["target"] = 90
+        quick = engine.render(d, out, "quick")
+        self.assertIn("### 费用与预算", quick)
+        self.assertIn("净现金 40–40", quick)
+        self.assertIn("余量 60–60", quick)
+        self.assertIn("预算闸门通过", quick)
+        self.assertIn("全项目", quick)
+
+    def test_quick_names_unquantified_costs(self):
+        d, out = base(), decision()
+        d["offers"][0]["costs"] = [row("tuition", "expense", [0, None])]
+        d["offers"][0]["cost_complete"] = False
+        out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy")
+        out["conclusion"] = {"type": "defer", "choices": []}
+        out["risks"] = ["Cost ledger remains incomplete"]
+        quick = engine.render(d, out, "quick")
+        self.assertIn("未量化 tuition", quick)
+        self.assertIn("上界未定", quick)
+        self.assertIn("付款节点未核对", quick)
+
+    def test_quick_master_horizon_names_excluded_doctoral_rows(self):
+        d, out = base(), decision()
+        d["budget"].update(ceiling=100, horizon="masters")
+        d["offers"][0]["costs"] = [row("m-fee", "expense", [40, 40], stage="masters"),
+                                   row("d-fee", "expense", [300, 300], stage="doctoral"),
+                                   row("d-award", "award", [0, None], stage="doctoral")]
+        quick = engine.render(d, out, "quick")
+        self.assertIn("口径：仅硕士阶段", quick)
+        self.assertIn("净现金 40–40", quick)
+        self.assertIn("不计入 d-fee、d-award", quick)
+        self.assertNotIn("未量化 d-award", quick)
+
+    def test_quick_lists_unresolved_evidence_with_impact(self):
+        d, out = base(), decision()
+        d["evidence"].append(claim("gate-claim", kind="eligibility", scope="broad private nontechnical",
+                                   state="unresolved", impact="critical"))
+        d["offers"][0]["gates"][0].update(status="unresolved", evidence_ids=["gate-claim"])
+        out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy",
+                                     evidence_ids=["course", "gate-claim"])
+        out["conclusion"] = {"type": "defer", "choices": []}
+        out["risks"] = ["Gate evidence remains unresolved"]
+        quick = engine.render(d, out, "quick")
+        self.assertIn("### 待核实", quick)
+        self.assertIn("未确认；影响关键", quick)
+
+    def test_quick_omits_cost_section_without_budget_limit(self):
+        d, out = base(), decision()
+        d["budget"] = {"currency": "CNY", "ceiling": None}
+        out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy")
+        out["conclusion"] = {"type": "defer", "choices": []}
+        out["risks"] = ["No numeric ceiling is available"]
+        quick = engine.render(d, out, "quick")
+        self.assertNotIn("### 费用与预算", quick)
+
+
+class HostContractCases(unittest.TestCase):
+    """Exercise the CLI surface a host agent actually calls."""
+
+    def integrated(self):
+        d = base()
+        d["budget"].update(ceiling=100, horizon="masters", target=90)
+        d["offers"][0]["costs"] = [row("m-fee", "expense", [40, 40], stage="masters"),
+                                   row("d-fee", "expense", [300, 300], stage="doctoral"),
+                                   row("d-award", "award", [0, None], stage="doctoral")]
+        return d
+
+    def run_cli(self, *args):
+        result = subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def test_check_applies_master_stage_scope(self):
+        with tempfile.TemporaryDirectory() as temp:
+            case = Path(temp) / "case.json"
+            case.write_text(json.dumps(self.integrated()))
+            cost = self.run_cli("check", str(case))["offers"]["a"]["cost"]
+            self.assertEqual((cost["cash"], cost["budget_horizon"], cost["budget_gate"]),
+                             ([40, 40], "masters", "pass"))
+            self.assertEqual(cost["excluded_cost_ids"], ["d-fee", "d-award"])
+
+    def test_ceiling_scenario_keeps_horizon_and_doctoral_rows(self):
+        with tempfile.TemporaryDirectory() as temp:
+            case, change = Path(temp) / "case.json", Path(temp) / "change.json"
+            case.write_text(json.dumps(self.integrated()))
+            change.write_text(json.dumps({"field": "ceiling", "value": 30}))
+            result = self.run_cli("scenario", str(case), str(change))
+            revised = result["input"]
+            self.assertEqual(revised["budget"]["horizon"], "masters")
+            self.assertEqual([c["id"] for c in revised["offers"][0]["costs"]],
+                             ["m-fee", "d-fee", "d-award"])
+            revised_path = Path(temp) / "revised.json"
+            revised_path.write_text(json.dumps(revised))
+            cost = self.run_cli("check", str(revised_path))["offers"]["a"]["cost"]
+            self.assertEqual((cost["cash"], cost["ceiling_status"], cost["budget_gate"]),
+                             ([40, 40], "fail", "fail"))
+            self.assertEqual(cost["excluded_cost_ids"], ["d-fee", "d-award"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -537,6 +537,82 @@ def scenario(base, change):
             "input": revised}
 
 
+STATUS_ZH = {"pass": "通过", "fail": "不通过", "unresolved": "待定"}
+IMPACT_ZH = {"critical": "关键", "material": "重要", "minor": "次要"}
+IMPACT_ORDER = {"critical": 0, "material": 1, "minor": 2}
+
+
+def money_range(value):
+    low, high = value
+    return f"{low:,} 起（上界未定）" if high is None else f"{low:,}–{high:,}"
+
+
+def budget_section(data, computed):
+    budget = data["budget"]
+    if budget.get("ceiling") is None and budget.get("target") is None:
+        return []
+    masters = budget.get("horizon") == "masters"
+    terms = ["口径：" + ("仅硕士阶段" if masters else "全项目"),
+             f"{budget['currency']} 最小货币单位"]
+    if budget.get("ceiling") is not None:
+        terms.append(f"上限 {budget['ceiling']:,}")
+    if budget.get("target") is not None:
+        terms.append(f"目标 {budget['target']:,}")
+    lines = ["", "### 费用与预算", "", "- " + "；".join(terms)]
+    for offer in data["offers"]:
+        cost = computed["offers"][offer["id"]]["cost"]
+        low, high = cost["cash"]
+        bits = [f"净现金 {money_range(cost['cash'])}"]
+        if budget.get("ceiling") is not None:
+            ceiling = budget["ceiling"]
+            bits.append(f"上限{STATUS_ZH[cost['ceiling_status']]}")
+            if high is None:
+                bits.append("上界未定，无法确认余量")
+            elif low > ceiling:
+                bits.append(f"超出至少 {low - ceiling:,}")
+            elif high <= ceiling:
+                bits.append(f"余量 {ceiling - high:,}–{ceiling - low:,}")
+            else:
+                bits.append("区间跨越上限")
+        if budget.get("target") is not None:
+            bits.append(f"目标{STATUS_ZH[cost['target_status']]}")
+        bits.append(f"预算闸门{STATUS_ZH[cost['budget_gate']]}")
+        if cost["excluded_cost_ids"]:
+            bits.append("不计入 " + "、".join(cost["excluded_cost_ids"]))
+        missing = [c["id"] for c in offer["costs"] if c["amount"][1] is None
+                   and not (masters and c.get("stage") == "doctoral")]
+        if missing:
+            bits.append("未量化 " + "、".join(missing))
+        if not cost["cashflow_checked"]:
+            bits.append("付款节点未核对")
+        lines.append(f"- {offer['title']}：" + "；".join(bits))
+    return lines
+
+
+def gap_section(data, decision, computed, known):
+    labels = {o["id"]: o["title"] for o in data["offers"]}
+    gaps, seen = [], set()
+    for row in decision["assessments"]:
+        path = computed["offers"][row["offer"]]["paths"][row["path"]]
+        for cid in dict.fromkeys(row["evidence_ids"] + path["uncertain_evidence"]):
+            if cid in seen:
+                continue
+            item = known[cid]
+            verified = item["state"] == "confirmed" and any(
+                src["authority"] in AUTHORITY and src["scope"] == item["scope"]
+                and inspect_source(src) for src in item.get("sources", []))
+            if verified:
+                continue
+            seen.add(cid)
+            state = "未确认" if item["state"] != "confirmed" else "来源未通过支持性核验"
+            gaps.append((IMPACT_ORDER[item["impact"]],
+                         f"- {labels[row['offer']]} / {row['path']}：{item['claim']}"
+                         f"（{item['scope']}；{state}；影响{IMPACT_ZH[item['impact']]}）"))
+    if not gaps:
+        return []
+    return ["", "### 待核实", "", *(text for _, text in sorted(gaps))]
+
+
 def render(data, decision, mode):
     computed = validate(data, decision)
     lines = [decision["headline"], "", f"结论类型：`{decision['conclusion']['type']}`"]
@@ -558,6 +634,8 @@ def render(data, decision, mode):
         lines.extend(["", "### 关键状态", "", *(
             f"- {labels[r['offer']]} / {r['path']}：{r['gate']} · {r['score_state']}"
             for r in constrained)])
+    lines.extend(budget_section(data, computed))
+    lines.extend(gap_section(data, decision, computed, known))
     cited = dict.fromkeys(i for r in decision["assessments"] for i in r["evidence_ids"])
     sources = {}
     for cid in cited:

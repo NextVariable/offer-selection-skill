@@ -83,6 +83,12 @@ allows it; a comparison must remain conditional if dates affect the gate.
   research decisions, including when one offer is integrated. The default
   `whole_offer` includes both stages. Copy the same horizon into budget-only
   counterfactuals. Set `cost_complete` for the declared horizon.
+  Before writing the case, restate the scope of the user's ceiling in one
+  line. If it is unclear whether the ceiling covers the master's stage or the
+  whole integrated programme, ask under "Iterative clarification"; do not
+  default to `whole_offer`. Never test a master's-stage ceiling against an
+  integrated offer's doctoral years, and never net doctoral awards against
+  master's costs.
   `available` is cumulative funding through the deadline, excluding award
   rows. Enumerate all material deadlines. Rows dated in the same month include
   only cash available before the corresponding payment; use distinct timeline

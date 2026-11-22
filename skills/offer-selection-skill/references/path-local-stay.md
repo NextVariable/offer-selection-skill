@@ -4,7 +4,7 @@ Country/region feasibility precedes offer comparison because policy, market, lan
 
 Evaluate separately:
 
-1. Post-study work access: lawful and usable job-search/work window.
+1. Post-study work access: lawful and usable job-search/work window, including both the initial grant and the extension/renewal conditions the intended stay requires. A first-period permission does not establish the later period.
 2. Target-role employability and career opportunity: current demand and fit for this user's role, skills, language and profile. Compare plausible compensation and progression for roles this user can actually access, when decision-relevant.
 3. Employer friction: sponsorship, compliance, cost, occupation restrictions, and international hiring willingness.
 4. Long-term continuity: viable transition after the first role or post-study period.

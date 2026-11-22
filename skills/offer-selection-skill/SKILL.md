@@ -123,3 +123,11 @@ pros/cons report.
 This reduces presentation, never research. Decision-critical dynamic claims
 still carry their evidence state and source; they are simply not turned into a
 checklist for the reader.
+
+When the budget is decision-relevant, Quick must still show each offer's net
+cash range, the ceiling/target result, headroom or overage, the budget horizon
+(master's stage vs whole offer), and which cost rows remain unquantified. When
+a Critical or Important item is unresolved, name the exact claim to verify and
+the authority that can settle it; "defer" without a verification path is not a
+complete answer. Quick may be shorter than Full, but it may not omit a
+decision-changing fact, gate, or risk that Full contains.
