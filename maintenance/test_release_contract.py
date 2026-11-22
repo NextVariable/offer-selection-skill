@@ -77,6 +77,7 @@ class ReleaseContract(unittest.TestCase):
             self.assertFalse({f for f in files if f.split("/")[0] in forbidden},
                              "development material leaked into the runtime install")
             self.assertIn("scripts/decision.py", files)
+            self.assertIn("scripts/harness.py", files)
             self.assertIn("references/core-decision-engine.md", files)
             self.assertNotIn("docs/RELEASE_STATUS.md", files)
 
@@ -123,6 +124,17 @@ class ReleaseContract(unittest.TestCase):
                 modules.add(node.module.split(".")[0])
         self.assertEqual(modules, {"argparse", "json", "re", "sys", "copy", "datetime",
                                    "pathlib", "urllib"})
+
+    def test_harness_imports_stdlib_and_the_engine_only(self):
+        tree = ast.parse((ROOT / "skills/offer-selection-skill/scripts/harness.py").read_text())
+        modules = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                modules.update(alias.name.split(".")[0] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                modules.add(node.module.split(".")[0])
+        self.assertEqual(modules, {"argparse", "copy", "datetime", "hashlib", "json",
+                                   "os", "re", "sys", "pathlib", "decision"})
 
 
 if __name__ == "__main__":

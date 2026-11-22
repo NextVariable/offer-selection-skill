@@ -29,6 +29,42 @@ employer or policy terms, while personal inputs remain in the agent's local
 case state. The model must distinguish a scoped source observation from
 confirmation of a particular student's outcome.
 
+## v2 execution harness
+
+v2 keeps the same Skill package and decision engine. It adds one optional
+standard-library module, `scripts/harness.py`, which owns *execution state*
+around the engine rather than another decision model:
+
+| State | Owner | Purpose |
+|---|---|---|
+| Case State | harness, validated by `decision.py` | The one case document; no parallel copy of profile or offers |
+| Research Task State | harness | Task class (`hard_gate`/`decisive`/`optional`), dependency, status, attempts, verification route, stop condition |
+| Evidence State | harness + `decision.py` | Claim/source mapping, scope/period/freshness/authority checks, conflicts, downgrade propagation through `decision.audit` |
+| Gate State | `decision.py` | Gate semantics, `Unknown ≠ Pass`, and recommendation feasibility |
+| Decision State | `decision.py` + digest | Validated decision, case digest, stale marker if evidence/gates change |
+| Scenario State | harness | Named counterfactual isolated from the base case |
+
+Boundaries:
+
+- The host still owns model calls, browsing and judgment. The harness never
+  fetches, never calls a model and never decides.
+- Programmatic checks cover structure, scope, period, freshness, authority,
+  dependency and arithmetic. Whether a source entails a claim remains a
+  model/human review and is labelled that way in every verification summary.
+- A recommendation is blocked while a hard-gate task is open; an unopened or
+  incomplete source cannot close a gate; an evidence downgrade marks a stored
+  decision stale so it cannot be rendered as current.
+- State is one local JSON file with atomic replacement, checkpoints and a
+  default seven-day profile retention. No database, service or account.
+- The trace is append-only and records research starts/finishes, source
+  checks, evidence and gate changes, calculations, validation failures,
+  retries, resume, scenario creation and the final recommendation.
+
+The exchange and commands are documented in
+[structured-workflow.md](../skills/offer-selection-skill/references/structured-workflow.md).
+The harness imports `decision.py`; it does not copy its constants, gates,
+cost or score logic.
+
 ## The decision pipeline
 
 ```
@@ -86,7 +122,7 @@ rule changes dangerous.
 ## Repository layout
 
 ```text
-skills/offer-selection-skill/   Skill package: SKILL.md, references, decision.py
+skills/offer-selection-skill/   Skill package: SKILL.md, references, decision.py, harness.py
 docs/                          Usage, privacy and maintenance documentation
 docs/examples/                 Synthetic decision examples
 maintenance/                   Installers, checks and release tools
@@ -102,6 +138,8 @@ The loading diagram above uses paths relative to `skills/offer-selection-skill/`
 | `skills/offer-selection-skill/references/core-decision-engine.md` | Canonical execution semantics |
 | `skills/offer-selection-skill/references/path-*.md` | One rule file per decision path |
 | `skills/offer-selection-skill/references/priors-and-calibration.md` | Conditional, labelled heuristics/anchors |
+| `skills/offer-selection-skill/scripts/decision.py` | Case/decision validation, gate and cost arithmetic, Quick/Full rendering |
+| `skills/offer-selection-skill/scripts/harness.py` | Research state, evidence checks, checkpoints, scenario isolation, trace, privacy lifetime |
 | `maintenance/install.sh` / `maintenance/install.ps1` | Cross-platform installer (strict runtime allowlist + ownership marker) |
 | `.claude-plugin/` | Version source of truth (`plugin.json`) + marketplace metadata |
 | `docs/examples/` | Anonymized, synthetic behavior illustrations (not oracles) |

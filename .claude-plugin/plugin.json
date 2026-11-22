@@ -1,7 +1,7 @@
 {
   "name": "offer-selection-skill",
-  "version": "1.0.0",
-  "release_status": "stable",
-  "description": "Evidence-driven postgraduate offer selection using eligibility gates, graduation-profile transformation, target-market competitiveness, total cost, ROI, and risk.",
+  "version": "2.0.0-rc1",
+  "release_status": "candidate",
+  "description": "Evidence-driven postgraduate offer selection with a local decision harness: eligibility gates, graduation-profile transformation, target-market competitiveness, total cost, ROI, risk, research orchestration and auditable evidence state.",
   "author": {"name": "Francis and OpenAI Codex"}
 }

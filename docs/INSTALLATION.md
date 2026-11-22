@@ -19,6 +19,18 @@ cd offer-selection-skill
 Offer，先给 Quick Decision」。完整流程需要联网研究以及本地 Python 3.10+ 执行权限。
 核对安装输出所示版本以及本次会话读取的技能路径。
 
+## 安装 v2.0.0 候选版
+
+v2 候选版尚未创建稳定标签。需要试用时，从候选分支检出：
+
+```bash
+git clone --branch feat/v2-decision-harness --single-branch https://github.com/NextVariable/offer-selection-skill.git
+cd offer-selection-skill
+bash maintenance/install.sh --platform codex
+```
+
+Windows 使用 `pwsh -File ./maintenance/install.ps1 -Platform codex`。安装器会同时安装 `scripts/decision.py` 和 `scripts/harness.py`。v2 的 Harness 是可选执行层；无法运行本地 Python 时，仍按 v1 文本契约使用，并注明程序校验未执行。
+
 ## 从默认分支安装（Codex、Claude Code）
 
 需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行：
