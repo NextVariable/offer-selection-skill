@@ -181,7 +181,7 @@ def costs(offer, budget, shock=None):
             status = against(outflow, cash[0]) if against(outflow, cash[0]) == "pass" else "unresolved"
         milestones.append({"month": m, "outflow": outflow, "available": cash, "status": status})
     gate = rollup([total_status, *(m["status"] for m in milestones)])
-    if (not offer["cost_complete"] or (horizon == "masters" and not gross)) and gate == "pass":
+    if (not offer["cost_complete"] or not gross) and gate == "pass":
         gate = "unresolved"
     if gate == "fail" and not offer.get("offsets_complete", offer["cost_complete"]):
         gate = "unresolved"
@@ -514,12 +514,13 @@ def scenario(base, change):
     else:
         string(value)
     need(base[target].get(field) != value, "scenario must actually change one field")
-    revised = {**base, target: {**base[target], field: value}}
-    stale = {e["id"] for e in base["evidence"] if e["kind"] in CHANGES[field]}
+    revised = deepcopy(base)
+    revised[target][field] = deepcopy(value)
+    stale = {e["id"] for e in revised["evidence"] if e["kind"] in CHANGES[field]}
     if field in {"career", "country", "phd_intent"}:
         # Scope may vary with the goal. Conservatively reopen affected hard gates.
         reopened = []
-        for offer in base["offers"]:
+        for offer in revised["offers"]:
             gates = []
             for g in offer["gates"]:
                 if g["kind"] in CHANGES[field] or stale.intersection(g["evidence_ids"]):
@@ -528,8 +529,8 @@ def scenario(base, change):
                     gates.append(g)
             reopened.append({**offer, "gates": gates})
         revised["offers"] = reopened
-    revised["evidence"] = [e for e in base["evidence"] if e["id"] not in stale]
-    return {"hypothetical": True, "change": change, "before": base[target].get(field),
+    revised["evidence"] = [e for e in revised["evidence"] if e["id"] not in stale]
+    return {"hypothetical": True, "change": deepcopy(change), "before": deepcopy(base[target].get(field)),
             "reuse_evidence_ids": sorted(e["id"] for e in revised["evidence"]),
             "recheck_evidence_ids": sorted(stale), "review_routes": field in {"country", "career", "phd_intent"},
             "rerun": ["budget", "gates", "competitiveness", "value", "recommendation"] if field == "ceiling"
@@ -559,8 +560,6 @@ def applicable_label(item):
 
 def budget_section(data, computed, decision, known):
     budget = data["budget"]
-    if budget.get("ceiling") is None and budget.get("target") is None:
-        return []
     masters = budget.get("horizon") == "masters"
     terms = ["口径：" + ("仅硕士阶段" if masters else "全项目"),
              f"{budget['currency']} 最小货币单位"]
@@ -568,6 +567,8 @@ def budget_section(data, computed, decision, known):
         terms.append(f"上限 {budget['ceiling']:,}")
     if budget.get("target") is not None:
         terms.append(f"目标 {budget['target']:,}")
+    if budget.get("ceiling") is None and budget.get("target") is None:
+        terms.append("未提供金额上限或目标")
     lines = ["", "### 费用与预算", "", "- " + "；".join(terms)]
     cited = {}
     for row in decision["assessments"]:
@@ -578,11 +579,25 @@ def budget_section(data, computed, decision, known):
     for offer in data["offers"]:
         cost = computed["offers"][offer["id"]]["cost"]
         low, high = cost["cash"]
-        bits = [f"净现金 {money_range(cost['cash'])}"]
+        selected = [c for c in offer["costs"] if c["id"] not in cost["excluded_cost_ids"]]
+        has_expenses = any(c["kind"] == "expense" for c in selected)
+        complete = offer["cost_complete"] and has_expenses
+        if complete:
+            bits = [f"净现金 {money_range(cost['cash'])}"]
+        elif has_expenses:
+            bits = [f"已列项目净现金小计 {money_range(cost['cash'])}（全期费用尚未核齐）"]
+        else:
+            bits = ["现金支出尚未量化"]
         if budget.get("ceiling") is not None:
             ceiling = budget["ceiling"]
-            bits.append(f"上限{STATUS_ZH[cost['ceiling_status']]}")
-            if high is None:
+            if complete:
+                bits.append(f"上限{STATUS_ZH[cost['ceiling_status']]}")
+            if not complete:
+                if low > ceiling and cost["budget_gate"] == "fail":
+                    bits.append(f"已列项目至少超出上限 {low - ceiling:,}")
+                else:
+                    bits.append("费用未核齐，无法确认上限余量")
+            elif high is None and low <= ceiling:
                 bits.append("上界未定，无法确认余量")
             elif low > ceiling:
                 bits.append(f"超出至少 {low - ceiling:,}")
@@ -590,13 +605,14 @@ def budget_section(data, computed, decision, known):
                 bits.append(f"余量 {ceiling - high:,}–{ceiling - low:,}")
             else:
                 bits.append("区间跨越上限")
-        if budget.get("target") is not None:
+        if budget.get("target") is not None and complete:
             bits.append(f"目标{STATUS_ZH[cost['target_status']]}")
         bits.append(f"预算闸门{STATUS_ZH[cost['budget_gate']]}")
+        if cost["affordability_basis"] == "user_affordability_attestation":
+            bits.append("依据用户确认可负担")
         if cost["excluded_cost_ids"]:
             bits.append("不计入 " + "、".join(cost["excluded_cost_ids"]))
-        missing = [c["id"] for c in offer["costs"] if c["amount"][1] is None
-                   and not (masters and c.get("stage") == "doctoral")]
+        missing = [c["id"] for c in selected if c["amount"][1] is None]
         if missing:
             bits.append("未量化 " + "、".join(missing))
         if not cost["cashflow_checked"]:

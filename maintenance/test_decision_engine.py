@@ -83,6 +83,10 @@ class BudgetCases(unittest.TestCase):
                        row("doctor-fee", "expense", [300, 300], stage="doctoral")])
         self.assertEqual((q["budget_horizon"], q["budget_gate"]), ("whole_offer", "fail"))
 
+    def test_award_without_an_expense_cannot_establish_affordability(self):
+        q = self.cost([row("aid", "award", [20, 20])])
+        self.assertEqual(q["budget_gate"], "unresolved")
+
     def cost(self, items, **budget):
         data = base()
         data["offers"][0]["costs"] = items
@@ -423,6 +427,19 @@ class ScenarioCases(unittest.TestCase):
         self.assertEqual(d["budget"]["ceiling"], 100)
         self.assertEqual(engine.analyze(result["input"])["offers"]["a"]["cost"]["budget_gate"], "fail")
 
+    def test_scenario_nested_changes_do_not_mutate_base(self):
+        original = base()
+        frozen = copy.deepcopy(original)
+        change = {"field": "internships", "value": ["new example"]}
+        result = engine.scenario(original, change)
+        result["input"]["offers"][0]["costs"][0]["amount"][0] = 99
+        result["input"]["evidence"][0]["sources"][0]["locator"] = "changed"
+        result["input"]["profile"]["internships"].append("hypothetical")
+        result["before"].clear()
+        result["change"]["value"].clear()
+        self.assertEqual(original, frozen)
+        self.assertEqual(change["value"], ["new example"])
+
     def test_country_reopens_affected_gate_only(self):
         d = base()
         d["evidence"].append(claim("job", "eligibility"))
@@ -545,14 +562,30 @@ class QuickReportCases(unittest.TestCase):
         quick = engine.render(d, out, "quick")
         self.assertIn("tuition（expense）：72,450；2026/27 published tuition", quick)
 
-    def test_quick_omits_cost_section_without_budget_limit(self):
+    def test_quick_shows_costs_without_budget_limit(self):
         d, out = base(), decision()
         d["budget"] = {"currency": "CNY", "ceiling": None}
         out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy")
         out["conclusion"] = {"type": "defer", "choices": []}
         out["risks"] = ["No numeric ceiling is available"]
         quick = engine.render(d, out, "quick")
-        self.assertNotIn("### 费用与预算", quick)
+        self.assertIn("### 费用与预算", quick)
+        self.assertIn("未提供金额上限或目标", quick)
+        self.assertIn("tuition（expense）：40", quick)
+        self.assertNotIn("余量", quick)
+        self.assertTrue(engine.render(d, out, "full").startswith(quick))
+
+    def test_incomplete_ledger_does_not_print_total_or_headroom(self):
+        d, out = base(), decision()
+        d["offers"][0]["cost_complete"] = False
+        out["assessments"][0].update(gate="unresolved", stance="defer", score_state="nrsy")
+        out["conclusion"] = {"type": "defer", "choices": []}
+        out["risks"] = ["Housing is still missing"]
+        quick = engine.render(d, out, "quick")
+        self.assertIn("已列项目净现金小计 40–40（全期费用尚未核齐）", quick)
+        self.assertIn("无法确认上限余量", quick)
+        self.assertNotIn("余量 60", quick)
+        self.assertNotIn("上限通过", quick)
 
 
 class HostContractCases(unittest.TestCase):
