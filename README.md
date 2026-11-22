@@ -1,23 +1,23 @@
 # Offer Selection Skill
 
-**全网首个硕士留学 Offer 选择 Agent Skill，基于个人背景、职场规划与 ROI，倒推最适合你的 Offer。**
+**为已经拿到硕士 Offer 的学生比较下一步。结合你的起点、就业或深造目标和预算，判断哪些项目值得接受。**
 
 ## 拿到 Offer 之后，怎么选？
 
-同一组 Offer，对不同背景和目标的人，价值可能完全不同。Offer Selection Skill 结合你的职场规划或学术深造目标，判断各项目能带来哪些实际机会，以及是否值得付出相应的学费、生活费和时间。
+同一组 Offer，对不同背景和目标的人，价值可能完全不同。Offer Selection Skill 会比较各项目能帮你补足哪些短板、毕业时具备怎样的竞争力，以及你能否进入目标岗位或研究路径。再判断这些变化是否值得付出相应的资金、时间和风险。
 
-支持 Codex、Claude Code、WorkBuddy 等 AI Agent 的本地技能安装。
+v1.0 的原生端到端验收覆盖 Codex CLI。其他宿主的安装和验证范围见[兼容性](docs/COMPATIBILITY.md)。
 
 ## 快速开始
 
-使用支持本地 Skill 的 AI Agent，并开启联网搜索。
+使用 Codex，开启联网搜索并允许本地运行 Python 3.10+，即可使用完整流程。
 
 ### 安装
 
-在 AI Agent 对话框中发送：
+请按[安装步骤](docs/INSTALLATION.md#安装-v100)安装 `v1.0.0`。也可以在 Codex 对话中发送：
 
 ```text
-请帮我安装这个仓库中的 offer-selection-skill：https://github.com/NextVariable/offer-selection-skill
+请从 https://github.com/NextVariable/offer-selection-skill 的 v1.0.0 标签安装 offer-selection-skill。
 ```
 
 按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
@@ -27,7 +27,7 @@
 在新会话中发送：
 
 ```text
-请使用 offer-selection-skill，帮我比较硕士 Offer。
+请使用 $offer-selection-skill，帮我比较硕士 Offer，先给 Quick Decision。
 ```
 
 如果提供的信息不足以判断，助手会追问需要补充的关键背景。
@@ -104,13 +104,17 @@ B：[学校、项目全名、入学年份]
 
 ## 你会得到什么？
 
+默认 **Quick Decision** 给出结论、依据、费用、风险和可能改变建议的条件。说「给我完整决策审计」可获得 **Full Decision Audit**，逐项查看资格、成本、竞争力和证据，两种报告读取同一份决策结果。要测试变化，可以说「假设硬预算降到 50 万，其他条件不变，比较前后建议」。
+
+直接用自然语言给出背景和 Offer。Agent 负责打开原始网页、记录适用届别和证据、运行本地校验，并在无法确认时给出有条件的建议。通常不需要自己准备 JSON 或运行命令。
+
 一份针对你个人情况的 Offer 建议：优先考虑哪个、决定性原因、额外花费的价值、主要风险，以及接受前需要核实的条件。
 
 分析也可能得出“两个项目没有明显差距”“需要先核实关键条件”，或“这几个都不值得接受”。它不会为了给出赢家而强行排序。
 
 ## 使用前了解
 
-当前为 **v0.3.2 正式版**。建议用于辅助决策，关键资格与政策请以最新官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)。
+当前版本为 **v1.0.0**，正式支持 Codex CLI。Python 3.10+ 用于离线计算与校验。关键资格与政策请以适用期的官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)及[使用示例](docs/examples/13-structured-decision.md)。
 
 无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](docs/PRIVACY.md)。
 

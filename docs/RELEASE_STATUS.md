@@ -1,9 +1,7 @@
 # 版本与使用范围
 
-当前版本为 **v0.3.2 正式版**。
+本版本为 **v1.0.0 正式版**，正式支持 Codex CLI。发布记录见 [GitHub Release](https://github.com/NextVariable/offer-selection-skill/releases/tag/v1.0.0)。
 
-本技能用于辅助比较已获得的硕士 Offer，不保证就业、签证或学术深造结果。学费、招聘资格和政策可能变化，接受 Offer 前请核实影响决定的关键条件。
+独立审核基线为 `bcc55d56b3e5a431121f6ac9860cf437830a7f8b`。Codex CLI 已完成指定原生验收。Claude Code 最终原生验收为 **Not Run**，原因是第三方模型网关 402。TRAE 回退结果单独记录。详见[兼容性](COMPATIBILITY.md)和[分阶段审计](V1_RELEASE_AUDIT.md)。
 
-AI 分析仍可能出现查证遗漏或判断偏差。缺少关键信息时，应补充信息或核实条件后再决定，不必强行选出赢家。
-
-各 AI Agent 的安装方式与使用限制见[兼容性](COMPATIBILITY.md)，版本变化见[更新记录](CHANGELOG.md)。
+[签核清单](RELEASE_CHECKLIST.md) · [更新记录](CHANGELOG.md) · [发布说明](RELEASE_NOTES_V1.md) · [已知限制](KNOWN_LIMITATIONS.md)

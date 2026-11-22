@@ -11,6 +11,9 @@ jobs:
   release-readiness:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -18,7 +21,7 @@ jobs:
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Manifest JSON parse
         run: |
@@ -32,6 +35,9 @@ jobs:
       - name: SKILL.md frontmatter compliance
         run: python3 maintenance/check_frontmatter.py
 
+      - name: Offer Decision Engine fixtures
+        run: python3 -m unittest discover -s maintenance -p 'test_decision_engine.py'
+
       - name: Installer syntax and safety battery
         run: |
           bash -n maintenance/install.sh maintenance/test_installer.sh
@@ -43,6 +49,35 @@ jobs:
           PLUGIN="$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")"
           grep -q "FALLBACK_VERSION=\"${PLUGIN}\"" maintenance/install.sh
           grep -q "\$FallbackVersion = \"${PLUGIN}\"" maintenance/install.ps1
+
+      - name: Release contract, privacy and path scan
+        run: |
+          python3 -m unittest maintenance.test_release_contract
+          python3 -m compileall -q skills/offer-selection-skill/scripts maintenance
+
+  macos-native:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Offer Decision Engine fixtures
+        run: python3 -m unittest discover -s maintenance -p 'test_decision_engine.py'
+
+      - name: Installer syntax and safety battery
+        run: |
+          bash -n maintenance/install.sh maintenance/test_installer.sh
+          ./maintenance/install.sh --dry-run --platform universal
+          bash maintenance/test_installer.sh
+
+      - name: Release contract and privacy scan
+        run: python3 -m unittest maintenance.test_release_contract
 
   windows-installer-safety:
     runs-on: windows-latest

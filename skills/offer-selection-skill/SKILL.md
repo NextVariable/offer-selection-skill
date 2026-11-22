@@ -10,11 +10,11 @@ description: >-
 license: MIT
 metadata:
   author: Francis and OpenAI Codex
-  version: "0.3.2"
+  version: "1.0.0"
   activation: /offer-selection-skill
   maintainer: Francis
   created: "2026-09-04"
-  last_reviewed: "2026-09-08"
+  last_reviewed: "2026-11-22"
   review_interval_days: "90"
   provenance_note: Original design conversation is private and not shipped.
 ---
@@ -36,7 +36,7 @@ Determine which offer, if any, is worth accepting **for this user and goal**. Do
    For genuine dual goals, load and run both paths separately.
 3. Read `references/priors-and-calibration.md` when a conditional prior fires — a
    U.S. offer on a research/STEM or China-return comparison, a joint venture,
-   local-stay country claims, an equivalence/tie-break, or a strong-baseline
+   local-stay country claims, an industry-cluster hypothesis, an equivalence/tie-break, or a strong-baseline
    calibration check — **and always for the operative-year cost calibration
    when a decision's operative cost year is covered by it** (the maintained
    calibration currently covers 2026). Priors and calibrations are labelled
@@ -79,6 +79,13 @@ to missing, ambiguous or conflicting private inputs and goals.
 
 ## Execution overview
 
+For decisions and counterfactuals, load
+[`references/structured-workflow.md`](references/structured-workflow.md).
+Use its case and decision contract and the shipped local validator when
+command execution is available. The selected output mode changes detail,
+using the same validated decision. Quick Decision is the default; use Full
+Decision Audit on request.
+
 Execute the canonical stage order and semantics in
 `references/core-decision-engine.md`. Do not reorder or redefine them here.
 
@@ -116,3 +123,11 @@ pros/cons report.
 This reduces presentation, never research. Decision-critical dynamic claims
 still carry their evidence state and source; they are simply not turned into a
 checklist for the reader.
+
+When the budget is decision-relevant, Quick must still show each offer's net
+cash range, the ceiling/target result, headroom or overage, the budget horizon
+(master's stage vs whole offer), and which cost rows remain unquantified. When
+a Critical or Important item is unresolved, name the exact claim to verify and
+the authority that can settle it; "defer" without a verification path is not a
+complete answer. Quick may be shorter than Full, but it may not omit a
+decision-changing fact, gate, or risk that Full contains.

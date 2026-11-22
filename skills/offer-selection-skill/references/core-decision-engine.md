@@ -15,6 +15,8 @@
 - [Budget and pre-output consistency](#budget)
 - [Gates](#gates)
 - [Gap and transformation](#gap-and-transformation)
+- [Academic fit](#academic-fit)
+- [Recognition and opportunity access](#recognition-and-opportunity-access)
 - [Evidence state and decision sufficiency](#evidence-state-and-decision-sufficiency)
 - [Research priority and stop](#research-priority)
 - [Risk](#risk)
@@ -50,7 +52,7 @@ their owning stage; eligibility precedes competitiveness.
   restate them. Apply Iterative clarification when these inputs are insufficient.
 - **Stage 2** diagnoses the Primary Gap and any decision-relevant Secondary
   Gap (credential, internship, technical, research, recruiting-readiness,
-  language/local-market, work-authorization, budget), models each offer's
+  language/local-market, work-authorization, budget), checks Academic fit, models each offer's
   transformation, and forms the Graduation Profile. Core question, employment:
   “After accepting this offer, what candidate does this user become, and how
   competitive is that candidate in the target market?” Core question, PhD:
@@ -63,16 +65,25 @@ their owning stage; eligibility precedes competitiveness.
 - **Stage 4** compares only eligible / conditionally eligible paths on
   target-market competitiveness (credential signal, internship capital,
   technical/research capital, recruiting readiness, accessible opportunity,
-  target-market recognition, convertible network value).
+  target-market recognition, convertible network value; see Recognition and
+  opportunity access).
 - **Stage 5** analyzes total cost, Target Budget vs Absolute Ceiling,
   incremental cost/value, ROI, and Critical/Important/Notice risk. Budget Gate
   and ROI are separate analyses; do not double count. The mandatory
   operative-year calibration read in Budget precedes any cost conclusion here.
-- **Stage 6** compares city, lifestyle, school affection, experience, and risk
-  preference **only when outcomes are materially close**. Subjective utility
-  cannot override a hard gate or a clear outcome difference.
-- **Stage 7** maps completed reasoning to the permitted Score State and
-  precision (see Evidence state and decision sufficiency; Score and equivalence).
+- **Stage 6** separates supported career/academic value, plausible long-term
+  prestige or social capital, and subjective utility. When material, compare
+  the explicit premium or sacrifice for brand, alumni identity, campus,
+  learning style, city, lifestyle or risk preference. An explicitly valued
+  preference can change the overall choice among feasible paths within the
+  user's constraints; preserve any different career/academic conclusion.
+  Surface relevant anchors or already-spent, irrecoverable costs in concrete
+  terms. Do not infer motives or dismiss a deliberate preference.
+- **Stage 7** checks one decision-changing counterfactual when meaningful:
+  hold other facts fixed, change a plausible condition, and identify what
+  would change (eligibility, direction, tier or nothing). Then apply Evidence
+  state and decision sufficiency and Score and equivalence. Show the check
+  only when it helps the user act.
 
 ## Iterative clarification
 
@@ -112,16 +123,28 @@ utility → score mapping.
 
 ## Budget
 
-`Total Cost = tuition + living cost + mandatory fees + duration-related cost + necessary opportunity cost − scholarship/grant`.
+`Net Cash Cost = tuition + living cost + mandatory fees + other necessary cash expenses − scholarship/grant`.
 
 Include insurance, visa, necessary travel/recruiting, and relocation under the
-relevant cost term. Include opportunity cost only when material; distinguish it
-from cash affordability. Exceeding the Target Budget requires a
+relevant cash term. Compare actual months, entry date and recruiting windows
+as time costs. Add material opportunity cost to economic ROI only against a
+feasible alternative (for example, forgone earnings or another offer); do not
+double charge time already expressed in cash or monetized forgone earnings.
+Compare cash cost to the cash ceiling. Exceeding the Target Budget requires a
 premium-value explanation. Materially exceeding the Absolute Ceiling normally
 fails the Budget Gate (fatal in Stage 0 only when the figures are confirmed).
 When both are affordable, ask what incremental cost buys: credential
 threshold, recruiting pool, internship access, location, research resources,
 work rights, network, or experience. Cheapest is not automatically best.
+
+**Financial resilience.** If material, compare payment dates with available
+funds, timing of scholarships/financing, and pressure on study or recruiting.
+A confirmed unavoidable shortfall at a required milestone can fail budget
+feasibility even if the full-programme total fits. Test a realistic adverse
+cash scenario (e.g. exchange rates, housing, funding, or a requested 20%
+increase); identify headroom, actionable mitigation and residual risk.
+A hypothetical stress overrun signals fragility, not confirmed infeasibility.
+Never impose a universal buffer or count hypothetical costs as base spending.
 
 Treat a user's current, all-in destination or programme cost range as primary
 decision input for their own affordability analysis unless it is internally
@@ -160,7 +183,9 @@ estimate. Skipping an applicable calibration check leaves cost conclusions
 unresolved.
 
 Use lower-bound arithmetic before debating a midpoint. Confirmed tuition plus
-unavoidable mandatory fees is already a Total Cost lower bound; tuition must
+unavoidable mandatory fees, net of the largest defensible applicable award,
+sets a cash-cost lower bound. Do not assume an unresolved award when proving
+affordability. Tuition must
 never be mistaken for, or nearly equated with, an all-in total. If that lower
 bound exceeds the Absolute Ceiling, the Budget Gate fails without needing a
 precise living-cost estimate. If tuition alone consumes most of the ceiling,
@@ -192,9 +217,14 @@ Research applicable budget, credential, major, ranking/school-list,
 graduation/fresh-graduate, age/degree/licensing/nationality/security, work
 authorization, career feasibility, prerequisite, supervisor, funding, and
 progression gates. Output `pass / conditional / fail / unresolved` with
-evidence. Passing allows competition; it does not imply competitiveness. A
-failed decisive gate caps the path recommendation regardless of other
-strengths.
+evidence. Passing allows competition; it does not establish competitiveness,
+incremental value or a reason to accept. If only one offer can enter the
+target pool, distinguish “only feasible option” from an acceptance
+recommendation. Justify the latter and its tier with that offer's own
+transformation and cost, or leave the offer's value judgment conditional.
+A confirmed failed gate closes the affected path regardless of preference.
+Reopen it only on evidence that changes the gate, or assess a different
+path when the user is considering it.
 
 Named hard gates: Budget Gate; Credential Gate (degree, 留服 recognition,
 awarding institution); Major Eligibility Gate (employer accepted-major
@@ -252,6 +282,41 @@ only by accessible/convertible value; do not reward capital the user already
 has. After sufficient strong relevant internships, the fourth/fifth ordinary
 placement has low marginal value.
 
+## Academic fit
+
+At transformation, check any decision-relevant gap between the user's
+preparation and actual prerequisites, course rigor, teaching and assessment
+format, or progression requirements. Ask whether a realistic bridge (timing,
+support, workload and verification) makes the intended training and completion
+achievable. Estimate how academic pressure affects internship, research and
+recruiting windows. Evaluate GPA/assessment exposure only where it changes a
+specific downstream path; avoid predicting grades from anecdotes or prestige.
+Separate verified admission or progression requirements from predicted
+academic execution risk and ordinary challenge. A confirmed failure of a
+binding requirement invokes Gates; an admitted student with a difficult
+course load instead gets a likelihood-sensitive transformation and risk
+assessment, with a mitigation or a reversal condition where useful.
+
+## Recognition and opportunity access
+
+Distinguish published eligibility thresholds, verified recruiting
+relationships/shortlists, target-market recognition, and longer-term prestige.
+Use a relevant and dated overall or subject ranking (QS, U.S. News, THE,
+ARWU, or another used by the market) as supporting evidence for the specific
+claim. Near ranks alone do not separate outcomes. A material tier gap can
+matter when target-market recognition corroborates it and it changes the
+user's profile. Separate lived experience and brand preference at Stage 6.
+
+For geography, trace **city opportunity → accessible opportunity → possible
+outcome**. Check sector and employer concentration, recruiting connections,
+industry activity, interview/recruiting and network access, then test actual
+use against work rules, schedule, commute, language and preparation. Consider
+local housing, commute costs and material safety constraints where relevant.
+A supported, accessible programme–market mechanism can be decisive even
+without past placement proof for this student. Geography alone supplies a
+hypothesis (see Priors), and career/network access counts once through its
+actual effect.
+
 ## Evidence state and decision sufficiency
 
 Classify every decision-relevant volatile fact as:
@@ -261,7 +326,7 @@ Classify every decision-relevant volatile fact as:
 - **Unresolved** — cannot yet be verified. It stays unresolved; never paper
   over it and never guess.
 - **Heuristic / Prior** — search hypothesis or experience prior; guides what
-  to investigate and may tie-break close evidence, never a fact.
+  to investigate or supports a bounded directional judgment, never a fact.
 
 **`Confirmed` is claim-scoped, not source-scoped.** It applies to the exact
 claim, population, channel, programme or degree, jurisdiction, and operative
@@ -344,6 +409,18 @@ that the user's target actually depends on, so neither can enter that applicant
 pool — it remains **Critical at the path level**. But the same timing fact is
 not Critical on a path where viable alternative channels keep the path open;
 there apply the worth-accepting test before assigning Material or Non-material.
+
+Apply the impact test per offer and path. An offer-wide feasibility condition
+such as affordability affects every path that uses that offer. Preserve the
+score restriction in each affected path while describing conditional strengths.
+Maintain an unknown decisive hard gate as unresolved and show the branches;
+continue judging any unaffected option. For incomplete market evidence, use relevant, converging observations
+and labelled priors to infer a direction if warranted. Explain the mechanism,
+confidence and the plausible evidence that could reverse it. A direction that
+survives plausible variation can be stated now; a direction that depends on a
+material assumption is provisional or conditional under the states above.
+Absence of exact market data proves neither parity nor disparity. A concrete
+conclusion and a precise score have separate evidence requirements.
 
 Principle: **Confirmed Score requires decision-sufficient evidence, not
 complete fact certainty.** Research targets decision value, not fact
@@ -440,10 +517,12 @@ decisive gate caps the path recommendation. A small 1–3 point difference—and
 even a 4-point difference—without substantive evidence is no clear difference.
 Evidence difference > numerical difference.
 
-**Decision Equivalence**: when gates, target-market tier, graduation profile,
-and expected outcomes are materially similar, do not force a winner. Enter
-equivalence, return to the user the real trade-offs (cost, city, experience,
-brand preference, risk preference), and let subjective utility decide. If two
+**Decision Equivalence**: when gates, target-market tier, graduation profile
+and expected outcomes are materially similar, report that outcome comparison.
+A material cost difference or supported user preference may still produce an
+overall acceptance recommendation; explain the mechanism and distinguish
+career/academic parity from overall equivalence. When no material overall
+difference is supported, show the trade-offs and leave the choice open. If two
 offers fail different decisive gates, or every offer is weak
 (low ROI, no upgrade, over budget, cannot repair the binding gap), say so:
 “none recommended” is a valid answer, as are work-first, gap, reapply,
@@ -484,9 +563,10 @@ forbidden):
 > Target-market recognition > generic global ranking  
 > Evidence difference > country stereotype
 
-Country/geography tie-break priors may affect a recommendation only when
-stronger variables are materially close and the mechanism is realistically
-accessible. Market-specific recognition priors have the separate evidence
+Bare country/geography priors may break close ties only when their mechanism
+is realistically accessible. Case-specific evidence of a material accessible
+opportunity belongs in the affected transformation or competitive factor.
+Market-specific recognition priors have the separate evidence
 ladder in `path-private-sector.md`: they may support a labelled, provisional
 recognition judgment without an employer list, but never become a verified
 employer rule. Apply the uncertainty mapping to their decision impact. Do not count the same lab density, industry access, brand, ranking, or

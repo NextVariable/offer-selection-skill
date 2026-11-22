@@ -1,6 +1,33 @@
 # Architecture
 
-How the skill is structured, loaded, and governed.
+## v1 execution boundary
+
+The host agent gathers the profile, plans research and reads public sources.
+It converts observations into scoped evidence and interprets graduation
+profiles and career value using the existing path references. The shipped
+standard-library Python module checks the case and decision exchange, cash
+ranges, deadlines, gate declarations and permitted score precision. It has
+no network access and does not infer hiring, prestige, academic success or
+source truth. The two report modes project the same validated decision.
+Counterfactuals keep the original case fixed and explicitly reopen changed
+scopes. The [runtime workflow](../skills/offer-selection-skill/references/structured-workflow.md)
+defines the exchange and CLI.
+
+The source inspection record separates retrieval (`opened/blocked/unopened`),
+authority and whether the located passage supports a particular dated
+claim. The local validator can reject structurally unsupported confirmations.
+Its `audit` command marks unsupported claims unresolved in a separate copy,
+reopens dependent gates and removes unverified finite cost bounds. The agent
+still opens and interprets the source. Quick and Full both show material gate
+statuses and sources used for confirmed findings. Both can show researched
+costs without a numeric ceiling. An incomplete ledger remains a subtotal.
+
+Local execution runs against agent-managed temporary files. User messages
+are the normal interface for intake, follow-ups and scenarios. The Python
+module reads those files and writes to stdout. Search uses public programme,
+employer or policy terms, while personal inputs remain in the agent's local
+case state. The model must distinguish a scoped source observation from
+confirmation of a particular student's outcome.
 
 ## The decision pipeline
 
@@ -59,7 +86,7 @@ rule changes dangerous.
 ## Repository layout
 
 ```text
-skills/offer-selection-skill/   Skill package: SKILL.md + references/
+skills/offer-selection-skill/   Skill package: SKILL.md, references, decision.py
 docs/                          Usage, privacy and maintenance documentation
 docs/examples/                 Synthetic decision examples
 maintenance/                   Installers, checks and release tools
@@ -83,5 +110,5 @@ The loading diagram above uses paths relative to `skills/offer-selection-skill/`
 
 Internal development material — `evals/`, `internal/audits/`, `internal/archive/`,
 `internal/source-of-truth.md`, and the eval runner tooling — lives only in the
-development repository and is **not** shipped in the public release snapshot
-(see `maintenance/build_release_snapshot.sh`).
+development repository. The public distribution and runtime install exclude
+these materials. See [the release checklist](RELEASE_CHECKLIST.md) for verification.

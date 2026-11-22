@@ -2,7 +2,24 @@
 
 对话安装和首次使用见 [README](../README.md)。无法自动安装时，可使用以下方式。
 
-## 终端安装（Codex、Claude Code）
+## 安装 v1.0.0
+
+打开终端，在一个尚无同名目录的位置下载正式标签：
+
+```bash
+git clone --branch v1.0.0 --single-branch https://github.com/NextVariable/offer-selection-skill.git
+cd offer-selection-skill
+```
+
+在 macOS / Linux 上运行 `bash maintenance/install.sh --platform codex`。
+在 Windows 上安装 PowerShell 7 后运行 `pwsh -File ./maintenance/install.ps1 -Platform codex`。
+安装器默认放到用户的 `.agents/skills/offer-selection-skill`。
+
+开启一个新的 Codex 会话，输入「请使用 $offer-selection-skill，帮我比较硕士
+Offer，先给 Quick Decision」。完整流程需要联网研究以及本地 Python 3.10+ 执行权限。
+核对安装输出所示版本以及本次会话读取的技能路径。
+
+## 从默认分支安装（Codex、Claude Code）
 
 需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行：
 
@@ -14,13 +31,13 @@ npx skills add NextVariable/offer-selection-skill --skill offer-selection-skill 
 
 ## WorkBuddy 界面导入
 
-在 [GitHub 仓库](https://github.com/NextVariable/offer-selection-skill) 选择 **Code → Download ZIP**，下载后解压。
+在 [GitHub 仓库](https://github.com/NextVariable/offer-selection-skill) 先选定版本标签或分支，再选择 **Code → Download ZIP** 并解压。
 
 打开 WorkBuddy 的“专家·技能·连接器 → 技能 → 添加技能 → 上传技能”，导入解压后的 `skills/offer-selection-skill` 文件夹，不要只上传单个 `SKILL.md`。
 
 ## 脚本安装（可选）
 
-也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。先下载仓库：
+也可使用本项目脚本安装到 Codex、Claude Code 或 WorkBuddy。以下命令下载默认分支。如需安装确切的 v1.0.0 版本，使用上面的标签命令：
 
 ```bash
 git clone https://github.com/NextVariable/offer-selection-skill.git
@@ -52,6 +69,10 @@ pwsh -File .\maintenance/install.ps1 -Platform workbuddy
 ```
 
 安装后开启 AI Agent 的新会话，按 [README 中的示例](../README.md#在-ai-聊天框开始使用) 调用。
+
+v1 可执行校验使用 Python 3.10+。确认宿主允许终端调用后，可以在技能目录运行
+`python3 scripts/decision.py --help`（Windows 用 `py -3`）。没有本地执行权限时，
+宿主可沿用文字规则，并标明程序检查未执行。
 
 ## 更新与卸载
 

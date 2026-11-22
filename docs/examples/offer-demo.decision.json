@@ -1,0 +1,12 @@
+{
+  "schema": "offer-decision/v1",
+  "conclusion": {"type": "conditional", "choices": [{"offer": "b", "path": "private"}]},
+  "headline": "保留 B，等确认实习增量再决定是否接受。",
+  "reasons": ["A 的净支出虽低于上限，注册时仍缺 5 万且奖学金届时未到账。", "B 付款可安排，真正的就读价值取决于能否补实习短板。"],
+  "risks": ["B 的适用实习渠道尚未查实。"],
+  "reversal": "若 B 无法兑现与目标岗位相关的实践机会，比较先工作；若 A 获准延期支付，再重算现金流。",
+  "assessments": [
+    {"offer": "a", "path": "private", "gate": "fail", "score_state": "confirmed", "stance": "reject", "value": "预算付款节点已关闭该路径。", "competitiveness": "不进入职业价值排序。", "evidence_ids": []},
+    {"offer": "b", "path": "private", "gate": "pass", "score_state": "nrsy", "stance": "conditional", "value": "可能修复实习缺口，尚无查实的可及机会。", "competitiveness": "能否形成岗位相关成果待查。", "evidence_ids": ["recruit"]}
+  ]
+}
