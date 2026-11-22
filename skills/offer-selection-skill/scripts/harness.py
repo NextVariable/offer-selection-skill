@@ -46,6 +46,16 @@ DEFAULT_MAX_SUPPLEMENTS = 3
 IDENTIFIER_KEY = re.compile(
     r"(?:^|_)(?:name|email|phone|mobile|student_?id|passport|national_?id|address|"
     r"wechat|whatsapp|linkedin)(?:$|_)", re.I)
+# Execution-coverage roster derived from the existing core gate paragraph and
+# the four path files. It is a diagnostic prompt, never a decision rule: a gap
+# does not pass or fail a gate, it only says that the case never declared any
+# research object of that kind for the active path.
+PATH_COVERAGE = {
+    "private": {"credential", "eligibility", "market", "cost"},
+    "soe": {"credential", "eligibility", "timing", "cost"},
+    "local": {"work", "market", "access", "cost"},
+    "phd": {"academic", "programme", "cost"},
+}
 
 
 def need(condition, message):
@@ -86,11 +96,33 @@ def metric(state, name, amount=1):
     metrics[name] = metrics.get(name, 0) + amount
 
 
+def mark_derived_stale(state, reason):
+    """Invalidate the stored decision and counterfactual summaries.
+
+    A scenario is a snapshot of the base case; once base evidence changes it
+    cannot be presented as current. It is kept for audit rather than deleted.
+    """
+    if state.get("decision"):
+        state["decision_state"]["stale"] = True
+        state["decision_state"]["stale_reason"] = reason
+    for row in state.get("scenarios", {}).values():
+        row["stale"] = True
+        row.setdefault("stale_reason", reason)
+
+
 def load_state(path):
     state = decision.load(path)
     need(isinstance(state, dict), "state must be a JSON object")
     need(state.get("schema") == VERSION, f"unknown harness schema: {state.get('schema')}")
     need(isinstance(state.get("case"), dict), "state is missing the case")
+    # A crash between write and replace can leave a copy of the previous state.
+    # Once the real file loads, that residue has no recovery value.
+    residue = Path(str(path) + ".tmp")
+    if residue.exists():
+        try:
+            residue.unlink()
+        except OSError:
+            pass
     return state
 
 
@@ -149,6 +181,52 @@ def evidence_fingerprint_index(case):
         index.setdefault(task_fingerprint(entry["offer"], entry["path"], entry["kind"], entry["scope"]),
                          []).append(entry)
     return index
+
+
+def coverage(state):
+    """Report declared vs confirmed research kinds for each active path.
+
+    This is deliberately advisory. A missing kind means the case never declared
+    a gate, evidence item or task of that kind; it does not prove the topic is
+    irrelevant, and it never changes a gate or recommendation.
+    """
+    case = state["case"]
+    paths = sorted(set(case["goal"]["paths"]))
+    rows, gaps, open_topics = {}, [], []
+    for path in paths:
+        required = PATH_COVERAGE.get(path, set())
+        declared, confirmed = set(), set()
+        for offer in case["offers"]:
+            for gate in offer["gates"]:
+                if gate["path"] in {path, "*"}:
+                    declared.add(gate["kind"])
+                    if gate["status"] in {"pass", "fail"}:
+                        confirmed.add(gate["kind"])
+        for entry in case["evidence"]:
+            if entry["path"] in {path, "*"}:
+                declared.add(entry["kind"])
+                if entry["state"] == "confirmed":
+                    confirmed.add(entry["kind"])
+        for task in state["research"]["tasks"]:
+            if task["path"] in {path, "*"}:
+                declared.add(task["kind"])
+        missing = sorted(required - declared)
+        unconfirmed = sorted(required & declared - confirmed)
+        rows[path] = {
+            "required": sorted(required),
+            "declared": sorted(required & declared),
+            "confirmed": sorted(required & confirmed),
+            "missing": missing,
+            "unconfirmed": unconfirmed,
+        }
+        gaps.extend({"path": path, "kind": kind} for kind in missing)
+        open_topics.extend({"path": path, "kind": kind} for kind in unconfirmed)
+    return {
+        "paths": rows, "gaps": gaps, "unconfirmed": open_topics,
+        "note": ("Coverage is derived from declared gates, evidence and tasks. "
+                 "A missing kind is not a pass; research it or record why the active "
+                 "path makes it not applicable."),
+    }
 
 
 def plan_tasks(state):
@@ -251,10 +329,12 @@ def plan_tasks(state):
         merged.values(), key=lambda t: (CLASS_RANK[t["class"]], t["priority"], t["id"]))
     if state["phase"] == "intake":
         state["phase"] = "research"
+    cov = coverage(state)
     trace(state, "plan_created", tasks=len(state["research"]["tasks"]),
           hard_gate=sum(t["class"] == "hard_gate" for t in state["research"]["tasks"]),
           decisive=sum(t["class"] == "decisive" for t in state["research"]["tasks"]),
-          optional=sum(t["class"] == "optional" for t in state["research"]["tasks"]))
+          optional=sum(t["class"] == "optional" for t in state["research"]["tasks"]),
+          coverage_gaps=len(cov["gaps"]), coverage_unconfirmed=len(cov["unconfirmed"]))
     return state["research"]["tasks"]
 
 
@@ -310,7 +390,8 @@ def next_tasks(state, limit=5, advance=False):
         condition = stop_condition(state)
     return {"stop": condition, "tasks": selected,
             "rounds": state["research"]["rounds"],
-            "remaining": len(open_tasks(state))}
+            "remaining": len(open_tasks(state)),
+            "coverage": coverage(state)}
 
 
 def _valid_source(source):
@@ -396,6 +477,7 @@ def record_result(state, result):
         task["last_error"] = str(result.get("error", "tool failure"))[:500]
         if result["status"] == "blocked" or task["attempts"] >= task["max_attempts"]:
             task["status"] = "blocked"
+            task["blocked_reason"] = "tool_blocked" if result["status"] == "blocked" else "tool_error"
         trace(state, "research_task_finished", task=task["id"], status=task["status"],
               error=task["last_error"], attempts=task["attempts"])
         trace(state, "source_checked", task=task["id"], checked=0, failed=True)
@@ -506,19 +588,23 @@ def record_result(state, result):
                  for claim in prepared for source in claim["sources"])
     if conflicts:
         task["status"] = "blocked"
+        task["blocked_reason"] = "contradiction"
         task["last_error"] = "contradictory confirmed evidence"
     elif not opened and task["class"] in {"hard_gate", "decisive"}:
         task["status"] = "blocked" if task["attempts"] >= task["max_attempts"] else "todo"
+        task["blocked_reason"] = "unopened_source" if task["status"] == "blocked" else None
         task["last_error"] = "no opened source yet; do not treat this as verified"
     elif result["status"] == "partial" and task["class"] in {"hard_gate", "decisive"}:
         task["status"] = "blocked" if task["attempts"] >= task["max_attempts"] else "todo"
+        task["blocked_reason"] = "partial_result" if task["status"] == "blocked" else None
         task["last_error"] = "partial tool result"
     else:
         task["status"] = "done"
+        task["blocked_reason"] = None
     trace(state, "research_task_finished", task=task["id"], status=task["status"],
           added=added, reused=reused, attempts=task["attempts"])
-    if (added or reused) and state.get("decision"):
-        state["decision_state"]["stale"] = True
+    if added or reused:
+        mark_derived_stale(state, "new evidence recorded")
     if state["phase"] == "research":
         state["phase"] = "adjudicate"
     return {"task": task, "status": task["status"], "added": added, "reused": reused,
@@ -599,8 +685,7 @@ def verify_evidence(state, as_of=None, max_age_days=DEFAULT_MAX_AGE_DAYS):
         # finite costs become unbounded in the returned copy.
         revised = decision.audit(case)["input"]
         state["case"] = revised
-        if state.get("decision"):
-            state["decision_state"]["stale"] = True
+        mark_derived_stale(state, "evidence downgraded during verification")
     after_gates = {(o["id"], g["id"]): g["status"] for o in state["case"]["offers"] for g in o["gates"]}
     gate_changes = [{"offer": key[0], "gate": key[1], "before": before_gates[key],
                      "after": after_gates[key]}
@@ -656,15 +741,20 @@ def store_decision(state, decision_doc):
     }
     state["phase"] = "decide"
     metric(state, "decisions")
+    cov = coverage(state)
     trace(state, "decision_stored", conclusion=decision_doc["conclusion"]["type"],
-          headline=decision_doc["headline"])
+          headline=decision_doc["headline"], coverage_gaps=len(cov["gaps"]),
+          coverage_unconfirmed=len(cov["unconfirmed"]))
+    if cov["gaps"]:
+        trace(state, "coverage_gap", path=",".join(sorted({g["path"] for g in cov["gaps"]})),
+              kinds=",".join(sorted({g["kind"] for g in cov["gaps"]})))
     for offer_id, row in computed["offers"].items():
         trace(state, "calculation", kind="budget", offer=offer_id,
               cash=row["cost"]["cash"], gate=row["cost"]["budget_gate"])
     for row in decision_doc["assessments"]:
         trace(state, "recommendation", offer=row["offer"], path=row["path"],
               stance=row["stance"], gate=row["gate"], score_state=row["score_state"])
-    return {"verification": verification, "computed": computed}
+    return {"verification": verification, "computed": computed, "coverage": cov}
 
 
 def report(state, mode="quick"):
@@ -689,7 +779,8 @@ def scenario(state, change, name):
     need(digest(state["case"]) == base_digest, "counterfactual mutated the base case")
     computed = decision.analyze(result["input"])
     state["scenarios"][name] = {
-        "created_at": now_iso(), "change": result["change"],
+        "created_at": now_iso(), "change": result["change"], "base_digest": base_digest,
+        "stale": False, "stale_reason": None,
         "before_value": result["before"], "reuse_evidence_ids": result["reuse_evidence_ids"],
         "recheck_evidence_ids": result["recheck_evidence_ids"],
         "review_routes": result["review_routes"], "rerun": result["rerun"],
@@ -711,6 +802,7 @@ def scenario(state, change, name):
 def checkpoint(state):
     snap = {
         "at": now_iso(), "phase": state["phase"],
+        "case_digest": digest(state["case"]),
         "open_tasks": [t["id"] for t in open_tasks(state)],
         "blocked_tasks": [t["id"] for t in blocked_tasks(state)],
         "confirmed_evidence_ids": [e["id"] for e in state["case"]["evidence"]
@@ -719,53 +811,135 @@ def checkpoint(state):
     }
     state.setdefault("checkpoints", []).append(snap)
     metric(state, "checkpoints")
-    trace(state, "checkpoint", phase=state["phase"], open_tasks=len(snap["open_tasks"]))
+    trace(state, "checkpoint", phase=state["phase"], open_tasks=len(snap["open_tasks"]),
+          case_digest=snap["case_digest"])
     return snap
+
+
+TRANSIENT_BLOCK_REASONS = {"tool_error", "tool_blocked", "partial_result", "unopened_source"}
+
+
+def checkpoint_drift(state):
+    """Compare the newest checkpoint with the current state.
+
+    A checkpoint is an audit marker, not a rollback snapshot. Drift is expected
+    after further research; it matters when previously confirmed evidence is no
+    longer confirmed or a task became blocked.
+    """
+    if not state.get("checkpoints"):
+        return {"detected": False, "reason": "no checkpoint"}
+    last = state["checkpoints"][-1]
+    confirmed = {e["id"] for e in state["case"]["evidence"] if e["state"] == "confirmed"}
+    before = set(last.get("confirmed_evidence_ids", []))
+    open_now = {t["id"] for t in open_tasks(state)}
+    drifted = bool(last.get("case_digest") and last["case_digest"] != digest(state["case"]))
+    return {
+        "detected": drifted or bool(before - confirmed) or bool(open_now - set(last.get("open_tasks", []))),
+        "checkpoint_at": last["at"],
+        "case_changed": drifted,
+        "evidence_no_longer_confirmed": sorted(before - confirmed),
+        "open_tasks_added": sorted(open_now - set(last.get("open_tasks", []))),
+        "note": "Checkpoints are audit markers; resume always verifies the live state.",
+    }
+
+
+def _reopen_transient(state):
+    reopened = []
+    for task in state["research"]["tasks"]:
+        if task["status"] == "blocked" and task.get("blocked_reason") in TRANSIENT_BLOCK_REASONS:
+            task["status"] = "todo"
+            task["attempts"] = 0
+            task["last_error"] = None
+            task["blocked_reason"] = None
+            reopened.append(task["id"])
+            trace(state, "research_task_reopened", task=task["id"], reason="transient_block")
+    return reopened
 
 
 def resume(state):
     need(state["schema"] == VERSION, "cannot resume an unknown state schema")
+    enforce_retention(state)
     decision.case_model(state["case"])
     verify_evidence(state)
+    drift = checkpoint_drift(state)
+    reopened = _reopen_transient(state)
+    plan_tasks(state)
     if state.get("decision"):
+        digest_ok = state["decision_state"].get("case_digest") == digest(state["case"])
         try:
             decision.validate(state["case"], state["decision"])
-            state["decision_state"]["stale"] = False
-        except ValueError:
+            state["decision_state"]["stale"] = not digest_ok
+            state["decision_state"]["stale_reason"] = None if digest_ok else "case changed after decision"
+        except ValueError as exc:
             state["decision_state"]["stale"] = True
-    if state["phase"] == "done" and state["decision_state"].get("stale"):
+            state["decision_state"]["stale_reason"] = str(exc)[:300]
+    pending = open_tasks(state)
+    if pending:
+        state["phase"] = "research"
+    elif state["phase"] == "done" and state["decision_state"].get("stale"):
         state["phase"] = "adjudicate"
     metric(state, "resumes")
-    trace(state, "resume", phase=state["phase"],
-          open_tasks=len(open_tasks(state)))
-    if open_tasks(state) or blocked_tasks(state):
+    trace(state, "resume", phase=state["phase"], open_tasks=len(pending),
+          reopened=len(reopened), checkpoint_drift=drift["detected"])
+    if pending or blocked_tasks(state):
         state["research"]["rounds"] = 0
     return {
         "phase": state["phase"],
         "checkpoint": state["checkpoints"][-1] if state.get("checkpoints") else None,
-        "open_tasks": [t["id"] for t in open_tasks(state)],
+        "checkpoint_drift": drift,
+        "reopened_tasks": reopened,
+        "open_tasks": [t["id"] for t in pending],
         "blocked_tasks": [{t["id"]: t["verification_route"]} for t in blocked_tasks(state)],
         "decision_stale": state["decision_state"].get("stale"),
+        "coverage": coverage(state),
         "next": [t["id"] for t in next_tasks(state)["tasks"]] if not stop_condition(state)["stop"] else [],
     }
 
 
+def _purge_profiles(state, event):
+    case = state["case"]
+    had = bool(case.get("profile"))
+    case["profile"] = {}
+    for row in state.get("scenarios", {}).values():
+        had = had or bool(row["case"].get("profile"))
+        row["case"]["profile"] = {}
+    state["privacy"]["purged_at"] = now_iso()
+    if state.get("decision"):
+        # Purging the profile is an explicit lifecycle action, not a research
+        # change. Keep the already validated decision renderable while the
+        # trace records that its intake input was removed.
+        state["decision_state"]["case_digest"] = digest(state["case"])
+    trace(state, event, scope="profile", had_profile=had)
+    return had
+
+
+def enforce_retention(state):
+    """Make the retention date an actual deletion, not only advice."""
+    meta = state["privacy"]
+    if today() <= date.fromisoformat(meta["expires_at"]):
+        return {"expired": False, "purged": False}
+    if state["case"].get("profile") or any(
+            row["case"].get("profile") for row in state.get("scenarios", {}).values()):
+        _purge_profiles(state, "privacy_retention_expired")
+        return {"expired": True, "purged": True}
+    return {"expired": True, "purged": False}
+
+
 def privacy(state, purge=False):
     meta = state["privacy"]
+    retention = enforce_retention(state)
     expired = today() > date.fromisoformat(meta["expires_at"])
     if purge:
-        state["case"]["profile"] = {}
-        for row in state.get("scenarios", {}).values():
-            row["case"]["profile"] = {}
-        meta["purged_at"] = now_iso()
-        trace(state, "privacy_purge", scope="profile")
+        _purge_profiles(state, "privacy_purge")
     return {
         "retention_days": meta["retention_days"], "created_at": meta["created_at"],
         "expires_at": meta["expires_at"], "expired": expired,
+        "auto_purged_on_expiry": retention["purged"],
         "purged_at": meta.get("purged_at"),
         "stored_profile_fields": sorted(state["case"].get("profile", {}).keys()),
         "identifier_warnings": meta.get("identifier_warnings", []),
-        "advice": ("Profile data has reached its retention date; purge it or start a new case."
+        "advice": ("Profile data has reached its retention date; it was purged automatically. "
+                   "Evidence, trace and decision artefacts remain."
                    if expired else "Purge with --purge when the decision is complete."),
     }
 
@@ -810,6 +984,9 @@ def init_state(case, retention_days=DEFAULT_RETENTION_DAYS):
 def status(state):
     tasks = state["research"]["tasks"]
     condition = stop_condition(state)
+    stored = state.get("decision_state", {})
+    digest_mismatch = (state.get("decision") is not None
+                       and stored.get("case_digest") != digest(state["case"]))
     return {
         "phase": state["phase"],
         "tasks": {
@@ -826,6 +1003,7 @@ def status(state):
                      "max_rounds": state["research"]["max_rounds"],
                      "supplements": state["research"]["supplements"],
                      "stop": condition},
+        "coverage": coverage(state),
         "evidence": {
             "total": len(state["case"]["evidence"]),
             "confirmed": sum(e["state"] == "confirmed" for e in state["case"]["evidence"]),
@@ -835,9 +1013,13 @@ def status(state):
         },
         "decision": {
             "present": state.get("decision") is not None,
-            "stale": state.get("decision_state", {}).get("stale"),
+            "stale": bool(stored.get("stale") or digest_mismatch),
+            "stale_reason": stored.get("stale_reason") or ("case changed after decision" if digest_mismatch else None),
             "conclusion": (state.get("decision") or {}).get("conclusion", {}).get("type"),
         },
+        "scenarios": {name: {"stale": bool(row.get("stale")),
+                             "base_digest": row.get("base_digest")}
+                      for name, row in state.get("scenarios", {}).items()},
         "privacy": privacy(state),
         "metrics": state.get("metrics", {}),
         "last_checkpoint": (state.get("checkpoints") or [None])[-1],
