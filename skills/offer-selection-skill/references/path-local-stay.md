@@ -4,7 +4,7 @@ Country/region feasibility precedes offer comparison because policy, market, lan
 
 Evaluate separately:
 
-1. Post-study work access: lawful and usable job-search/work window, including both the initial grant and the extension/renewal conditions the intended stay requires. A first-period permission does not establish the later period.
+1. Post-study work access: lawful and usable job-search/work window, including both the initial grant and the extension/renewal conditions the intended stay requires. A first-period permission does not establish the later period. For Hong Kong IANG specifically, judge the initial stay (the term published for the application year, verified then) and the continuation after it separately: once the initial stay ends, the user needs a verified extension/renewal basis or a switch to another route (for example a general employment policy employment visa). Record that continuation as unresolved or conditional until verified, state what must be checked and where, and never present the initial grant as covering the planned stay.
 2. Target-role employability and career opportunity: current demand and fit for this user's role, skills, language and profile. Compare plausible compensation and progression for roles this user can actually access, when decision-relevant.
 3. Employer friction: sponsorship, compliance, cost, occupation restrictions, and international hiring willingness.
 4. Long-term continuity: viable transition after the first role or post-study period.

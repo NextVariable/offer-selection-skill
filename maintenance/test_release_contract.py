@@ -4,12 +4,13 @@ import ast
 import json
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SHIPPED = ("skills", "maintenance", "docs", ".claude-plugin", "README.md", "CHANGELOG.md")
+SHIPPED = ("skills", "maintenance", "docs", ".claude-plugin", "README.md", "LICENSE", "SECURITY.md")
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".ico", ".zip"}
 SECRET_PATTERNS = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -18,12 +19,27 @@ SECRET_PATTERNS = (
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
 )
 LOCAL_PATH = re.compile(r"(?:/Users/|[A-Za-z]:\\\\Users\\\\)[A-Za-z0-9._-]+")
+STABLE_CLAIMS = ("Stable 已发布", "已正式发布", "production stable", "正式版**")
+
+
+def status_doc_errors(status, docs):
+    if status not in {"candidate", "stable"}:
+        return ["release_status must be candidate or stable"]
+    if status == "candidate":
+        errors = [] if "候选版" in docs else ["candidate docs must contain 候选版"]
+        errors += [f"candidate docs must not contain {claim}"
+                   for claim in STABLE_CLAIMS if claim in docs]
+        return errors
+    errors = [] if "正式版" in docs else ["stable docs must contain 正式版"]
+    if "候选版" in docs:
+        errors.append("stable docs must not contain 候选版")
+    return errors
 
 
 def shipped_files():
     try:
-        listed = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True,
-                                text=True, check=True).stdout.split("\0")
+        listed = subprocess.run(["git", "ls-files", "-z", "--", *SHIPPED], cwd=ROOT,
+                                capture_output=True, text=True, check=True).stdout.split("\0")
         paths = [ROOT / p for p in listed if p]
     except (OSError, subprocess.CalledProcessError):
         paths = [p for name in SHIPPED for p in (ROOT / name).rglob("*")]
@@ -39,11 +55,35 @@ class ReleaseContract(unittest.TestCase):
         self.assertIn(f'FALLBACK_VERSION="{version}"', (ROOT / "maintenance/install.sh").read_text())
         self.assertIn(f'$FallbackVersion = "{version}"', (ROOT / "maintenance/install.ps1").read_text())
 
-    def test_release_status_stays_candidate(self):
-        status = (ROOT / "docs/RELEASE_STATUS.md").read_text()
-        self.assertIn("候选", status)
-        for claim in ("Stable 已发布", "已正式发布", "production stable"):
-            self.assertNotIn(claim, status)
+    def test_release_status_matches_docs(self):
+        manifest = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+        docs = (ROOT / "docs/RELEASE_STATUS.md").read_text()
+        self.assertEqual(status_doc_errors(manifest.get("release_status"), docs), [])
+
+    def test_stable_status_switch_contract(self):
+        self.assertEqual(status_doc_errors("stable", "本分支为 **v1.0.0 正式版**。"), [])
+        self.assertNotEqual(status_doc_errors("stable", "本分支为 **v1.0.0 候选版**。"), [])
+        self.assertNotEqual(status_doc_errors("candidate", "本分支为 **v1.0.0 正式版**。"), [])
+        self.assertNotEqual(status_doc_errors("preview", "候选版"), [])
+
+    def test_installer_ships_only_runtime_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            dest = Path(temp) / "offer-selection-skill"
+            subprocess.run([str(ROOT / "maintenance/install.sh"), "--path", str(dest)],
+                           check=True, capture_output=True, text=True)
+            files = {p.relative_to(dest).as_posix() for p in dest.rglob("*") if p.is_file()}
+            forbidden = {"internal", "evals", "audits", "archive", "tools"}
+            self.assertFalse({f for f in files if f.split("/")[0] in forbidden},
+                             "development material leaked into the runtime install")
+            self.assertIn("scripts/decision.py", files)
+            self.assertIn("references/core-decision-engine.md", files)
+            self.assertNotIn("docs/RELEASE_STATUS.md", files)
+
+    def test_local_stay_covers_post_initial_visa_path(self):
+        rule = (ROOT / "skills/offer-selection-skill/references/path-local-stay.md").read_text()
+        for required in ("IANG", "extension/renewal", "unresolved or conditional",
+                         "initial grant"):
+            self.assertIn(required, rule)
 
     def test_no_machine_local_paths_in_shipped_files(self):
         hits = [f"{p.relative_to(ROOT)}: {m.group(0)}"
