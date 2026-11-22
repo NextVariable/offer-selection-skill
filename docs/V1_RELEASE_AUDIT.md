@@ -97,3 +97,17 @@
 建议进入 Codex 独立复核，重点检查：预算口径与排除逻辑、Quick/Full 一致性与完整性、六个 partial 的契约修复是否足以支撑行为复跑、以及发布契约测试是否覆盖真实发布边界。
 
 在原生宿主复跑、CI 实跑和人工行为签字完成前，不应合并 PR #3，也不应宣称 Stable 已发布。
+
+## 9. 第二轮真实验收补充（2026-11-22）
+
+本节记录第二轮实际执行结果，不改变第 1–8 节对首轮状态的记录。
+
+| 项目 | 结果 |
+|---|---|
+| A 六个 Partial 真实宿主复跑 | Claude Code 2.1.322（`deepseek-flash[1m]`）原生执行：a1/a4/b1/b2/b3 PASS；a3 首轮 PARTIAL（未判断 IANG 24 个月后的续签），已补 `path-local-stay.md` 与契约测试，原生追加重跑因网关 402 中断（Not Run），改由 Trae Agent 宿主回退复跑并通过 |
+| B 硕博预算自然语言测试 | 原生宿主完成硕士预算、完整硕博项目、博士资助未知、奖学金延迟到账、多 Offer 不同学制、上限反事实六类；宿主自行设置 `budget.horizon` 与每笔成本 `stage`，全部通过 |
+| C 真实联网研究 | 原生宿主 C1/C2/C3 因网关 `402 Insufficient Balance` 分别在第 74/58/49 轮中断（Not Run，保留 stream 日志、已下载 PDF 与复现脚本）；Trae Agent 回退完成三案例，来源、适用年份、Unresolved、`decision.py` 校验与 Quick/Full 均在证据中留存 |
+| GitHub Actions（`11b3e9d`） | Linux Python 3.10/3.12、macOS、Windows 四个 job 全绿 |
+| 本地检查 | 82 unittest PASS；安装器 37 PASS；安装载荷为 12 个运行时文件 + 所有权标记，无 `internal/evals/audits/archive/tools` 内容 |
+
+证据归档不在公开仓库：A/B/C 的原始输出与宿主元数据保存在本地证据分支 `trae/v1-evidence-round2`，供 Codex 复核重跑。C 阶段原生运行与 Trae 回退运行的宿主和模型不同，不能互相替代。
