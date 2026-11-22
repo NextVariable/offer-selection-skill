@@ -115,6 +115,7 @@ def load_state(path):
     need(isinstance(state, dict), "state must be a JSON object")
     need(state.get("schema") == VERSION, f"unknown harness schema: {state.get('schema')}")
     need(isinstance(state.get("case"), dict), "state is missing the case")
+    enforce_retention(state)
     # A crash between write and replace can leave a copy of the previous state.
     # Once the real file loads, that residue has no recovery value.
     residue = Path(str(path) + ".tmp")

@@ -93,7 +93,7 @@
 | 本地回放耗时 | 1.03 ms | 1.31 ms |
 | Token 使用 / 模型耗时 | **Not Measured** | **Not Measured** |
 
-关键对照用例：把两个项目的资格来源访问日期改为 2020 年。v1 `audit` 仍保留 `confirmed` 并通过 `validate`；v2 将其降级为 `unresolved` 并阻断推荐。该行为已固化为 52 项 Harness 测试之一。
+关键对照用例：把两个项目的资格来源访问日期改为 2020 年。v1 `audit` 仍保留 `confirmed` 并通过 `validate`；v2 将其降级为 `unresolved` 并阻断推荐。该行为已固化为 53 项 Harness 测试之一。
 
 注意：本地回放毫秒数不代表真实模型运行成本；v2 的 2 个工具结果来自同一份冻结数据，真实联网调用数未测。
 
@@ -104,14 +104,14 @@
 | 检查 | 结果 |
 |---|---|
 | v1 决策引擎 | 78 passed |
-| v2 Harness | **52 passed**（新增 11 项审核回归） |
+| v2 Harness | **53 passed**（新增 12 项审核回归） |
 | 发布契约 | 10 passed（含 `harness.py` 安装与仅标准库导入） |
 | 安装器安全 | PASS=37 FAIL=0 |
 | Frontmatter | PASS（2.0.0-rc1） |
 | GitHub Actions `ci`（Linux 3.10/3.12、macOS、Windows） | **success**（运行 45048602911，head `0f6bc9d`） |
 | `py_compile` / `git diff --check` | 通过 |
 
-新增回归覆盖：报告与反事实前重新核验时效、到期自动清除、digest 不一致、证据降级后重规划、瞬时 blocked 重试、checkpoint 漂移、scenario stale、四路径覆盖诊断、`.tmp` 清理、CLI 中断恢复、v1/v2 过期资格对照。
+新增回归覆盖：任何 CLI 读取时的到期删除、报告与反事实前重新核验时效、到期自动清除、digest 不一致、证据降级后重规划、瞬时 blocked 重试、checkpoint 漂移、scenario stale、四路径覆盖诊断、`.tmp` 清理、CLI 中断恢复、v1/v2 过期资格对照。
 
 CI：<https://github.com/NextVariable/offer-selection-skill/actions/runs/45048602911>（audit head `0f6bc9d`，四个矩阵作业全部 success）。
 

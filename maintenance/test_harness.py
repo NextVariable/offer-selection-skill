@@ -631,6 +631,17 @@ class AuditRegressionTests(HarnessCase):
         self.assertTrue(any(e["state"] != "confirmed" for e in row["case"]["evidence"]))
         self.assertNotEqual(row["summary"]["a"]["paths"]["private"], "pass")
 
+    def test_load_enforces_profile_expiry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "state.json"
+            state = harness.init_state(base_case())
+            state["privacy"]["expires_at"] = "2020-01-01"
+            target.write_text(json.dumps(state), encoding="utf-8")
+            loaded = harness.load_state(target)
+            self.assertEqual(loaded["case"]["profile"], {})
+            self.assertTrue(loaded["privacy"]["purged_at"])
+            self.assertEqual(loaded["trace"][-1]["event"], "privacy_retention_expired")
+
     def test_load_removes_crash_residue_after_state_loads(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "state.json"
