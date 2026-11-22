@@ -55,10 +55,16 @@ Boundaries:
   incomplete source cannot close a gate; an evidence downgrade marks a stored
   decision stale so it cannot be rendered as current.
 - State is one local JSON file with atomic replacement, checkpoints and a
-  default seven-day profile retention. No database, service or account.
+  default seven-day profile retention. Expiry performs an actual profile
+  deletion on the next CLI access, not only a warning. Checkpoints are audit
+  markers; `resume` always re-verifies the live state instead of rolling back.
+- Coverage is a diagnostic derived from declared gates, evidence and tasks per
+  active path. It reports missing or unconfirmed kinds without creating a new
+  gate or changing a recommendation.
 - The trace is append-only and records research starts/finishes, source
   checks, evidence and gate changes, calculations, validation failures,
-  retries, resume, scenario creation and the final recommendation.
+  retries, resume, checkpoint drift, coverage gaps, scenario creation and the
+  final recommendation.
 
 The exchange and commands are documented in
 [structured-workflow.md](../skills/offer-selection-skill/references/structured-workflow.md).

@@ -1,5 +1,17 @@
 # 更新记录
 
+## 未发布的独立审核修复 — 2026-11-23
+
+基于 `d926f20` 的独立审核分支，未合并回 PR #4。
+
+- 保留期到期后在下次 CLI 访问时真正清除 Profile（含 Scenario 副本），不再只给建议；已校验 Decision 仍可渲染。
+- `resume` 在 Case digest 改变时不再错误清除 stale；重新核验后按缺失证据重建研究任务。
+- 断网、额度不足、部分结果或来源未打开导致的 blocked 任务可在 `resume` 时重试；证据矛盾仍保持 blocked。
+- Checkpoint 记录 Case digest，`resume` 返回 `checkpoint_drift`；Checkpoint 明确为审计标记而非回滚快照。
+- 证据变化后 Scenario 标记 stale，避免把旧反事实摘要当作当前结果。
+- 新增按职业路径的覆盖诊断，列出未声明或未确认的研究类别；只提示，不新增 Gate，也不改变推荐。
+- 新增 9 项审核回归（Harness 共 50 项）和 v1/v2 过期资格对照。
+
 ## v2.0.0-rc1 候选版 — 2026-11-23
 
 在 v1.0.0 的决策能力上增加可审计的执行 Harness，保留 Skill 分发方式和单一声明式决策引擎。
