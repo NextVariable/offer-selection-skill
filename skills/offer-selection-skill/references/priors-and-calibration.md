@@ -95,6 +95,10 @@ never as a national score.
   for international students is a research hypothesis, not a fixed fact. City
   opportunity ≠ accessible opportunity (verify legal eligibility, schedule,
   location, language, role demand, execution).
+- Target-industry clusters: New York, the Bay Area, London, Hong Kong and
+  Seattle can be useful leads when the sector and a programme's connections
+  overlap. Investigate smaller clusters on the same terms. Use core's
+  Recognition and opportunity access to decide what the user can use.
 
 ## 4. Joint-venture heuristics
 

@@ -42,7 +42,7 @@ $MarkerSchema = "offer-selection-skill-install/v1"
 
 # Single source of truth for the version is .claude-plugin/plugin.json. This
 # constant is only a last-resort fallback; a release check keeps it in sync.
-$FallbackVersion = "0.3.2"
+$FallbackVersion = "0.4.0"
 
 # Runtime allowlist - the ONLY things a normal user installation may receive.
 # Anything not listed here (git metadata, audits, evals, archive, tools,

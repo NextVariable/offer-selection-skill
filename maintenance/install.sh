@@ -21,7 +21,7 @@ MANIFEST="${SCRIPT_DIR}/.claude-plugin/plugin.json"
 # The single source of truth for the version is .claude-plugin/plugin.json.
 # This constant is only a last-resort fallback for shells that can neither run
 # python nor parse the manifest text; CI verifies that it matches the manifest.
-FALLBACK_VERSION="0.3.2"
+FALLBACK_VERSION="0.4.0"
 
 # Ownership marker written into every install. Before overwriting an existing
 # destination the installer requires a marker with exactly this schema/name, so

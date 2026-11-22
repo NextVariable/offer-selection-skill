@@ -10,11 +10,11 @@ description: >-
 license: MIT
 metadata:
   author: Francis and OpenAI Codex
-  version: "0.3.2"
+  version: "0.4.0"
   activation: /offer-selection-skill
   maintainer: Francis
   created: "2026-09-04"
-  last_reviewed: "2026-09-08"
+  last_reviewed: "2026-11-22"
   review_interval_days: "90"
   provenance_note: Original design conversation is private and not shipped.
 ---
@@ -36,7 +36,7 @@ Determine which offer, if any, is worth accepting **for this user and goal**. Do
    For genuine dual goals, load and run both paths separately.
 3. Read `references/priors-and-calibration.md` when a conditional prior fires — a
    U.S. offer on a research/STEM or China-return comparison, a joint venture,
-   local-stay country claims, an equivalence/tie-break, or a strong-baseline
+   local-stay country claims, an industry-cluster hypothesis, an equivalence/tie-break, or a strong-baseline
    calibration check — **and always for the operative-year cost calibration
    when a decision's operative cost year is covered by it** (the maintained
    calibration currently covers 2026). Priors and calibrations are labelled
