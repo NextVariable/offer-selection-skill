@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: Francis and OpenAI Codex
-  version: "1.0.0"
+  version: "2.0.0-rc1"
   activation: /offer-selection-skill
   maintainer: Francis
   created: "2026-09-04"
@@ -85,6 +85,12 @@ Use its case and decision contract and the shipped local validator when
 command execution is available. The selected output mode changes detail,
 using the same validated decision. Quick Decision is the default; use Full
 Decision Audit on request.
+
+When the host can run local commands, `scripts/harness.py` adds optional
+execution state around the same contract: research tasks, evidence checks,
+checkpoints, counterfactual isolation and an execution trace. It never owns a
+second set of decision rules. The user-facing entry stays natural language;
+do not ask the user to hand-edit state files or run the CLI.
 
 Execute the canonical stage order and semantics in
 `references/core-decision-engine.md`. Do not reorder or redefine them here.
