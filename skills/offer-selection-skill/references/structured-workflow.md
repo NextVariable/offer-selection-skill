@@ -14,7 +14,14 @@ exchange with the offline validator, not a second decision model.
    genuinely accessible alumni or recruiting channels. The plan can be
    supplemented when judgment identifies a consequential missing topic.
 3. Adjudicate: enter dated claims, scopes and unresolved branches into the
-   ledger. Stop when the next source is unlikely to change feasibility,
+   ledger. Open the originating page or authoritative PDF and locate the
+   supporting passage. Search snippets and unreadable pages are leads.
+   Record page access, authority and claim support independently. Check exact
+   programme, cohort, population, channel and period. Narrow partial claims
+   or leave them unresolved. Do not extrapolate a university-wide statement
+   to an individual degree or recruiting cycle. Run `audit` on migrated or
+   questionable records and inspect changes before deciding. Stop when the
+   next source is unlikely to change feasibility,
    direction, tier or a material risk, or when the decisive unknown can only
    be resolved by the named authority. Explain that limit and continue with
    the supported conditional direction. Never disguise a prior as a fact.
@@ -36,6 +43,13 @@ Python, apply core manually, disclose that the checks were not executed,
 and keep feasibility or precision conditional when in doubt. Avoid permanent
 storage of student JSON; use an ephemeral local file, or present only the
 minimum verified result. Do not send the JSON to an external research tool.
+
+The user interface is conversation. Own local files and commands inside the
+agent workflow. Use a private temporary directory per decision and distinct
+base and scenario files. Keep only the minimum decision state. Retain private
+artifacts only on request. If source access or a tool fails, recover in the
+same turn where possible, or name the unavailable check and keep the
+affected recommendation conditional.
 
 ## Case exchange schema
 
@@ -88,11 +102,19 @@ allows it; a comparison must remain conditional if dates affect the gate.
   `critical,material,minor`. Use identical scope strings for the exact gate,
   claim and supporting source, including cohort/role/channel/jurisdiction.
   Claimed confirmed facts need an applicable date range and at least one
-  scoped authority: source `{url,authority,scope,accessed,locator}` with
+  scoped authority: source `{url,authority,scope,accessed,locator,inspection}` with
   `government,employer,institution` authority. Market, alumni and community
   sources can inform direction without confirming hard gates. Use the claim
   operative date override for future application dates that differ from
   intake. Dates are ISO calendar dates.
+  `inspection:{access,support,observation?}`. Access is
+  `opened/blocked/unopened`; support is
+  `supported/partial/unsupported/unreviewed`. For a reviewed claim,
+  `observation` records what the located text says or fails to establish.
+  It may paraphrase. A confirmed claim needs an opened, scoped authority
+  supporting it. Older ledgers can use `audit`, which returns a separate
+  conservative copy with unsupported confirmations demoted, dependent
+  gates reopened, and dependent amounts unbounded. The input never changes.
 
 The validator checks declarations, arithmetic and consistency. It cannot
 verify URL truth, cost completeness, required gates that the model omitted,
@@ -118,6 +140,7 @@ Only add an integer when the evidence and core permit one.
 
 ```text
 python3 scripts/decision.py plan case.json
+python3 scripts/decision.py audit case.json
 python3 scripts/decision.py check case.json
 python3 scripts/decision.py verify case.json decision.json
 python3 scripts/decision.py report case.json decision.json --mode quick

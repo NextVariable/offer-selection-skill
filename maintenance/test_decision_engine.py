@@ -21,7 +21,9 @@ def claim(cid="course", kind="programme", scope="programme and intake", **overri
                 impact="material", claim="An official programme page confirms supervised projects",
                 period={"from": "2027-01-01", "through": "2027-12-31"},
                 sources=[{"url": "https://example.edu/programmes/example", "authority": "institution",
-                          "scope": scope, "accessed": "2026-11-22", "locator": "Project structure"}]) | overrides
+                          "scope": scope, "accessed": "2026-11-22", "locator": "Project structure",
+                          "inspection": {"access": "opened", "support": "supported",
+                                         "observation": "The programme lists supervised projects."}}]) | overrides
 
 
 def row(cid, kind, amount, month=0, **kw):
@@ -169,6 +171,50 @@ class BudgetCases(unittest.TestCase):
 
 
 class EvidenceCases(unittest.TestCase):
+    def test_url_without_opened_page_cannot_confirm(self):
+        data = base()
+        del data["evidence"][0]["sources"][0]["inspection"]
+        with self.assertRaisesRegex(ValueError, "no opened"):
+            engine.analyze(data)
+
+    def test_blocked_page_cannot_have_claim_support(self):
+        data = base()
+        data["evidence"][0]["sources"][0]["inspection"]["access"] = "blocked"
+        with self.assertRaisesRegex(ValueError, "only opened"):
+            engine.analyze(data)
+
+    def test_partial_page_reopens_gate_without_mutating_base(self):
+        data = base()
+        c = claim("role", "eligibility", "campus")
+        c["sources"][0]["inspection"]["support"] = "partial"
+        data["evidence"].append(c)
+        data["offers"][0]["gates"][0].update(status="pass", evidence_ids=["role"], scope="campus")
+        fixed = engine.audit(data)
+        self.assertEqual(data["evidence"][1]["state"], "confirmed")
+        self.assertEqual(fixed["input"]["evidence"][1]["state"], "unresolved")
+        self.assertEqual(fixed["input"]["offers"][0]["gates"][0]["status"], "unresolved")
+
+    def test_unreviewed_expense_cannot_prove_affordability(self):
+        data = base()
+        fee = claim("2027-fee", "cost")
+        del fee["sources"][0]["inspection"]
+        data["evidence"].append(fee)
+        data["offers"][0]["costs"][0]["evidence_ids"] = ["2027-fee"]
+        fixed = engine.audit(data)["input"]
+        cost = engine.analyze(fixed)["offers"]["a"]["cost"]
+        self.assertEqual((cost["cash"], cost["budget_gate"]), ((0, None), "unresolved"))
+
+    def test_opened_official_page_with_wrong_scope_still_unresolved(self):
+        data = base()
+        data["evidence"][0]["sources"][0]["scope"] = "general university policy"
+        self.assertEqual(engine.audit(data)["input"]["evidence"][0]["state"], "unresolved")
+
+    def test_quick_shows_checked_sources_and_shares_full_prefix(self):
+        d, out = base(), decision()
+        quick, full = (engine.render(d, out, mode) for mode in ("quick", "full"))
+        self.assertIn("https://example.edu/programmes/example", quick)
+        self.assertTrue(full.startswith(quick))
+
     def test_employer_scope_match(self):
         d = base()
         d["evidence"].append(claim("job", "eligibility", "target employer campus roster"))

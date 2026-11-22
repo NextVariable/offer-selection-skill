@@ -4,6 +4,7 @@ import argparse
 import json
 import re
 import sys
+from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -186,6 +187,34 @@ def costs(offer, budget, shock=None):
             "cashflow_checked": bool(milestones)}
 
 
+def inspect_source(source):
+    fields(source, ("url", "authority", "scope", "accessed", "locator"), ("inspection",))
+    if "inspection" not in source:
+        return False
+    review = fields(source["inspection"], ("access", "support"), ("observation",))
+    need(review["access"] in {"opened", "blocked", "unopened"}, "invalid page access state")
+    need(review["support"] in {"supported", "partial", "unsupported", "unreviewed"},
+         "invalid claim support state")
+    if review["support"] != "unreviewed":
+        need(review["access"] == "opened", "only opened pages can support a claim")
+        string(review.get("observation"))
+    return review["access"] == "opened" and review["support"] == "supported"
+
+
+def source_defects(entry, operative):
+    period = entry.get("period")
+    in_period = (isinstance(period, dict) and {"from", "through"} <= period.keys()
+                 and day(period["from"]) <= operative <= day(period["through"]))
+    sources = [s for s in entry.get("sources", [])
+               if s["authority"] in AUTHORITY and s["scope"] == entry["scope"]]
+    defects = [] if in_period else ["out-of-period or missing operative period"]
+    if not sources:
+        defects.append("no scoped authority")
+    elif not any(inspect_source(s) for s in sources):
+        defects.append("no opened scoped authority supporting the exact claim")
+    return defects
+
+
 def case_model(data):
     fields(data, ("schema", "as_of", "profile", "goal", "budget", "offers", "evidence"))
     need(data["schema"] == VERSION, "unknown schema version")
@@ -243,7 +272,7 @@ def case_model(data):
             texts(entry["effect"])
         sources = seq(entry.get("sources", []))
         for source in sources:
-            fields(source, ("url", "authority", "scope", "accessed", "locator"))
+            inspect_source(source)
             url = urlsplit(string(source["url"]))
             need(url.scheme in {"http", "https"} and url.hostname and url.path.strip("/")
                  and not url.username and not url.password, "expected a source page URL")
@@ -252,12 +281,9 @@ def case_model(data):
             string(source["locator"])
             need(source["authority"] in AUTHORITY | {"market", "alumni", "community"}, "invalid authority")
         if entry["state"] == "confirmed":
-            period = fields(entry.get("period"), ("from", "through"))
             operative = day(entry.get("operative_date", offers[entry["offer"]]["operative_date"]))
-            need(day(period["from"]) <= operative
-                 <= day(period["through"]), f"out-of-period evidence {entry['id']}")
-            need(any(s["authority"] in AUTHORITY and s["scope"] == entry["scope"] for s in sources),
-                 f"confirmed claim lacks scoped authority: {entry['id']}")
+            defects = source_defects(entry, operative)
+            need(not defects, f"unverified confirmation {entry['id']}: {', '.join(defects)}; run audit")
     return paths, offers, evidence
 
 
@@ -272,6 +298,8 @@ def analyze(data):
                 item = evidence.get(cid)
                 need(item and item["offer"] == oid and item["kind"] == "cost" and item["path"] == "*",
                      f"out-of-scope cost evidence: {cid}")
+                need(item["state"] == "confirmed" or component["amount"] == [0, None],
+                     f"finite cost depends on unconfirmed evidence: {cid}; run audit")
         if "stress" in budget:
             totals["stress"] = costs(offer, budget, budget["stress"])
         gate_rows = indexed(offer["gates"])
@@ -314,6 +342,41 @@ def analyze(data):
                             "uncertain_evidence": pending}
         results[oid] = {"cost": totals, "paths": output}
     return {"schema": VERSION, "currency": budget["currency"], "offers": results}
+
+
+def audit(data):
+    """Return a conservative copy when admitted source declarations do not support claims."""
+    revised = deepcopy(data)
+    offers = indexed(revised["offers"])
+    evidence = indexed(revised["evidence"])
+    changes = []
+    for item in evidence.values():
+        if item["state"] != "confirmed":
+            continue
+        operative = day(item.get("operative_date", offers[item["offer"]]["operative_date"]))
+        defects = source_defects(item, operative)
+        if defects:
+            item["state"] = "unresolved"
+            changes.append({"claim": item["id"], "reasons": defects})
+    for offer in offers.values():
+        oid = offer["id"]
+        for gate in offer["gates"]:
+            support = [evidence[c] for c in gate["evidence_ids"]]
+            if gate["status"] in {"pass", "fail"} and (
+                    not any(e["state"] == "confirmed" for e in support)
+                    or any(e["state"] == "unresolved" and e["impact"] == "critical" for e in support)):
+                gate["status"] = "unresolved"
+                changes.append({"offer": oid, "gate": gate["id"], "reasons": ["support unresolved"]})
+        for cost in offer["costs"]:
+            if cost["amount"] != [0, None] and any(
+                    evidence[c]["state"] != "confirmed" for c in cost.get("evidence_ids", [])):
+                cost["amount"] = [0, None]
+                offer["cost_complete"] = False
+                if cost["kind"] == "award":
+                    offer["offsets_complete"] = False
+                changes.append({"offer": oid, "cost": cost["id"], "reasons": ["support unresolved"]})
+    analyze(revised)
+    return {"input": revised, "changes": changes}
 
 
 def research(data):
@@ -471,9 +534,25 @@ def render(data, decision, mode):
     for title, items in (("主要依据", decision["reasons"]), ("关键风险", decision["risks"]),
                          ("翻转条件", [decision["reversal"]])):
         lines.extend(["", f"### {title}", "", *(f"- {item}" for item in items)])
+    known = indexed(data["evidence"])
+    labels = {o["id"]: o["title"] for o in data["offers"]}
+    constrained = [r for r in decision["assessments"]
+                   if r["gate"] != "pass" or r["score_state"] != "confirmed"]
+    if constrained:
+        lines.extend(["", "### 关键状态", "", *(
+            f"- {labels[r['offer']]} / {r['path']}：{r['gate']} · {r['score_state']}"
+            for r in constrained)])
+    cited = dict.fromkeys(i for r in decision["assessments"] for i in r["evidence_ids"])
+    sources = {}
+    for cid in cited:
+        item = known[cid]
+        if item["state"] == "confirmed":
+            for src in item.get("sources", []):
+                if src["authority"] in AUTHORITY and src["scope"] == item["scope"] and inspect_source(src):
+                    sources.setdefault(src["url"], src["locator"])
+    if sources:
+        lines.extend(["", "### 已核验来源", "", *(f"- {loc} · <{url}>" for url, loc in sources.items())])
     if mode == "full":
-        known = indexed(data["evidence"])
-        labels = {o["id"]: o["title"] for o in data["offers"]}
         for row in decision["assessments"]:
             offer = computed["offers"][row["offer"]]
             lines += ["", f"### {labels[row['offer']]} / {row['path']}", "",
@@ -509,7 +588,7 @@ def load(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    for command in ("plan", "check", "verify", "scenario", "compare", "report"):
+    for command in ("plan", "audit", "check", "verify", "scenario", "compare", "report"):
         item = sub.add_parser(command)
         item.add_argument("input")
         if command in {"verify", "report"}:
@@ -528,6 +607,8 @@ def main():
         data = load(args.input)
         if args.command == "plan":
             out = research(data)
+        elif args.command == "audit":
+            out = audit(data)
         elif args.command == "check":
             out = analyze(data)
         elif args.command == "verify":
