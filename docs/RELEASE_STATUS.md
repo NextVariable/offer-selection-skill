@@ -1,11 +1,7 @@
 # 版本与使用范围
 
-本分支为 **v1.0.0 候选版**，公开正式版为 v0.3.2。离线校验覆盖声明、算术与结果一致性。正式发布还需核查行为回归、关键网页事实独立检索、宿主实际使用及维护者人工验收。
+本分支为 **v1.0.0 候选版**。默认分支的公开正式版本仍为 v0.3.2。v1.0 草稿 PR 汇集已审核修复和发布文档，最终状态以 [PR #3](https://github.com/NextVariable/offer-selection-skill/pull/3) 的当前提交和检查为准。
 
-本轮候选增加了原始来源观察、过期或不支持主张的降级处理，以及快速报告的关键状态与来源链接。发布硬化进一步在快速报告中显示费用区间、预算余量与待核实项，并加入发布契约与隐私路径检查；第二轮已完成 Claude Code 原生宿主 A/B 行为复跑与 Linux/macOS/Windows CI 实跑（C 阶段原生运行因网关中断改由另一 Agent 宿主回退，证据中单独标注宿主与模型差异），人工行为签字与 Codex 最终审核仍未完成。当前保留候选状态。请结合[发布硬化审计](V1_RELEASE_AUDIT.md)、[已知限制](KNOWN_LIMITATIONS.md)和公开草稿 PR 的验收摘要使用。
+独立审核基线为 `bcc55d56b3e5a431121f6ac9860cf437830a7f8b`。Codex CLI 已完成指定原生验收。Claude Code 最终原生验收为 **Not Run**，原因是第三方模型网关 402。TRAE 回退结果单独记录。详见[兼容性](COMPATIBILITY.md)和[分阶段审计](V1_RELEASE_AUDIT.md)。
 
-本技能用于辅助比较已获得的硕士 Offer，不保证就业、签证或学术深造结果。学费、招聘资格和政策可能变化，接受 Offer 前请核实影响决定的关键条件。
-
-AI 分析仍可能出现查证遗漏或判断偏差。缺少关键信息时，应补充信息或核实条件后再决定，不必强行选出赢家。
-
-各 AI Agent 的安装方式与使用限制见[兼容性](COMPATIBILITY.md)，版本变化见[更新记录](CHANGELOG.md)。
+正式发行仍需维护者完成[签核清单](RELEASE_CHECKLIST.md)，明确授权合并与发布。发布范围拟限定为已原生验收的 Codex CLI。[更新记录](CHANGELOG.md) · [发布说明草稿](RELEASE_NOTES_V1.md) · [已知限制](KNOWN_LIMITATIONS.md)

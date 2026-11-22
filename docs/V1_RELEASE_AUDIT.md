@@ -2,6 +2,8 @@
 
 审计日期：2026-11-22。基线：PR #3 的公开 head `0115198`（`codex/v1-decision-engine`）。本文件只记录本轮实际执行的工作与证据状态，不宣布正式发布。
 
+第 1–8 节记录首轮历史情况，第 9 节记录 TRAE 复跑与回退。当前独立审核结论见第 10 节，发布以[当前状态](RELEASE_STATUS.md)和[最终清单](RELEASE_CHECKLIST.md)为准。
+
 ## 1. 基线状态
 
 | 项目 | 结果 |
@@ -110,4 +112,11 @@
 | GitHub Actions（`11b3e9d`） | Linux Python 3.10/3.12、macOS、Windows 四个 job 全绿 |
 | 本地检查 | 82 unittest PASS；安装器 37 PASS；安装载荷为 12 个运行时文件 + 所有权标记，无 `internal/evals/audits/archive/tools` 内容 |
 
-证据归档不在公开仓库：A/B/C 的原始输出与宿主元数据保存在本地证据分支 `trae/v1-evidence-round2`，供 Codex 复核重跑。C 阶段原生运行与 Trae 回退运行的宿主和模型不同，不能互相替代。
+原始输出与宿主元数据由维护者私下保留。C 阶段原生运行和 TRAE 回退运行分别计入各自的验证范围。
+
+## 10. Codex 独立审核
+
+- TRAE 公开提交 `70bbdfb` 独立复核为 84 项单元测试和 37 项安装检查通过。
+- 审核提交 `bcc55d5` 修复了无金额上限时隐藏费用、预算子状态误判及反事实数据共享。87 项单元测试、37 项安装检查及[四项 Actions 检查](https://github.com/NextVariable/offer-selection-skill/actions/runs/45011105494)在该提交通过。该次 CI 只适用于这个审核提交。
+- Codex CLI 原生完成 a3、a4、C1–C3。a3 的冻结案卷缺少具体续签条款，另行打开政府原页补测。C3 的无金额上限问题在审核提交的安装副本上复测。用合成预算反事实核对了明确推荐和硬失败后的全部不推荐。
+- Claude Code 最终原生验收的第三方网关返回 402，记录为 Not Run。上述 Codex 原生验收和第 9 节的 TRAE 回退分别记录。

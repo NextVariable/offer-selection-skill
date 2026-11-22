@@ -6,18 +6,18 @@
 
 同一组 Offer，对不同背景和目标的人，价值可能完全不同。Offer Selection Skill 会比较各项目能帮你补足哪些短板、毕业时具备怎样的竞争力，以及你能否进入目标岗位或研究路径。再判断这些变化是否值得付出相应的资金、时间和风险。
 
-支持 Codex、Claude Code、WorkBuddy 等 AI Agent 的本地技能安装。
+v1.0 的原生端到端验收覆盖 Codex CLI。其他宿主的安装和验证范围见[兼容性](docs/COMPATIBILITY.md)。
 
 ## 快速开始
 
-使用支持本地 Skill 的 AI Agent，并开启联网搜索。
+使用 Codex，开启联网搜索并允许本地运行 Python 3.10+，即可使用完整流程。
 
 ### 安装
 
-在 AI Agent 对话框中发送：
+仓库默认分支目前提供 v0.3.2。要试用 v1.0 候选版，请按[候选版安装步骤](docs/INSTALLATION.md#安装-v100-候选版)选择明确的版本。也可以在 Codex 对话中发送：
 
 ```text
-请帮我安装这个仓库中的 offer-selection-skill：https://github.com/NextVariable/offer-selection-skill
+请从 https://github.com/NextVariable/offer-selection-skill 的 codex/v1-decision-engine 分支安装 offer-selection-skill。
 ```
 
 按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
@@ -27,7 +27,7 @@
 在新会话中发送：
 
 ```text
-请使用 offer-selection-skill，帮我比较硕士 Offer。
+请使用 $offer-selection-skill，帮我比较硕士 Offer，先给 Quick Decision。
 ```
 
 如果提供的信息不足以判断，助手会追问需要补充的关键背景。
@@ -104,7 +104,7 @@ B：[学校、项目全名、入学年份]
 
 ## 你会得到什么？
 
-默认 **Quick Decision** 给出结论、依据、风险和翻转条件。说「给我完整决策审计」可获得 **Full Decision Audit**，逐项查看资格、成本、竞争力和证据，两种报告读取同一份决策结果。要测试变化，可以说「假设硬预算降到 50 万，其他条件不变，比较前后建议」。
+默认 **Quick Decision** 给出结论、依据、费用、风险和可能改变建议的条件。说「给我完整决策审计」可获得 **Full Decision Audit**，逐项查看资格、成本、竞争力和证据，两种报告读取同一份决策结果。要测试变化，可以说「假设硬预算降到 50 万，其他条件不变，比较前后建议」。
 
 直接用自然语言给出背景和 Offer。Agent 负责打开原始网页、记录适用届别和证据、运行本地校验，并在无法确认时给出有条件的建议。通常不需要自己准备 JSON 或运行命令。
 
