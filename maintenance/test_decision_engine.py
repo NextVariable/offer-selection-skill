@@ -214,6 +214,9 @@ class EvidenceCases(unittest.TestCase):
         quick, full = (engine.render(d, out, mode) for mode in ("quick", "full"))
         self.assertIn("https://example.edu/programmes/example", quick)
         self.assertTrue(full.startswith(quick))
+        self.assertIn("opened/supported", full)
+        self.assertIn("The programme lists supervised projects.", full)
+        self.assertIn("2027-09-01", full)
 
     def test_employer_scope_match(self):
         d = base()

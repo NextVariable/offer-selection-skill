@@ -268,6 +268,9 @@ def case_model(data):
         need(entry["state"] in {"confirmed", "prior", "unresolved"}, "invalid evidence state")
         string(entry["scope"])
         string(entry["claim"])
+        if "period" in entry:
+            period = fields(entry["period"], ("from", "through"))
+            need(day(period["from"]) <= day(period["through"]), "inverted evidence period")
         if "effect" in entry:
             texts(entry["effect"])
         sources = seq(entry.get("sources", []))
@@ -535,7 +538,8 @@ def render(data, decision, mode):
                          ("翻转条件", [decision["reversal"]])):
         lines.extend(["", f"### {title}", "", *(f"- {item}" for item in items)])
     known = indexed(data["evidence"])
-    labels = {o["id"]: o["title"] for o in data["offers"]}
+    metadata = indexed(data["offers"])
+    labels = {oid: o["title"] for oid, o in metadata.items()}
     constrained = [r for r in decision["assessments"]
                    if r["gate"] != "pass" or r["score_state"] != "confirmed"]
     if constrained:
@@ -565,8 +569,15 @@ def render(data, decision, mode):
                 lines.append(f"- 分数：{row['score']}")
             for cid in dict.fromkeys(row["evidence_ids"] + offer["paths"][row["path"]]["uncertain_evidence"]):
                 item = known[cid]
-                lines.append(f"- {item['state']} · {item['claim']} " + " ".join(
-                    f"<{s['url']}>" for s in item.get("sources", [])))
+                operative = item.get("operative_date", metadata[row["offer"]]["operative_date"])
+                period = item.get("period")
+                coverage = f"（覆盖 {period['from']} 至 {period['through']}）" if period else ""
+                lines.append(f"- {item['state']} · {item['claim']} · 适用日期 {operative}{coverage}")
+                for src in item.get("sources", []):
+                    review = src.get("inspection", {"access": "unopened", "support": "unreviewed"})
+                    observation = review.get("observation", "未记录原文观察")
+                    lines.append(f"  - {src['authority']} · {review['access']}/{review['support']} · "
+                                 f"{src['locator']} · {observation} · <{src['url']}>")
     return "\n".join(lines)
 
 
