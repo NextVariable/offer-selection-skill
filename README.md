@@ -6,7 +6,7 @@
 
 同一组 Offer，对不同背景和目标的人，价值可能完全不同。Offer Selection Skill 会比较各项目能帮你补足哪些短板、毕业时具备怎样的竞争力，以及你能否进入目标岗位或研究路径。再判断这些变化是否值得付出相应的资金、时间和风险。
 
-本分支是 **v2.0.0 候选版**，在 v1.0.0 的决策能力上增加可审计的执行 Harness，不改变原有领域规则。v1.0 的原生端到端验收覆盖 Codex CLI；v2 尚未完成原生宿主验收，见[兼容性](docs/COMPATIBILITY.md)和[版本状态](docs/RELEASE_STATUS.md)。
+本分支是 **v2.0.0 候选版**，在 v1.0.0 的决策能力上增加可审计的执行 Harness，不改变原有领域规则。v1.0 的原生端到端验收覆盖 Codex CLI；v2 已于 2026-11-23 在 Codex CLI 完成一次原生自测（真实联网、中断恢复、Quick/Full 与预算反事实），Claude Code 原生验收仍未执行，见[兼容性](docs/COMPATIBILITY.md)和[版本状态](docs/RELEASE_STATUS.md)。
 
 ## 快速开始
 

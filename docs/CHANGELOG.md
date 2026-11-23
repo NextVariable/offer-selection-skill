@@ -1,5 +1,12 @@
 # 更新记录
 
+## v2.0 RC 收口 — 2026-11-23
+
+- 覆盖判断改为逐 Offer：`coverage` 在 `paths[path].offers` 下分别给出每个 Offer 的 `confirmed` / `unresolved` / `not_applicable` / `missing`；路径级 `confirmed` 仅当所有 Offer 都不缺项时成立，A 的确认不能替代 B。
+- `preflight_recommendation` 只检查结论实际选择的 Offer 的硬门槛任务、关键证据与覆盖缺口；推荐 B 时不会因 A 的 confirmed 而放行。
+- 新增 6 项多 Offer 负向测试（Harness 共 75 项，全套 163 项）。
+- 2026-11-23 在 Codex CLI 0.171.0-alpha.13 / `gpt-6.1-sol` 完成原生 v2 端到端自测：真实联网、两进程中断恢复、逐 Offer 覆盖、条件性决策、Quick/Full 与 42 万元预算反事实。详见 [V2_RC_ACCEPTANCE.md](V2_RC_ACCEPTANCE.md) 第 3.3 节。
+
 ## RC Final Hardening — 2026-11-23
 
 整合独立审核修复（`7284197`）后的最终硬化。
