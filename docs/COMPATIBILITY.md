@@ -14,7 +14,7 @@ v1.0 的正式支持范围为 **Codex CLI**。v2.0 候选版保留同一安装�
 
 | 范围 | 状态 |
 |---|---|
-| 决策引擎与 Quick/Full | 复用 v1.0.0，163 项 Python 测试通过 |
+| 决策引擎与 Quick/Full | 复用 v1.0.0，78 项 v1 引擎测试通过（全套 163 项） |
 | Harness 单元/集成/CLI | 75 项 Harness 测试通过；CI 配置覆盖 Linux/macOS |
 | Codex CLI 原生 v2 端到端 | **通过（开发方自测）**：Codex CLI 0.171.0-alpha.13 / `gpt-6.1-sol`，2026-11-23 使用真实联网、两进程中断恢复、逐 Offer 覆盖、条件性决策、Quick/Full 和 42 万元预算反事实。结论为条件性建议，不是无条件接受 |
 | Claude Code 原生 v2 端到端 | **Not Run**（v1 最终轮遇到第三方网关 402；本轮未重试） |
