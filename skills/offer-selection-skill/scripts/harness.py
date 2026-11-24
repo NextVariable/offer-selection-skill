@@ -19,6 +19,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -150,7 +151,8 @@ def load_state(path):
     # States created before the coverage contract stay resumable.
     state.setdefault("coverage", {})
     state.setdefault("semantic_reviews", [])
-    enforce_retention(state)
+    if enforce_retention(state)["purged"]:
+        save_state(path, state)
     # A crash between write and replace can leave a copy of the previous state.
     # Once the real file loads, that residue has no recovery value.
     residue = Path(str(path) + ".tmp")
@@ -164,9 +166,17 @@ def load_state(path):
 
 def save_state(path, state):
     target = Path(path)
-    temp = target.with_name(target.name + ".tmp")
-    temp.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    os.replace(temp, target)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent,
+                                     prefix=f".{target.name}.", suffix=".tmp",
+                                     delete=False) as output:
+        temp = Path(output.name)
+        try:
+            json.dump(state, output, ensure_ascii=False, indent=2)
+            output.write("\n")
+            output.close()
+            os.replace(temp, target)
+        finally:
+            temp.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1005,7 +1015,8 @@ def preflight_recommendation(state, decision_doc):
     kind = decision_doc.get("conclusion", {}).get("type")
     if kind not in DECISIVE_CONCLUSIONS and kind != "conditional":
         return
-    chosen = _chosen_offers(decision_doc)
+    # Parity makes a claim about every comparator, even when one is selected.
+    chosen = _chosen_offers(decision_doc) if kind == "recommend" else set()
 
     if kind in DECISIVE_CONCLUSIONS:
         pending = [t for t in open_tasks(state, classes=("hard_gate",))
@@ -1483,7 +1494,7 @@ def main():
         _emit(out)
         return 0
     except (ValueError, TypeError, KeyError, OSError) as exc:
-        parser.exit(2, json.dumps({"error": str(exc), "state": "unchanged"},
+        parser.exit(2, json.dumps({"error": str(exc), "state": "command_not_saved"},
                                   ensure_ascii=False) + "\n")
 
 

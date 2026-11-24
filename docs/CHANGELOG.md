@@ -1,5 +1,10 @@
 # 更新记录
 
+## v2.0 发布收口 — 2026-11-24
+
+- 修复状态文件的 POSIX 权限、过期清理在命令失败时未持久化，以及「等价后择一」漏核未选比较对象资格的问题。
+- 复核已有原生与回退案例。发布候选保持 `2.0.0-rc1`。[收口复核](V2_RELEASE_REVIEW.md)
+
 ## v2.0 RC 收口 — 2026-11-23
 
 - 覆盖判断改为逐 Offer：`coverage` 在 `paths[path].offers` 下分别给出每个 Offer 的 `confirmed` / `unresolved` / `not_applicable` / `missing`；路径级 `confirmed` 仅当所有 Offer 都不缺项时成立，A 的确认不能替代 B。
@@ -19,7 +24,7 @@
 
 ## 未发布的独立审核修复 — 2026-11-23
 
-基于 `d926f20` 的独立审核分支，未合并回 PR #4。
+该部分记录基于 `d926f20` 的独立审核。相关修复后续已整合到 PR #4。
 
 - 保留期到期后在下次 CLI 访问时真正清除 Profile（含 Scenario 副本），不再只给建议；已校验 Decision 仍可渲染。
 - `resume` 在 Case digest 改变时不再错误清除 stale；重新核验后按缺失证据重建研究任务。

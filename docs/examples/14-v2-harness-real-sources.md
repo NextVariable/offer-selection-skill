@@ -12,9 +12,7 @@
 - **Operative year:** 2027.
 
 Execution disclosure: this run used the **Trae Agent fallback host with
-DeepSeek-V4.1-Flash** on 2026-11-23. It is **not** a native Codex or Claude Code
-acceptance run; those remain **Not Run** (see
-[COMPATIBILITY.md](../COMPATIBILITY.md)).
+DeepSeek-V4.1-Flash** on 2026-11-23. Use the [compatibility record](../COMPATIBILITY.md) for separate native-host results.
 
 ## Real sources and the claim each one supports
 
@@ -48,13 +46,10 @@ confirmed **only** because the source inspection reports `access: opened` and
 | Warwick | 3,950,000 | 1,500,000 | 5,450,000 | pass | **fail** (over by 150,000) |
 | Glasgow | 3,481,500 | 1,500,000 | 4,981,500 | pass | pass |
 
-Both eligibility gates pass against the synthetic profile: Warwick accepts any
-field at 2.1 with IELTS 7.0; Glasgow requires a business/marketing/commerce 2.1
-with IELTS 6.5.
+The frozen recording sets programme admission gates to pass for the synthetic example. The pages establish the programmes’ published requirements, including IELTS component minima. The example’s overall IELTS score alone cannot establish those minima, final admission, or eligibility for an employer in China.
 
 Decision: **conditional**, default **Glasgow**; Warwick only becomes preferred
-if the employer signal justifies the ~GBP 1,500 target overrun or the user
-raises the target to at least GBP 54,500.
+if verified career value or funding warrants its GBP 4,685 premium. The GBP 1,500 overrun against the target is a separate comparison.
 
 ## Quick / Full and counterfactual
 

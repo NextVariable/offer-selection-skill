@@ -134,7 +134,7 @@ class ReleaseContract(unittest.TestCase):
             elif isinstance(node, ast.ImportFrom) and node.level == 0:
                 modules.add(node.module.split(".")[0])
         self.assertEqual(modules, {"argparse", "copy", "datetime", "hashlib", "json",
-                                   "os", "re", "sys", "pathlib", "decision"})
+                                   "os", "re", "sys", "tempfile", "pathlib", "decision"})
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 # v2.0 RC 验收报告
 
+本页保留 2026-11-23 的历史验收。当前独立复核、支持范围和发布门槛见[收口复核](V2_RELEASE_REVIEW.md)与[签核清单](RELEASE_CHECKLIST_V2.md)。
+
 - 分支：`feat/v2-decision-harness`
 - 基线：v1.0.0 Stable（`fcd2ff6`）
 - 版本：`2.0.0-rc1`，`release_status: candidate`
@@ -106,7 +108,7 @@ CLI 子命令：`init / plan / next / record / evidence / coverage / review / de
 - 真实来源：打开 Bristol 项目/费用/入学要求/生活费/住宿、Manchester 2027 项目页、GOV.UK 学生签证与 IHS、中国银行牌价、留服中心页面；`record` 写入 16 条工具结果。
 - 逐 Offer 覆盖：`coverage` 分别输出 `offers.bristol` 与 `offers.manchester`。两校的 `cost/credential/eligibility/market` 均为 `unresolved`，没有把一校的确认结果套到另一校，也没有把 unresolved 报成 confirmed；所有缺口都带有具体核实路径和处置理由。
 - 决策：公开检索到的 Manchester 2027 项目名为 *MSc Business Analytics and Artificial Intelligence*，与学生输入的 *MSc Business Analytics* 不一致；系统将其保留为 Critical 未决项，没有替用户确认 offer 映射。最终结论为 **conditional**：只有在全期净成本可锁定在 45 万元内且学历/求职资格得到确认后才考虑 Bristol；两校均未获无条件接受。
-- 输出与反事实：`decide` 通过 `decision.py` 校验；Quick 与 Full 由同一决策渲染；`ceiling=420000`（42 万元）场景使方向翻转为暂缓两校，base case digest 未变。
+- 输出与反事实：`decide` 通过 `decision.py` 校验；Quick 与 Full 由同一决策渲染；`ceiling=42000000`（42 万元，CNY 最小货币单位）场景使方向翻转为暂缓两校，base case digest 未变。
 - 轨迹：94 条 trace 事件全部为 `source=harness.py`，包含 `plan_created`、`research_task_finished`、`coverage_conditional_release`、`decision_stored`、`report_rendered`、`checkpoint`、`resume` 和 `scenario_created`。执行中出现并修正了 404、Gate 分歧和条件分支校验错误，原始错误已记录。
 
 该结果是开发方自测，不等同于独立人工复核；结论为条件性而非无条件推荐，这是关键资格未被证明时的预期安全行为。脱敏运行记录保存在私有审计目录，不随公开仓库分发。

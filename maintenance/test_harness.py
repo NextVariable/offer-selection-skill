@@ -654,7 +654,12 @@ class AuditRegressionTests(HarnessCase):
             state = harness.init_state(base_case())
             state["privacy"]["expires_at"] = "2020-01-01"
             target.write_text(json.dumps(state), encoding="utf-8")
-            loaded = harness.load_state(target)
+            exited = subprocess.run(
+                [sys.executable, str(SCRIPTS / "harness.py"), "report", "--state", str(target)],
+                capture_output=True, text=True)
+            self.assertEqual(exited.returncode, 2)
+            self.assertIn("no validated decision", exited.stderr)
+            loaded = json.loads(target.read_text(encoding="utf-8"))
             self.assertEqual(loaded["case"]["profile"], {})
             self.assertTrue(loaded["privacy"]["purged_at"])
             self.assertEqual(loaded["trace"][-1]["event"], "privacy_retention_expired")
@@ -664,6 +669,9 @@ class AuditRegressionTests(HarnessCase):
             target = Path(tmp) / "state.json"
             state = harness.init_state(base_case())
             target.write_text(json.dumps(state), encoding="utf-8")
+            harness.save_state(target, state)
+            if os.name == "posix":
+                self.assertEqual(target.stat().st_mode & 0o777, 0o600)
             residue = Path(str(target) + ".tmp")
             residue.write_text(json.dumps(state), encoding="utf-8")
             harness.load_state(target)
@@ -853,6 +861,18 @@ class ResearchCoverageContractTests(HarnessCase):
         state = harness.init_state(split_coverage_case())
         with self.assertRaisesRegex(ValueError, "b/private/eligibility"):
             harness.preflight_recommendation(state, choose("b"))
+
+    def test_parity_with_choice_requires_comparator_eligibility_coverage(self):
+        case = split_coverage_case()
+        case["offers"][1]["gates"][0].update(kind="timing", status="not_applicable")
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        doc = decision_doc("fee", "entry_a")
+        doc["conclusion"].update(type="parity_with_choice", parity_basis="Comparable outcomes")
+        doc["assessments"].append(dict(doc["assessments"][0], offer="b",
+                                       stance="viable", evidence_ids=[]))
+        with self.assertRaisesRegex(ValueError, "b/private/eligibility"):
+            harness.store_decision(state, doc)
 
     def test_cost_confirmation_is_also_per_offer(self):
         state = harness.init_state(base_case(offers=2))

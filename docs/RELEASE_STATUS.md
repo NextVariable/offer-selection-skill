@@ -1,24 +1,9 @@
 # 版本与使用范围
 
-本分支为 **v2.0.0 候选版（Release Candidate）**，不是正式版，也未创建 v2 Stable Release。发布基线为 v1.0.0；v2 只新增执行层 Harness，不改变 v1 的领域决策规则。
+本分支为 **v2.0.0 候选版**，包版本为 `2.0.0-rc1`。公开稳定版为 v1.0.0。v2 保留 v1 的领域规则，新增可选的本地研究、证据检查、恢复与反事实执行工具。
 
-v2 候选版在 v1.0.0 的 Skill 分发方式上新增：
+拟正式支持 **Codex CLI**。既有原生运行用一个合成回国私企案例完成联网、中断恢复、逐 Offer 覆盖、条件性建议、Quick/Full 和预算反事实。本轮独立复核了这次运行的来源、资格和结果，并重放已有记录。Claude Code 的 v2 原生验收未运行；TRAE 的联网回退与其他宿主的安装证据分别记录。
 
-- `scripts/harness.py`：本地研究任务编排、证据核验、检查点、反事实隔离、隐私生命周期和执行轨迹；
-- 结构化工具结果契约、硬门槛研究阻断、证据过期与矛盾降级；
-- 可恢复的 JSON Case State，以及 v1/v2 冻结对照测试。
+发布以 [PR #4](https://github.com/NextVariable/offer-selection-skill/pull/4) 当前 Head 的 CI 和[维护者签核](RELEASE_CHECKLIST_V2.md)为准。合并、切换 Stable 状态和发行仍待授权。
 
-## 验证范围
-
-已完成：v1 回归（78 项决策引擎测试）、发布契约（10 项）、安装器安全测试（37 项）、v2 Harness 测试（75 项；全套 163 项，含四条路径冻结测试、逐 Offer 覆盖负向测试与语义复核记录），并在本地 macOS / Python 3 环境执行；另有 2026-11-23 的 Codex CLI 原生 v2 端到端自测（真实联网、两进程中断恢复、条件性决策、Quick/Full、预算反事实），以及一个真实联网的 Trae Agent 回退案例。原生自测的结论是条件性建议，不是无条件接受。
-
-未完成：Claude Code 原生 v2 端到端验收；v2 的联网研究案例仍需独立复核。上述项目标记为 **Not Run**，不得视为通过。
-
-## 边界
-
-- 不引入数据库、Web 服务、账号系统或通用 Agent Runtime。
-- 不重新实现宿主的模型调用与浏览器；Harness 只管理状态、契约和可审计轨迹。
-- 来源是否真正支持具体主张仍需模型辅助复核或人工裁定；程序检查只覆盖形式、范围、时效与依赖。
-- 不创建 v2.0.0 Stable Release，不合并 `main`。
-
-详见[兼容性](COMPATIBILITY.md)、[架构](ARCHITECTURE.md)、[隐私](PRIVACY.md)、[已知限制](KNOWN_LIMITATIONS.md)和 [v2.0 RC 验收报告](V2_RC_ACCEPTANCE.md)。
+[兼容性](COMPATIBILITY.md) · [收口验收](V2_RELEASE_REVIEW.md) · [发布说明草稿](RELEASE_NOTES_V2.md) · [隐私](PRIVACY.md) · [已知限制](KNOWN_LIMITATIONS.md)

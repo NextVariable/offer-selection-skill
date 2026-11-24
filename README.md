@@ -6,7 +6,7 @@
 
 同一组 Offer，对不同背景和目标的人，价值可能完全不同。Offer Selection Skill 会比较各项目能帮你补足哪些短板、毕业时具备怎样的竞争力，以及你能否进入目标岗位或研究路径。再判断这些变化是否值得付出相应的资金、时间和风险。
 
-本分支是 **v2.0.0 候选版**，在 v1.0.0 的决策能力上增加可审计的执行 Harness，不改变原有领域规则。v1.0 的原生端到端验收覆盖 Codex CLI；v2 已于 2026-11-23 在 Codex CLI 完成一次原生自测（真实联网、中断恢复、Quick/Full 与预算反事实），Claude Code 原生验收仍未执行，见[兼容性](docs/COMPATIBILITY.md)和[版本状态](docs/RELEASE_STATUS.md)。
+本分支是 **v2.0.0 候选版**。v2 保留原有领域规则，加入研究进度记录、断点恢复、逐 Offer 资格覆盖与预算反事实。拟正式支持 Codex CLI，已有一次原生联网案例并完成独立证据复核。Claude Code 的 v2 原生验收未运行。[兼容性](docs/COMPATIBILITY.md) · [发布状态](docs/RELEASE_STATUS.md)
 
 ## 快速开始
 
@@ -20,7 +20,7 @@
 请从 https://github.com/NextVariable/offer-selection-skill 的 v1.0.0 标签安装 offer-selection-skill。
 ```
 
-按 AI Agent 的提示授权，安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
+如需试用 v2，请按[候选版安装步骤](docs/INSTALLATION.md#安装-v200-候选版)安装 PR 分支。安装完成后新建对话。无法自动安装时，可按 [安装说明](docs/INSTALLATION.md) 手动安装。
 
 ### 在 AI 聊天框开始使用
 
@@ -41,7 +41,7 @@ v2 仍然只需要一句自然语言入口。宿主 Agent 可以在本地保存�
 - 证据过期、适用范围不符或互相矛盾时，会降级并重新打开相关 Gate。
 - 决策存储后若证据或案例变化，旧决策会标记为 stale，不能继续当作当前结论。
 - 反事实保存在独立命名空间，不修改原始案例。
-- 默认只在本地保留 7 天个人资料，并支持主动清除。
+- 状态保存在本地，默认到期后首次成功读取时清除个人背景。也可主动清除。[隐私说明](docs/PRIVACY.md)
 - 结构化执行轨迹记录研究、来源检查、证据/Gate 变化、计算、失败、补查和最终推荐。
 
 程序检查只覆盖结构、范围、时效、依赖和算术；“来源是否真正支持这句话”仍需模型复核或人工裁定，报告不会把这部分伪装成全自动验证。命令与状态契约见 [structured-workflow.md](skills/offer-selection-skill/references/structured-workflow.md)。
@@ -128,7 +128,7 @@ B：[学校、项目全名、入学年份]
 
 ## 使用前了解
 
-当前版本为 **v1.0.0**，正式支持 Codex CLI。Python 3.10+ 用于离线计算与校验。关键资格与政策请以适用期的官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)及[使用示例](docs/examples/13-structured-decision.md)。
+公开稳定版为 **v1.0.0**。当前分支保留 `2.0.0-rc1`，维护者签核后才进入正式发行。Python 3.10+ 用于离线计算与校验。关键资格与政策请以适用期的官方信息为准。详见 [发布状态](docs/RELEASE_STATUS.md)、[已知限制](docs/KNOWN_LIMITATIONS.md)及[使用示例](docs/examples/13-structured-decision.md)。
 
 无需提供姓名、学号、邮箱或完整 Offer 信件。对话数据的保存与处理取决于你使用的 AI 平台，详见 [隐私说明](docs/PRIVACY.md)。
 
