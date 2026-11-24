@@ -10,7 +10,7 @@ description: >-
 license: MIT
 metadata:
   author: Francis and OpenAI Codex
-  version: "2.0.0-rc1"
+  version: "2.0.0"
   activation: /offer-selection-skill
   maintainer: Francis
   created: "2026-09-04"
