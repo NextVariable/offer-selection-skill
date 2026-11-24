@@ -2,12 +2,12 @@
 
 对话安装和首次使用见 [README](../README.md)。无法自动安装时，可使用以下方式。
 
-## 安装 v1.0.0
+## 安装 v2.0.0
 
 打开终端，在一个尚无同名目录的位置下载正式标签：
 
 ```bash
-git clone --branch v1.0.0 --single-branch https://github.com/NextVariable/offer-selection-skill.git
+git clone --branch v2.0.0 --single-branch https://github.com/NextVariable/offer-selection-skill.git
 cd offer-selection-skill
 ```
 
@@ -19,7 +19,11 @@ cd offer-selection-skill
 Offer，先给 Quick Decision」。完整流程需要联网研究以及本地 Python 3.10+ 执行权限。
 核对安装输出所示版本以及本次会话读取的技能路径。
 
-## 从默认分支安装（Codex、Claude Code）
+安装器会同时安装 `scripts/decision.py` 和 `scripts/harness.py`。v2 的 Harness 是可选执行层；无法运行本地 Python 时，仍按 v1 文本契约使用，并注明程序校验未执行。
+
+## 从默认分支安装
+
+Codex CLI 为正式支持宿主。其他宿主的安装和验收范围见[兼容性](COMPATIBILITY.md)。
 
 需要 [Node.js LTS](https://nodejs.org/) 和 [Git](https://git-scm.com/downloads)，已安装可跳过。打开电脑终端（macOS“终端”或 Windows PowerShell），执行：
 

@@ -1,5 +1,57 @@
 # 更新记录
 
+## v2.0.0 — 2026-11-24
+
+正式支持 Codex CLI。安装器随正式版提供可选 Harness。[发布说明](RELEASE_NOTES_V2.md)
+
+## v2.0 发布收口 — 2026-11-24
+
+- 修复状态文件的 POSIX 权限、过期清理在命令失败时未持久化，以及「等价后择一」漏核未选比较对象资格的问题。
+- 复核已有原生与回退案例。发布候选保持 `2.0.0-rc1`。[收口复核](V2_RELEASE_REVIEW.md)
+
+## v2.0 RC 收口 — 2026-11-23
+
+- 覆盖判断改为逐 Offer：`coverage` 在 `paths[path].offers` 下分别给出每个 Offer 的 `confirmed` / `unresolved` / `not_applicable` / `missing`；路径级 `confirmed` 仅当所有 Offer 都不缺项时成立，A 的确认不能替代 B。
+- `preflight_recommendation` 只检查结论实际选择的 Offer 的硬门槛任务、关键证据与覆盖缺口；推荐 B 时不会因 A 的 confirmed 而放行。
+- 新增 6 项多 Offer 负向测试（Harness 共 75 项，全套 163 项）。
+- 2026-11-23 在 Codex CLI 0.171.0-alpha.13 / `gpt-6.1-sol` 完成原生 v2 端到端自测：真实联网、两进程中断恢复、逐 Offer 覆盖、条件性决策、Quick/Full 与 42 万元预算反事实。详见 [V2_RC_ACCEPTANCE.md](V2_RC_ACCEPTANCE.md) 第 3.3 节。
+
+## RC Final Hardening — 2026-11-23
+
+整合独立审核修复（`7284197`）后的最终硬化。
+
+- 新增 Required Research Contract：按 private / soe / local / phd 定义 `hard` 与 `decisive` 最低研究覆盖；`hard` 缺失或未确认时只禁止无条件推荐/资格确认，仍允许带明确翻转条件的 conditional 结论；`decisive` 缺失只记录，不阻断；其他类别始终 optional。
+- 覆盖状态区分 `confirmed` / `unresolved` / `not_applicable` / `missing`；`missing` 永不视为 pass。`not_applicable` 必须附带人类复核理由与 reviewer，模型不能自行豁免必需类别。
+- 新增 `coverage` 与 `review` 命令；覆盖判断与语义复核都写入可追溯 trace。
+- `semantic_review_required` 升级为可审计记录：Claim ID、来源 URL 与定位、reviewer 类型、Supported/Partial/Unsupported/Unresolved、复核时间、依据、适用项目与届别。复核只能降低确定性，不能把主张提升为 confirmed；模型复核明确不等于官方确认。
+- 新增 16 项覆盖/复核冻结测试（Harness 共 69 项），覆盖四条路径的缺失、未确认、不适用、条件性放行（含 open hard-gate 场景）、路径隔离和语义复核降级。
+
+## 未发布的独立审核修复 — 2026-11-23
+
+该部分记录基于 `d926f20` 的独立审核。相关修复后续已整合到 PR #4。
+
+- 保留期到期后在下次 CLI 访问时真正清除 Profile（含 Scenario 副本），不再只给建议；已校验 Decision 仍可渲染。
+- `resume` 在 Case digest 改变时不再错误清除 stale；重新核验后按缺失证据重建研究任务。
+- 断网、额度不足、部分结果或来源未打开导致的 blocked 任务可在 `resume` 时重试；证据矛盾仍保持 blocked。
+- Checkpoint 记录 Case digest，`resume` 返回 `checkpoint_drift`；Checkpoint 明确为审计标记而非回滚快照。
+- 证据变化后 Scenario 标记 stale，避免把旧反事实摘要当作当前结果。
+- `report` 与 `scenario` 在输出前重新核验证据时效，过期来源不能再生成报告或反事实结论。
+- 新增按职业路径的覆盖诊断，列出未声明或未确认的研究类别；只提示，不新增 Gate，也不改变推荐。
+- 新增 12 项审核回归（Harness 共 53 项）和 v1/v2 过期资格对照。
+
+## v2.0.0-rc1 候选版 — 2026-11-23
+
+在 v1.0.0 的决策能力上增加可审计的执行 Harness，保留 Skill 分发方式和单一声明式决策引擎。
+
+- 新增 `scripts/harness.py`：研究任务分为硬门槛、决定性证据和可选研究，记录依赖、状态、重试和停止条件。
+- 工具结果必须带来源定位；未打开、缺定位或来源不支持的主张不能关闭硬门槛。
+- 证据检查覆盖 Claim-to-Source、来源权威性、适用范围、适用期、访问时效、矛盾证据和降级传播。
+- 决策与案例摘要绑定；证据或 Gate 变化后旧决策标记为 stale，不能继续作为当前报告。
+- 新增本地 JSON Case State、检查点、恢复、定向失效和命名的反事实隔离。
+- 默认 7 天个人资料保留期，支持主动清除；不引入数据库、服务或账号。
+- 新增追加式执行轨迹，覆盖研究开始/结束、来源检查、证据/Gate 变化、计算、失败、补查、恢复和最终推荐。
+- 新增 41 项 Harness 测试和 v1/v2 冻结对照；v2 原生宿主验收仍未完成，标记 Not Run。
+
 ## v1.0.0 — 2026-11-22
 
 发布验收版本要求确认事实具有已打开、适用且支持该主张的原始来源记录。支持离线降级旧台账，解除受影响门槛的确定状态，并在快速报告显示来源和关键门槛状态。

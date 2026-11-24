@@ -21,7 +21,7 @@ MANIFEST="${SCRIPT_DIR}/.claude-plugin/plugin.json"
 # The single source of truth for the version is .claude-plugin/plugin.json.
 # This constant is only a last-resort fallback for shells that can neither run
 # python nor parse the manifest text; CI verifies that it matches the manifest.
-FALLBACK_VERSION="1.0.0"
+FALLBACK_VERSION="2.0.0"
 
 # Ownership marker written into every install. Before overwriting an existing
 # destination the installer requires a marker with exactly this schema/name, so
@@ -43,6 +43,7 @@ runtime_allowlist() {
         "SKILL.md" \
         "references" \
         "scripts/decision.py" \
+        "scripts/harness.py" \
         ".claude-plugin/plugin.json" \
         ".claude-plugin/marketplace.json" \
         "LICENSE"
@@ -50,7 +51,7 @@ runtime_allowlist() {
 
 runtime_source() {
     case "$1" in
-        SKILL.md|references|scripts/decision.py) printf '%s/%s\n' "$SKILL_DIR" "$1" ;;
+        SKILL.md|references|scripts/decision.py|scripts/harness.py) printf '%s/%s\n' "$SKILL_DIR" "$1" ;;
         *) printf '%s/%s\n' "$SCRIPT_DIR" "$1" ;;
     esac
 }
@@ -66,7 +67,8 @@ required_runtime_files() {
         "references/path-phd-academic.md" \
         "references/priors-and-calibration.md" \
         "references/structured-workflow.md" \
-        "scripts/decision.py"
+        "scripts/decision.py" \
+        "scripts/harness.py"
 }
 
 # Directories that must never appear in an installation.

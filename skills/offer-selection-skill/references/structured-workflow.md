@@ -52,6 +52,50 @@ artifacts only on request. If source access or a tool fails, recover in the
 same turn where possible, or name the unavailable check and keep the
 affected recommendation conditional.
 
+## Harness state (v2)
+
+When the host can run local Python and persist a private JSON file,
+`scripts/harness.py` wraps the same case, decision and report contract. It
+adds execution state only: research tasks, evidence checks, checkpoints,
+counterfactual isolation, privacy lifetime and an append-only trace. It never
+adds a second gate, cost or scoring rule; `decision.py` remains authoritative.
+
+- `init` validates the case and starts a state with a retention date.
+- `plan` classifies tasks as `hard_gate`, `decisive` or `optional`, records
+  dependencies, and reuses facts already confirmed.
+- `next --advance` returns the highest decision-value ready tasks and stops on
+  completion, a blocked route, or the round limit.
+- `record` accepts a tool-result contract. An unopened source or missing
+  locator cannot close a hard gate; errors retry up to the task limit.
+- `evidence` rechecks scope, period, freshness, authority and conflicts, then
+  propagates a downgrade through `decision.audit`.
+- `coverage` reports the required research contract per active path
+  (`confirmed` / `unresolved` / `not_applicable` / `missing`). A missing or
+  unresolved hard item blocks an unconditional recommendation; decisive gaps
+  are reported without blocking. `coverage --record` stores an explicit
+  disposition; `not_applicable` needs a human reason and reviewer.
+- `review` stores an auditable semantic review of one claim (source URL,
+  locator, reviewer type, supported/partial/unsupported/unresolved, time,
+  rationale, programme and intake). A review can lower certainty but never
+  promotes a claim to confirmed, and a model review is not official
+  confirmation.
+- `decide` refuses an unconditional recommendation while a hard-gate task or a
+  required hard research item is unresolved; a conditional conclusion with
+  explicit flip conditions stays available. It validates the decision with
+  `decision.py` and marks the stored decision stale if the case or evidence
+  later changes.
+- `report` renders Quick or Full from that one validated decision.
+- `scenario` stores a named counterfactual without mutating the base case.
+- `checkpoint` / `resume` preserve verified evidence and reopen expired facts.
+- `privacy --purge` removes the private profile; default retention is seven
+  days, not indefinite storage.
+- `trace` exposes research, source, evidence, gate, calculation, failure,
+  recovery and recommendation events.
+
+If the host cannot run the harness, follow the same conditions manually and
+disclose that state, checkpoints and programmatic rechecks were not executed.
+Do not present a simulated trace as a real execution.
+
 ## Case exchange schema
 
 The case and decision use `"schema":"offer-decision/v1"`. The CLI validates

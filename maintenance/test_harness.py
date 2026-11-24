@@ -1,0 +1,1124 @@
+"""Unit and integration tests for the v2 decision harness.
+
+The harness owns execution state only. These tests deliberately assert that it
+delegates case validation, gate semantics, cost arithmetic and Quick/Full
+rendering to `decision.py` instead of carrying a second rule set.
+"""
+
+import copy
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "skills" / "offer-selection-skill" / "scripts"
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+import decision  # noqa: E402
+import harness  # noqa: E402
+
+NOW = "2026-11-23T10:00:00+08:00"
+PERIOD = {"from": "2027-01-01", "through": "2027-12-31"}
+OPERATIVE = "2027-09-01"
+
+
+def source(scope, accessed="2026-11-20", support="supported", access="opened"):
+    review = {"access": access, "support": support}
+    if access == "opened" and support != "unreviewed":
+        review["observation"] = "The located paragraph states the exact claim."
+    return {
+        "url": "https://www.example.edu/study/marketing",
+        "authority": "institution",
+        "scope": scope,
+        "accessed": accessed,
+        "locator": "Admissions > Entry requirements",
+        "inspection": review,
+    }
+
+
+def fee_evidence(accessed="2026-11-20", period=None, state="confirmed"):
+    return {
+        "id": "fee", "offer": "a", "path": "*", "kind": "cost", "scope": "2027/28 tuition",
+        "state": state, "impact": "critical",
+        "claim": "Published 2027/28 tuition is CNY 300,000",
+        "period": period or dict(PERIOD),
+        "sources": [source("2027/28 tuition", accessed=accessed)],
+    }
+
+
+def base_case(offers=1, minor=False):
+    case = {
+        "schema": decision.VERSION,
+        "as_of": "2026-11-23",
+        "profile": {"undergraduate": "Business", "internships": ["agency internship"]},
+        "goal": {"paths": ["private"], "country": "China", "career": "marketing",
+                 "phd_intent": "no", "prestige": "neutral", "risk_tolerance": "moderate"},
+        "budget": {"currency": "CNY", "ceiling": 500000, "target": 450000},
+        "offers": [{
+            "id": "a", "title": "A University MSc Marketing", "country": "United Kingdom",
+            "operative_date": OPERATIVE, "cost_complete": True,
+            "costs": [{"id": "tuition", "kind": "expense", "amount": [300000, 300000],
+                       "month": 9, "basis": "published 2027/28 tuition", "evidence_ids": ["fee"]}],
+            "gates": [{"id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+                       "kind": "eligibility", "status": "unresolved", "evidence_ids": []}],
+        }],
+        "evidence": [fee_evidence()],
+    }
+    if offers > 1:
+        case["offers"].append({
+            "id": "b", "title": "B University MSc Marketing", "country": "United Kingdom",
+            "operative_date": OPERATIVE, "cost_complete": True,
+            "costs": [{"id": "tuition", "kind": "expense", "amount": [250000, 250000],
+                       "month": 9, "basis": "published 2027/28 tuition"}],
+            "gates": [{"id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+                       "kind": "eligibility", "status": "unresolved", "evidence_ids": []}],
+        })
+    if minor:
+        case["evidence"].append({
+            "id": "club", "offer": "a", "path": "private", "kind": "network",
+            "scope": "career club", "state": "unresolved", "impact": "minor",
+            "claim": "A student career club exists",
+        })
+    return case
+
+
+def find_task(state, kind, status=None):
+    return next(t for t in state["research"]["tasks"]
+                if t["kind"] == kind and (status is None or t["status"] == status))
+
+
+def programme_result(task):
+    return {
+        "task_id": task["id"], "status": "ok",
+        "claims": [{
+            "kind": "programme", "scope": task["scope"],
+            "claim": "The official page lists the 2027 MSc Marketing structure and duration",
+            "impact": "material", "period": dict(PERIOD),
+            "sources": [source(task["scope"])],
+        }],
+    }
+
+
+def gate_result(task):
+    return {
+        "task_id": task["id"], "status": "ok",
+        "claims": [{
+            "kind": "eligibility", "scope": task["scope"],
+            "claim": "The 2027 intake accepts a business bachelor degree",
+            "impact": "critical", "period": dict(PERIOD),
+            "sources": [source(task["scope"])],
+        }],
+        "gates": [{"id": "degree", "status": "pass"}],
+    }
+
+
+def researched_state(case=None):
+    state = harness.init_state(case or base_case())
+    harness.plan_tasks(state)
+    programme = find_task(state, "programme")
+    first = harness.record_result(state, programme_result(programme))
+    gate = find_task(state, "eligibility")
+    second = harness.record_result(state, gate_result(gate))
+    return state, first["added"][0], second["added"][0]
+
+
+def decision_doc(course_id, degree_id):
+    return {
+        "schema": decision.VERSION,
+        "conclusion": {"type": "recommend", "choices": [{"offer": "a", "path": "private"}]},
+        "headline": "选择 A University 的 2027 MSc Marketing",
+        "reasons": ["课程与目标岗位匹配", "费用低于绝对上限"],
+        "risks": [],
+        "reversal": "若入学资格或预算发生变化，则重新评估",
+        "assessments": [{
+            "offer": "a", "path": "private", "gate": "pass", "score_state": "confirmed",
+            "stance": "recommend", "value": "课程直接覆盖目标岗位技能",
+            "competitiveness": "在目标市场达到可投递门槛",
+            "evidence_ids": [degree_id, course_id],
+        }],
+    }
+
+
+def conditional_doc():
+    return {
+        "schema": decision.VERSION,
+        "conclusion": {"type": "conditional",
+                       "choices": [{"offer": "a", "path": "private"}]},
+        "headline": "条件性选择 A University",
+        "reasons": ["方向合理但入学资格尚未证实"],
+        "risks": ["资格不满足则路径不成立"],
+        "reversal": "若 2027 intake 明确不接收该本科背景，则撤回该条件性选择",
+        "assessments": [{
+            "offer": "a", "path": "private", "gate": "unresolved", "score_state": "nrsy",
+            "stance": "conditional", "value": "方向合理", "competitiveness": "待核实",
+            "evidence_ids": [],
+        }],
+    }
+
+
+class HarnessCase(unittest.TestCase):
+    def setUp(self):
+        self._env = dict(os.environ)
+        os.environ["OFFER_HARNESS_NOW"] = NOW
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self._env)
+
+
+class ResearchOrchestrationTests(HarnessCase):
+    def test_plan_separates_classes_and_dependencies(self):
+        state = harness.init_state(base_case(minor=True))
+        tasks = harness.plan_tasks(state)
+        classes = {t["kind"]: t["class"] for t in tasks}
+        self.assertEqual(classes["eligibility"], "hard_gate")
+        self.assertEqual(classes["programme"], "decisive")
+        self.assertEqual(classes["network"], "optional")
+        gate = find_task(state, "eligibility")
+        programme = find_task(state, "programme")
+        self.assertEqual(gate["depends_on"], [programme["id"]])
+        self.assertTrue(gate["verification_route"])
+
+    def test_plan_is_idempotent_and_preserves_closed_tasks(self):
+        state, _, _ = researched_state()
+        before = {t["id"]: t["status"] for t in state["research"]["tasks"]}
+        harness.plan_tasks(state)
+        after = {t["id"]: t["status"] for t in state["research"]["tasks"]}
+        self.assertEqual(before, after)
+        self.assertTrue(all(s == "done" for s in after.values()))
+
+    def test_next_respects_dependency_order(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        out = harness.next_tasks(state, advance=True)
+        self.assertFalse(out["stop"]["stop"])
+        self.assertEqual([t["kind"] for t in out["tasks"]], ["programme"])
+        self.assertTrue(any(row["event"] == "research_task_started" for row in state["trace"]))
+
+    def test_next_stops_when_only_optional_work_remains(self):
+        state = harness.init_state(base_case(minor=True))
+        harness.plan_tasks(state)
+        for task in state["research"]["tasks"]:
+            if task["class"] != "optional":
+                task["status"] = "done"
+        out = harness.next_tasks(state)
+        self.assertTrue(out["stop"]["stop"])
+        self.assertEqual(out["stop"]["reason"], "research_complete")
+
+    def test_round_limit_stops_the_loop(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        state["research"]["rounds"] = state["research"]["max_rounds"]
+        out = harness.next_tasks(state)
+        self.assertTrue(out["stop"]["stop"])
+        self.assertEqual(out["stop"]["reason"], "max_rounds")
+
+    def test_confirmed_evidence_does_not_auto_close_an_unresolved_gate(self):
+        case = base_case()
+        case["evidence"].append({
+            "id": "degree", "offer": "a", "path": "private", "kind": "eligibility",
+            "scope": "2027 intake MSc Marketing", "state": "confirmed", "impact": "critical",
+            "claim": "The 2027 intake accepts a business bachelor degree",
+            "period": dict(PERIOD), "sources": [source("2027 intake MSc Marketing")],
+        })
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        gate = find_task(state, "eligibility")
+        self.assertEqual(gate["status"], "todo")
+        self.assertIn("degree", gate["reused_evidence_ids"])
+
+    def test_plan_does_not_copy_private_profile_into_tasks(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        payload = json.dumps(state["research"]["tasks"], ensure_ascii=False)
+        self.assertNotIn("agency internship", payload)
+
+
+class ToolResultContractTests(HarnessCase):
+    def test_result_without_claim_is_rejected(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        with self.assertRaises(ValueError):
+            harness.record_result(state, {"task_id": task["id"], "status": "ok", "claims": []})
+
+    def test_result_missing_locator_is_rejected(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        result = programme_result(task)
+        del result["claims"][0]["sources"][0]["locator"]
+        with self.assertRaises(ValueError):
+            harness.record_result(state, result)
+
+    def test_successful_result_records_evidence_and_trace(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        out = harness.record_result(state, programme_result(task))
+        self.assertEqual(out["status"], "done")
+        self.assertEqual(len(out["added"]), 1)
+        events = [row["event"] for row in state["trace"]]
+        for event in ("source_checked", "evidence_state_changed", "research_task_finished"):
+            self.assertIn(event, events)
+        self.assertEqual(state["metrics"]["tool_results"], 1)
+
+    def test_repeated_fact_is_reused(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        harness.record_result(state, programme_result(task))
+        count = len(state["case"]["evidence"])
+        task["status"] = "todo"
+        out = harness.record_result(state, programme_result(task))
+        self.assertTrue(out["reused"])
+        self.assertEqual(len(state["case"]["evidence"]), count)
+        self.assertTrue(any(row["event"] == "research_reused" for row in state["trace"]))
+
+    def test_error_retries_then_blocks_with_route(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        programme = find_task(state, "programme")
+        harness.record_result(state, programme_result(programme))
+        task = find_task(state, "eligibility")
+        for _ in range(task["max_attempts"]):
+            out = harness.record_result(state, {"task_id": task["id"], "status": "error",
+                                                "error": "network unavailable"})
+        self.assertEqual(out["status"], "blocked")
+        self.assertTrue(out["route"])
+
+    def test_blocked_source_cannot_close_a_hard_gate(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        programme = find_task(state, "programme")
+        harness.record_result(state, programme_result(programme))
+        task = find_task(state, "eligibility")
+        out = harness.record_result(state, {
+            "task_id": task["id"], "status": "partial",
+            "claims": [{"claim": "Not visible behind the login wall", "state": "unresolved",
+                        "impact": "critical", "scope": task["scope"],
+                        "sources": [source(task["scope"], access="blocked", support="unreviewed")]}],
+        })
+        self.assertNotEqual(out["status"], "done")
+        gate = next(g for g in state["case"]["offers"][0]["gates"] if g["id"] == "degree")
+        self.assertEqual(gate["status"], "unresolved")
+
+    def test_contradiction_is_flagged_and_downgraded(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        programme = find_task(state, "programme")
+        harness.record_result(state, programme_result(programme))
+        task = find_task(state, "eligibility")
+        harness.record_result(state, gate_result(task))
+        task["status"] = "todo"
+        conflicting = gate_result(task)
+        conflicting["claims"][0]["claim"] = "The 2027 intake requires a marketing bachelor degree"
+        out = harness.record_result(state, conflicting)
+        self.assertTrue(out["conflicts"])
+        self.assertEqual(out["status"], "blocked")
+        summary = harness.verify_evidence(state)
+        self.assertTrue(summary["contradictions"])
+        self.assertTrue(summary["downgraded"])
+
+
+class EvidenceVerificationTests(HarnessCase):
+    def test_stale_access_is_downgraded(self):
+        case = base_case()
+        case["evidence"][0] = fee_evidence(accessed="2024-01-01")
+        state = harness.init_state(case)
+        summary = harness.verify_evidence(state, as_of="2026-11-23", max_age_days=365)
+        self.assertIn("fee", summary["downgraded"])
+        self.assertEqual(state["case"]["evidence"][0]["state"], "unresolved")
+
+    def test_out_of_period_claim_is_downgraded(self):
+        state = harness.init_state(base_case())
+        state["case"]["evidence"][0]["period"] = {"from": "2026-01-01", "through": "2026-12-31"}
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertIn("fee", summary["downgraded"])
+
+    def test_scope_mismatch_is_downgraded(self):
+        state = harness.init_state(base_case())
+        state["case"]["evidence"][0]["sources"][0]["scope"] = "university-wide"
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertIn("fee", summary["downgraded"])
+
+    def test_fresh_verified_evidence_survives(self):
+        state = harness.init_state(base_case())
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertEqual(summary["downgraded"], [])
+        self.assertEqual(state["case"]["evidence"][0]["state"], "confirmed")
+
+    def test_verification_says_semantic_support_needs_review(self):
+        state = harness.init_state(base_case())
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertIn("fee", summary["semantic_review_required"])
+        self.assertIn("model or human", summary["note"])
+
+    def test_downgrade_reopens_dependent_gate_and_traces_it(self):
+        state, _, _ = researched_state()
+        state["case"]["evidence"][-1]["period"] = {"from": "2026-01-01", "through": "2026-12-31"}
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertTrue(summary["gate_changes"])
+        gate = next(g for g in state["case"]["offers"][0]["gates"] if g["id"] == "degree")
+        self.assertEqual(gate["status"], "unresolved")
+        self.assertTrue(any(row["event"] == "gate_state_changed" for row in state["trace"]))
+
+
+class DecisionIntegrationTests(HarnessCase):
+    def test_recommendation_is_blocked_while_hard_gate_is_open(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        with self.assertRaisesRegex(ValueError, "hard-gate"):
+            harness.store_decision(state, decision_doc("missing", "missing"))
+
+    def test_wrong_citation_is_rejected(self):
+        state, course, degree = researched_state()
+        state["case"]["evidence"].append({
+            "id": "foreign", "offer": "a", "path": "soe", "kind": "market",
+            "scope": "SOE recruiting", "state": "confirmed", "impact": "material",
+            "claim": "A state-owned employer recruits this profile",
+            "period": dict(PERIOD), "sources": [source("SOE recruiting")],
+        })
+        doc = decision_doc(course, degree)
+        doc["assessments"][0]["evidence_ids"].append("foreign")
+        with self.assertRaisesRegex(ValueError, "out-of-scope"):
+            harness.store_decision(state, doc)
+
+    def test_valid_decision_quick_and_full_share_one_source(self):
+        state, course, degree = researched_state()
+        harness.store_decision(state, decision_doc(course, degree))
+        quick = harness.report(state, "quick")
+        full = harness.report(state, "full")
+        self.assertTrue(full.startswith(quick))
+        self.assertIn("费用与预算", quick)
+
+    def test_stale_decision_is_refused_after_case_change(self):
+        state, course, degree = researched_state()
+        harness.store_decision(state, decision_doc(course, degree))
+        state["case"]["budget"]["ceiling"] = 100000
+        with self.assertRaisesRegex(ValueError, "stale"):
+            harness.report(state, "quick")
+
+    def test_conditional_decision_preserves_unresolved_gate(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        doc = {
+            "schema": decision.VERSION,
+            "conclusion": {"type": "defer", "choices": []},
+            "headline": "资格未核实前暂缓决定",
+            "reasons": ["入学资格仍未核实"],
+            "risks": ["若资格不满足则路径不成立"],
+            "reversal": "核实 2027 intake 资格后重新评估",
+            "assessments": [{
+                "offer": "a", "path": "private", "gate": "unresolved", "score_state": "nrsy",
+                "stance": "defer", "value": "暂无法判断", "competitiveness": "暂无法判断",
+                "evidence_ids": [],
+            }],
+        }
+        harness.store_decision(state, doc)
+        self.assertEqual(state["decision"]["conclusion"]["type"], "defer")
+        self.assertTrue(any(row["event"] == "recommendation" for row in state["trace"]))
+
+    def test_cost_arithmetic_matches_the_engine(self):
+        state, course, degree = researched_state()
+        computed = harness.store_decision(state, decision_doc(course, degree))["computed"]
+        direct = decision.analyze(state["case"])
+        self.assertEqual(computed["offers"]["a"]["cost"]["cash"],
+                         direct["offers"]["a"]["cost"]["cash"])
+
+
+class ScenarioIsolationTests(HarnessCase):
+    def test_counterfactual_does_not_mutate_base_case(self):
+        state, _, _ = researched_state()
+        before = harness.digest(state["case"])
+        harness.scenario(state, {"field": "ceiling", "value": 200000}, "low_budget")
+        self.assertEqual(harness.digest(state["case"]), before)
+        self.assertNotIn("low_budget", json.dumps(state["case"]))
+
+    def test_career_change_reopens_only_the_scenario_gates(self):
+        state, _, _ = researched_state()
+        base_gate = next(g for g in state["case"]["offers"][0]["gates"] if g["id"] == "degree")
+        scenario = harness.scenario(state, {"field": "career", "value": "finance"}, "finance")
+        self.assertEqual(base_gate["status"], "pass")
+        scenario_gate = next(g for g in scenario["case"]["offers"][0]["gates"] if g["id"] == "degree")
+        self.assertEqual(scenario_gate["status"], "unresolved")
+        self.assertTrue(scenario["review_routes"])
+
+    def test_budget_change_compares_multiple_offers(self):
+        state = harness.init_state(base_case(offers=2))
+        harness.plan_tasks(state)
+        scenario = harness.scenario(state, {"field": "ceiling", "value": 200000}, "cap")
+        self.assertEqual(scenario["summary"]["a"]["budget_gate"], "fail")
+        self.assertEqual(scenario["summary"]["b"]["budget_gate"], "fail")
+        self.assertEqual(set(scenario["summary"]), {"a", "b"})
+
+    def test_duplicate_scenario_name_is_rejected(self):
+        state = harness.init_state(base_case())
+        harness.scenario(state, {"field": "ceiling", "value": 200000}, "cap")
+        with self.assertRaises(ValueError):
+            harness.scenario(state, {"field": "ceiling", "value": 100000}, "cap")
+
+
+class StateAndPrivacyTests(HarnessCase):
+    def test_checkpoint_and_resume_keep_verified_evidence(self):
+        state, _, _ = researched_state()
+        snap = harness.checkpoint(state)
+        self.assertTrue(snap["confirmed_evidence_ids"])
+        resumed = harness.resume(state)
+        self.assertEqual(resumed["phase"], "adjudicate")
+        self.assertFalse(resumed["decision_stale"])
+
+    def test_resume_rechecks_expired_evidence(self):
+        state, _, _ = researched_state()
+        state["case"]["evidence"][0]["sources"][0]["accessed"] = "2024-01-01"
+        harness.resume(state)
+        self.assertEqual(state["case"]["evidence"][0]["state"], "unresolved")
+
+    def test_privacy_expiry_and_purge(self):
+        state = harness.init_state(base_case())
+        os.environ["OFFER_HARNESS_NOW"] = "2026-12-05T10:00:00+08:00"
+        report = harness.privacy(state)
+        self.assertTrue(report["expired"])
+        harness.privacy(state, purge=True)
+        self.assertEqual(state["case"]["profile"], {})
+        self.assertTrue(state["privacy"]["purged_at"])
+
+    def test_identifier_keys_are_flagged_not_silently_accepted(self):
+        case = base_case()
+        case["profile"]["student_id"] = "12345678"
+        state = harness.init_state(case)
+        self.assertIn("student_id", state["privacy"]["identifier_warnings"])
+
+    def test_full_trace_covers_the_execution_chain(self):
+        state, course, degree = researched_state()
+        harness.store_decision(state, decision_doc(course, degree))
+        harness.report(state, "quick")
+        events = {row["event"] for row in state["trace"]}
+        for event in ("state_initialized", "plan_created", "research_task_started",
+                      "source_checked", "research_task_finished", "evidence_state_changed",
+                      "gate_state_changed", "calculation", "decision_stored",
+                      "recommendation", "report_rendered"):
+            self.assertIn(event, events)
+
+
+class VersionComparisonTests(HarnessCase):
+    def test_v2_catches_an_expired_source_that_v1_accepts(self):
+        case = base_case()
+        case["evidence"][0] = fee_evidence(accessed="2024-01-01")
+        # v1 validates structure and period only, so the old page still passes.
+        decision.analyze(case)
+        state = harness.init_state(case)
+        summary = harness.verify_evidence(state, as_of="2026-11-23")
+        self.assertIn("fee", summary["downgraded"])
+
+    def test_v2_adds_research_state_without_changing_v1_tasks(self):
+        case = base_case()
+        v1_tasks = decision.research(case)["tasks"]
+        state = harness.init_state(case)
+        v2_tasks = harness.plan_tasks(state)
+        self.assertEqual({(t["offer_id"], t["path"], t["topic"], t["scope"]) for t in v1_tasks},
+                         {(t["offer_id"], t["path"], t["kind"], t["scope"]) for t in v2_tasks})
+        self.assertTrue(all("status" in t for t in v2_tasks))
+        self.assertTrue(all("status" not in t for t in v1_tasks))
+
+    def test_both_layers_isolate_counterfactuals(self):
+        case = base_case()
+        before = harness.digest(case)
+        decision.scenario(case, {"field": "ceiling", "value": 200000})
+        self.assertEqual(harness.digest(case), before)
+        state = harness.init_state(case)
+        harness.scenario(state, {"field": "ceiling", "value": 200000}, "cap")
+        self.assertEqual(harness.digest(state["case"]), before)
+
+
+class FrozenRealSourceCaseTests(HarnessCase):
+    """The 2026-11-23 real-source case, frozen as a regression fixture.
+
+    Sources are recorded claims from opened official pages; the test itself
+    never touches the network. The synthetic profile is the only private part.
+    """
+
+    def test_real_source_case_decides_and_counterfactual_is_isolated(self):
+        base = ROOT / "docs" / "examples" / "v2-harness"
+        case = json.loads((base / "case.json").read_text(encoding="utf-8"))
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        for offer_id, filename in (("warwick", "gate-warwick.json"),
+                                   ("glasgow", "gate-glasgow.json")):
+            task = next(t for t in state["research"]["tasks"]
+                        if t["kind"] == "eligibility" and t["offer_id"] == offer_id)
+            result = json.loads((base / filename).read_text(encoding="utf-8"))
+            result["task_id"] = task["id"]
+            harness.record_result(state, result)
+        computed = harness.store_decision(
+            state, json.loads((base / "decision.json").read_text(encoding="utf-8")))["computed"]
+        self.assertEqual(list(computed["offers"]["warwick"]["cost"]["cash"]), [5450000, 5450000])
+        self.assertEqual(list(computed["offers"]["glasgow"]["cost"]["cash"]), [4981500, 4981500])
+        quick = harness.report(state, "quick")
+        self.assertTrue(harness.report(state, "full").startswith(quick))
+        before = harness.digest(state["case"])
+        scenario = harness.scenario(
+            state, json.loads((base / "change.json").read_text(encoding="utf-8")),
+            "ceiling_53000")
+        self.assertEqual(scenario["summary"]["warwick"]["budget_gate"], "fail")
+        self.assertEqual(scenario["summary"]["glasgow"]["budget_gate"], "pass")
+        self.assertEqual(harness.digest(state["case"]), before)
+
+
+class AuditRegressionTests(HarnessCase):
+    def test_retention_expiry_purges_profile_and_keeps_decision_renderable(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.scenario(state, {"field": "ceiling", "value": 400000}, "cap")
+        state["privacy"]["expires_at"] = "2026-11-22"
+        info = harness.privacy(state)
+        self.assertTrue(info["expired"])
+        self.assertTrue(info["auto_purged_on_expiry"])
+        self.assertEqual(state["case"]["profile"], {})
+        self.assertEqual(state["scenarios"]["cap"]["case"]["profile"], {})
+        self.assertTrue(harness.report(state, "quick"))
+
+    def test_resume_does_not_clear_stale_when_case_digest_changed(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        state["case"]["offers"][0]["costs"][0]["amount"] = [350000, 350000]
+        harness.resume(state)
+        self.assertTrue(state["decision_state"]["stale"])
+        self.assertTrue(harness.status(state)["decision"]["stale"])
+
+    def test_resume_reopens_tasks_for_downgraded_evidence(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.checkpoint(state)
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        out = harness.resume(state)
+        self.assertTrue(out["checkpoint_drift"]["detected"])
+        self.assertTrue(out["checkpoint_drift"]["evidence_no_longer_confirmed"])
+        self.assertTrue(out["open_tasks"])
+        self.assertTrue(any(t["state"] != "confirmed" for t in state["case"]["evidence"]))
+        self.assertEqual(state["phase"], "research")
+
+    def test_resume_reopens_transiently_blocked_task(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        task = find_task(state, "programme")
+        for _ in range(task["max_attempts"]):
+            harness.record_result(state, {"task_id": task["id"], "status": "error",
+                                          "error": "quota exhausted"})
+        self.assertEqual(task["status"], "blocked")
+        self.assertEqual(task["blocked_reason"], "tool_error")
+        harness.resume(state)
+        self.assertEqual(task["status"], "todo")
+        self.assertEqual(task["attempts"], 0)
+
+    def test_scenario_is_marked_stale_when_base_evidence_changes(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        harness.scenario(state, {"field": "ceiling", "value": 400000}, "cap")
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        harness.verify_evidence(state)
+        self.assertTrue(state["scenarios"]["cap"]["stale"])
+        self.assertTrue(harness.status(state)["scenarios"]["cap"]["stale"])
+
+    def test_report_rechecks_freshness_before_rendering(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        with self.assertRaises(ValueError):
+            harness.report(state, "quick")
+        self.assertTrue(state["decision_state"]["stale"])
+
+    def test_scenario_rechecks_base_freshness(self):
+        state, course_id, degree_id = researched_state()
+        harness.store_decision(state, decision_doc(course_id, degree_id))
+        for entry in state["case"]["evidence"]:
+            for row in entry.get("sources", []):
+                row["accessed"] = "2020-01-01"
+        row = harness.scenario(state, {"field": "ceiling", "value": 400000}, "stale-base")
+        self.assertTrue(any(e["state"] != "confirmed" for e in row["case"]["evidence"]))
+        self.assertNotEqual(row["summary"]["a"]["paths"]["private"], "pass")
+
+    def test_load_enforces_profile_expiry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "state.json"
+            state = harness.init_state(base_case())
+            state["privacy"]["expires_at"] = "2020-01-01"
+            target.write_text(json.dumps(state), encoding="utf-8")
+            exited = subprocess.run(
+                [sys.executable, str(SCRIPTS / "harness.py"), "report", "--state", str(target)],
+                capture_output=True, text=True)
+            self.assertEqual(exited.returncode, 2)
+            self.assertIn("no validated decision", exited.stderr)
+            loaded = json.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(loaded["case"]["profile"], {})
+            self.assertTrue(loaded["privacy"]["purged_at"])
+            self.assertEqual(loaded["trace"][-1]["event"], "privacy_retention_expired")
+
+    def test_load_removes_crash_residue_after_state_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "state.json"
+            state = harness.init_state(base_case())
+            target.write_text(json.dumps(state), encoding="utf-8")
+            harness.save_state(target, state)
+            if os.name == "posix":
+                self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+            residue = Path(str(target) + ".tmp")
+            residue.write_text(json.dumps(state), encoding="utf-8")
+            harness.load_state(target)
+            self.assertFalse(residue.exists())
+
+    def test_coverage_flags_undeclared_path_topics_without_changing_decision(self):
+        case = base_case()
+        case["goal"]["paths"] = ["soe"]
+        case["offers"][0]["gates"] = []
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        cov = harness.coverage(state)
+        self.assertIn("credential", cov["paths"]["soe"]["missing"])
+        self.assertIn("eligibility", cov["paths"]["soe"]["missing"])
+        self.assertIn("timing", cov["paths"]["soe"]["missing"])
+        self.assertTrue(harness.status(state)["coverage"]["gaps"])
+
+
+def path_evidence(kind, path, scope, state="confirmed"):
+    row = {
+        "id": f"{path}_{kind}", "offer": "a", "path": path, "kind": kind, "scope": scope,
+        "state": state, "impact": "critical" if kind in harness.HARD_KINDS else "material",
+        "claim": f"The official page confirms {kind} for {scope}",
+    }
+    if state == "confirmed":
+        row["period"] = dict(PERIOD)
+        row["sources"] = [source(scope)]
+    return row
+
+
+def path_case(path, gates=None, evidence_rows=None):
+    case = base_case()
+    case["goal"]["paths"] = [path]
+    case["offers"][0]["gates"] = gates or []
+    case["evidence"] = evidence_rows if evidence_rows is not None else [fee_evidence()]
+    return case
+
+
+def split_coverage_case():
+    """Two offers on one path: A's eligibility is proven, B's is still open."""
+    case = base_case(offers=2)
+    case["offers"][0]["gates"] = [{
+        "id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+        "kind": "eligibility", "status": "pass", "evidence_ids": ["entry_a"],
+    }]
+    case["offers"][1]["gates"] = [{
+        "id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+        "kind": "eligibility", "status": "unresolved", "evidence_ids": [],
+    }]
+    entry = path_evidence("eligibility", "private", "2027 intake MSc Marketing")
+    entry["id"] = "entry_a"
+    case["evidence"] = [fee_evidence(), entry]
+    return case
+
+
+def choose(offer):
+    return {"conclusion": {"type": "recommend",
+                           "choices": [{"offer": offer, "path": "private"}]}}
+
+
+class ResearchCoverageContractTests(HarnessCase):
+    def test_private_contract_flags_hard_eligibility_and_decisive_gaps(self):
+        state = harness.init_state(path_case("private"))
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertEqual(row["classes"]["eligibility"], "hard")
+        self.assertEqual(row["classes"]["credential"], "decisive")
+        self.assertIn("eligibility", row["hard_gaps"])
+        self.assertIn("credential", row["decisive_gaps"])
+        self.assertIn("market", row["decisive_gaps"])
+        self.assertEqual(row["confirmed"], ["cost"])
+        self.assertTrue(cov["hard_blocking"])
+
+    def test_private_hard_gap_blocks_unconditional_recommendation(self):
+        state = harness.init_state(path_case("private"))
+        with self.assertRaisesRegex(ValueError, "required research"):
+            harness.preflight_recommendation(state, decision_doc("missing", "missing"))
+        state["phase"] = "research"
+        harness.store_decision(state, conditional_doc())
+        self.assertEqual(state["decision"]["conclusion"]["type"], "conditional")
+        self.assertTrue(any(row["event"] == "coverage_conditional_release"
+                            for row in state["trace"]))
+
+    def test_conditional_release_survives_an_open_hard_gate_task(self):
+        state = harness.init_state(base_case())
+        harness.plan_tasks(state)
+        self.assertTrue(harness.open_tasks(state, classes=("hard_gate",)))
+        state["phase"] = "research"
+        harness.store_decision(state, conditional_doc())
+        self.assertEqual(state["decision"]["conclusion"]["type"], "conditional")
+
+    def test_soe_credential_and_timing_are_hard(self):
+        gates = [{"id": "degree", "path": "soe", "scope": "2027 intake MSc Marketing",
+                  "kind": "eligibility", "status": "pass", "evidence_ids": ["soe_eligibility"]}]
+        evidence_rows = [fee_evidence(),
+                         path_evidence("eligibility", "soe", "2027 intake MSc Marketing")]
+        state = harness.init_state(path_case("soe", gates, evidence_rows))
+        row = harness.coverage(state)["paths"]["soe"]
+        self.assertEqual(row["hard_gaps"], ["credential", "timing"])
+        self.assertEqual(row["confirmed"], ["cost", "eligibility"])
+        with self.assertRaisesRegex(ValueError, "soe/credential"):
+            harness.preflight_recommendation(state, decision_doc("missing", "missing"))
+
+    def test_soe_not_applicable_requires_human_reason(self):
+        state = harness.init_state(path_case("soe"))
+        base = {"path": "soe", "kind": "credential", "status": "not_applicable"}
+        with self.assertRaisesRegex(ValueError, "reason"):
+            harness.record_coverage(state, dict(base))
+        with self.assertRaisesRegex(ValueError, "human judgement"):
+            harness.record_coverage(state, {**base, "reason": "employer accepts any degree",
+                                            "reviewer": "model"})
+        out = harness.record_coverage(state, {**base, "reason": "雇主目录未设专业门槛",
+                                              "reviewer": "human"})
+        self.assertEqual(out["coverage"]["paths"]["soe"]["not_applicable"], ["credential"])
+        self.assertNotIn("credential", out["coverage"]["paths"]["soe"]["hard_gaps"])
+        self.assertTrue(any(row["event"] == "coverage_disposition" for row in state["trace"]))
+
+    def test_local_work_rights_are_hard_while_market_is_decisive(self):
+        state = harness.init_state(path_case("local"))
+        row = harness.coverage(state)["paths"]["local"]
+        self.assertEqual(row["classes"]["work"], "hard")
+        self.assertEqual(row["hard_gaps"], ["work"])
+        self.assertIn("market", row["decisive_gaps"])
+        self.assertIn("access", row["decisive_gaps"])
+
+    def test_phd_has_no_hard_slot_but_surfaces_decisive_gaps(self):
+        state = harness.init_state(path_case("phd"))
+        cov = harness.coverage(state)
+        row = cov["paths"]["phd"]
+        self.assertEqual(row["hard_gaps"], [])
+        self.assertFalse(cov["hard_blocking"])
+        self.assertEqual(sorted(row["decisive_gaps"]), ["academic", "programme"])
+
+    def test_decisive_gap_does_not_block_a_recommendation(self):
+        state, course, degree = researched_state()
+        cov = harness.coverage(state)
+        self.assertEqual(cov["hard_gaps"], [])
+        self.assertIn("credential", cov["paths"]["private"]["decisive_gaps"])
+        harness.store_decision(state, decision_doc(course, degree))
+        self.assertTrue(any(row["event"] == "coverage_warning" for row in state["trace"]))
+
+    def test_paths_do_not_inherit_each_others_coverage(self):
+        case = base_case()
+        case["goal"]["paths"] = ["private", "soe"]
+        case["offers"][0]["gates"] = [
+            {"id": "degree", "path": "private", "scope": "2027 intake MSc Marketing",
+             "kind": "eligibility", "status": "unresolved", "evidence_ids": []},
+            {"id": "soe_degree", "path": "soe", "scope": "2027 intake MSc Marketing",
+             "kind": "eligibility", "status": "unresolved", "evidence_ids": []},
+        ]
+        case["evidence"] = [fee_evidence(),
+                            path_evidence("credential", "soe", "2027 intake MSc Marketing")]
+        state = harness.init_state(case)
+        cov = harness.coverage(state)
+        self.assertIn("credential", cov["paths"]["soe"]["confirmed"])
+        self.assertNotIn("credential", cov["paths"]["private"]["confirmed"])
+        self.assertIn("credential", cov["paths"]["private"]["decisive_gaps"])
+
+    def test_unresolved_disposition_stays_visible_without_becoming_a_pass(self):
+        state = harness.init_state(path_case("private"))
+        harness.record_coverage(state, {"path": "private", "kind": "market",
+                                        "status": "unresolved",
+                                        "reason": "目标雇主的校招名单尚未公布"})
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertIn("market", row["unresolved"])
+        self.assertIn("market", row["decisive_gaps"])
+        self.assertNotIn("market", row["confirmed"])
+
+    def test_one_offer_confirmation_does_not_cover_another_offer(self):
+        state = harness.init_state(split_coverage_case())
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertIn("eligibility", row["offers"]["a"]["confirmed"])
+        self.assertIn("eligibility", row["offers"]["b"]["unresolved"])
+        self.assertNotIn("eligibility", row["confirmed"])
+        self.assertIn("eligibility", row["unresolved"])
+        self.assertIn({"offer": "b", "path": "private", "kind": "eligibility"},
+                      cov["hard_gaps"])
+        self.assertTrue(cov["hard_blocking"])
+
+    def test_recommending_the_confirmed_offer_survives_the_other_offer(self):
+        state = harness.init_state(split_coverage_case())
+        harness.preflight_recommendation(state, choose("a"))
+
+    def test_recommending_the_unresolved_offer_is_blocked_by_its_own_gap(self):
+        state = harness.init_state(split_coverage_case())
+        with self.assertRaisesRegex(ValueError, "b/private/eligibility"):
+            harness.preflight_recommendation(state, choose("b"))
+
+    def test_parity_with_choice_requires_comparator_eligibility_coverage(self):
+        case = split_coverage_case()
+        case["offers"][1]["gates"][0].update(kind="timing", status="not_applicable")
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        doc = decision_doc("fee", "entry_a")
+        doc["conclusion"].update(type="parity_with_choice", parity_basis="Comparable outcomes")
+        doc["assessments"].append(dict(doc["assessments"][0], offer="b",
+                                       stance="viable", evidence_ids=[]))
+        with self.assertRaisesRegex(ValueError, "b/private/eligibility"):
+            harness.store_decision(state, doc)
+
+    def test_cost_confirmation_is_also_per_offer(self):
+        state = harness.init_state(base_case(offers=2))
+        cov = harness.coverage(state)
+        row = cov["paths"]["private"]
+        self.assertIn("cost", row["offers"]["a"]["confirmed"])
+        self.assertIn("cost", row["offers"]["b"]["missing"])
+        self.assertNotIn("cost", row["confirmed"])
+        self.assertIn({"offer": "b", "path": "private", "kind": "cost",
+                       "class": "decisive", "status": "missing"}, cov["gaps"])
+
+    def test_offer_level_not_applicable_clears_only_that_offer(self):
+        state = harness.init_state(split_coverage_case())
+        base = {"offer": "b", "path": "private", "kind": "eligibility",
+                "status": "not_applicable", "reason": "该项目不设单独的资格门槛"}
+        with self.assertRaisesRegex(ValueError, "human judgement"):
+            harness.record_coverage(state, {**base, "reviewer": "model"})
+        out = harness.record_coverage(state, {**base, "reviewer": "human"})
+        self.assertEqual(out["coverage"]["hard_gaps"], [])
+        self.assertEqual(out["coverage"]["paths"]["private"]["offers"]["b"]["not_applicable"],
+                         ["eligibility"])
+        self.assertIn("eligibility", out["coverage"]["paths"]["private"]["confirmed"])
+
+    def test_path_level_confirmation_cannot_mask_an_offer(self):
+        state = harness.init_state(split_coverage_case())
+        with self.assertRaisesRegex(ValueError, "that offer"):
+            harness.record_coverage(state, {"path": "private", "kind": "eligibility",
+                                            "status": "confirmed"})
+
+
+class SemanticReviewRecordTests(HarnessCase):
+    def test_model_review_is_auditable_but_not_official_confirmation(self):
+        state, _, degree = researched_state()
+        record = harness.record_review(state, {
+            "claim_id": degree,
+            "source_url": "https://www.example.edu/study/marketing",
+            "locator": "Admissions > Entry requirements > paragraph 2",
+            "reviewer_type": "model", "verdict": "supported",
+            "rationale": "The paragraph lists a business bachelor as accepted.",
+            "programme": "MSc Marketing", "intake": "2027 intake",
+        })
+        review = record["review"]
+        for key in ("claim_id", "source_url", "locator", "reviewer_type", "verdict",
+                    "reviewed_at", "rationale", "programme", "intake"):
+            self.assertIn(key, review)
+        self.assertFalse(review["official_confirmation"])
+        self.assertEqual(record["evidence_state"], "confirmed")
+        summary = harness.verify_evidence(state)
+        self.assertIn(degree, summary["semantic_review_required"])
+        self.assertEqual(summary["semantic_review_records"], 1)
+
+    def test_unsupported_review_downgrades_claim_and_reopens_gate(self):
+        state, _, degree = researched_state()
+        out = harness.record_review(state, {
+            "claim_id": degree,
+            "source_url": "https://www.example.edu/study/marketing",
+            "locator": "Admissions > Entry requirements",
+            "reviewer_type": "human", "verdict": "unsupported",
+            "rationale": "The located text addresses a different intake year.",
+        })
+        entry = next(e for e in state["case"]["evidence"] if e["id"] == degree)
+        self.assertEqual(entry["state"], "unresolved")
+        gate = next(g for g in state["case"]["offers"][0]["gates"] if g["id"] == "degree")
+        self.assertEqual(gate["status"], "unresolved")
+        self.assertTrue(out["downgraded"])
+
+    def test_supported_review_never_promotes_an_unresolved_claim(self):
+        state = harness.init_state(path_case("private"))
+        pending = path_evidence("market", "private", "2027 employer list", state="unresolved")
+        pending["sources"] = [source("2027 employer list", support="unreviewed", access="unopened")]
+        state["case"]["evidence"].append(pending)
+        out = harness.record_review(state, {
+            "claim_id": "private_market",
+            "source_url": "https://www.example.edu/study/marketing",
+            "locator": "Careers > Recruiters",
+            "reviewer_type": "model", "verdict": "supported",
+            "rationale": "The page lists one relevant recruiter.",
+        })
+        self.assertEqual(out["evidence_state"], "unresolved")
+        self.assertFalse(out["official_confirmation"])
+
+    def test_review_rejects_a_source_not_recorded_on_the_claim(self):
+        state, _, degree = researched_state()
+        with self.assertRaisesRegex(ValueError, "not recorded"):
+            harness.record_review(state, {
+                "claim_id": degree,
+                "source_url": "https://www.other.example/admissions",
+                "locator": "Admissions", "reviewer_type": "human",
+                "verdict": "supported", "rationale": "looks fine",
+            })
+
+    def test_unresolved_verdict_keeps_the_claim_unresolved(self):
+        state, _, degree = researched_state()
+        harness.record_review(state, {
+            "claim_id": degree,
+            "source_url": "https://www.example.edu/study/marketing",
+            "locator": "Admissions > Entry requirements",
+            "reviewer_type": "human", "verdict": "unresolved",
+            "rationale": "The page does not state the rule for this intake.",
+        })
+        entry = next(e for e in state["case"]["evidence"] if e["id"] == degree)
+        self.assertEqual(entry["state"], "unresolved")
+        summary = harness.verify_evidence(state)
+        self.assertNotIn(degree, summary["semantic_review_required"])
+
+
+class AuditComparisonTests(HarnessCase):
+    def test_v1_accepts_expired_eligibility_where_v2_blocks(self):
+        base = ROOT / "docs" / "examples" / "v2-harness"
+        case = json.loads((base / "case.json").read_text(encoding="utf-8"))
+        decision_doc = json.loads((base / "decision.json").read_text(encoding="utf-8"))
+        state = harness.init_state(case)
+        harness.plan_tasks(state)
+        for offer_id, filename in (("warwick", "gate-warwick.json"),
+                                   ("glasgow", "gate-glasgow.json")):
+            task = next(t for t in state["research"]["tasks"]
+                        if t["kind"] == "eligibility" and t["offer_id"] == offer_id)
+            result = json.loads((base / filename).read_text(encoding="utf-8"))
+            result["task_id"] = task["id"]
+            harness.record_result(state, result)
+
+        v1_case = json.loads(json.dumps(state["case"]))
+        for entry in v1_case["evidence"]:
+            if entry["id"] in {"e_w_entry", "e_g_entry"}:
+                for row in entry["sources"]:
+                    row["accessed"] = "2020-01-01"
+        decision.audit(v1_case)
+        decision.validate(v1_case, decision_doc)
+
+        for entry in state["case"]["evidence"]:
+            if entry["id"] in {"e_w_entry", "e_g_entry"}:
+                for row in entry["sources"]:
+                    row["accessed"] = "2020-01-01"
+        harness.verify_evidence(state)
+        states = {e["id"]: e["state"] for e in state["case"]["evidence"]}
+        self.assertEqual(states["e_w_entry"], "unresolved")
+        with self.assertRaises(ValueError):
+            harness.store_decision(state, decision_doc)
+
+
+class CliTests(HarnessCase):
+    def run_cli(self, *args, cwd):
+        return subprocess.run([sys.executable, str(SCRIPTS / "harness.py"), *args],
+                              cwd=cwd, capture_output=True, text=True,
+                              env={**os.environ, "OFFER_HARNESS_NOW": NOW})
+
+    def test_cli_init_plan_and_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_path = Path(tmp) / "case.json"
+            state_path = Path(tmp) / "state.json"
+            case_path.write_text(json.dumps(base_case(), ensure_ascii=False), encoding="utf-8")
+            init = self.run_cli("init", str(case_path), "--state", str(state_path), cwd=tmp)
+            self.assertEqual(init.returncode, 0, init.stderr)
+            plan = self.run_cli("plan", "--state", str(state_path), cwd=tmp)
+            self.assertEqual(plan.returncode, 0, plan.stderr)
+            self.assertTrue(json.loads(plan.stdout)["tasks"])
+            status = self.run_cli("status", "--state", str(state_path), cwd=tmp)
+            self.assertEqual(json.loads(status.stdout)["phase"], "research")
+
+    def test_cli_resume_keeps_completed_work_and_reopens_transient_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_path = Path(tmp) / "case.json"
+            state_path = Path(tmp) / "state.json"
+            case_path.write_text(json.dumps(base_case(), ensure_ascii=False), encoding="utf-8")
+            self.run_cli("init", str(case_path), "--state", str(state_path), cwd=tmp)
+            planned = json.loads(self.run_cli("plan", "--state", str(state_path), cwd=tmp).stdout)
+            programme = next(t for t in planned["tasks"] if t["kind"] == "programme")
+            gate = next(t for t in planned["tasks"] if t["kind"] == "eligibility")
+            ok_path = Path(tmp) / "ok.json"
+            ok_path.write_text(json.dumps(programme_result(programme), ensure_ascii=False),
+                               encoding="utf-8")
+            self.assertEqual(self.run_cli("record", "--state", str(state_path), str(ok_path),
+                                          cwd=tmp).returncode, 0)
+            fail_path = Path(tmp) / "fail.json"
+            fail_path.write_text(json.dumps({"task_id": gate["id"], "status": "error",
+                                             "error": "network down"}), encoding="utf-8")
+            for _ in range(gate["max_attempts"]):
+                self.run_cli("record", "--state", str(state_path), str(fail_path), cwd=tmp)
+            resumed = json.loads(self.run_cli("resume", "--state", str(state_path),
+                                              cwd=tmp).stdout)
+            self.assertIn(gate["id"], resumed["reopened_tasks"])
+            self.assertEqual(resumed["open_tasks"], [gate["id"]])
+            status = json.loads(self.run_cli("status", "--state", str(state_path), cwd=tmp).stdout)
+            self.assertEqual(status["tasks"]["done"], 1)
+
+    def test_cli_rejects_incomplete_result_without_writing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_path = Path(tmp) / "case.json"
+            state_path = Path(tmp) / "state.json"
+            case_path.write_text(json.dumps(base_case(), ensure_ascii=False), encoding="utf-8")
+            self.run_cli("init", str(case_path), "--state", str(state_path), cwd=tmp)
+            planned = json.loads(self.run_cli("plan", "--state", str(state_path), cwd=tmp).stdout)
+            task = next(t for t in planned["tasks"] if t["kind"] == "programme")
+            result_path = Path(tmp) / "result.json"
+            result_path.write_text(json.dumps({"task_id": task["id"], "status": "ok",
+                                               "claims": []}), encoding="utf-8")
+            before = state_path.read_text(encoding="utf-8")
+            bad = self.run_cli("record", "--state", str(state_path), str(result_path), cwd=tmp)
+            self.assertEqual(bad.returncode, 2)
+
+    def test_cli_coverage_disposition_and_semantic_review(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case_path = Path(tmp) / "case.json"
+            state_path = Path(tmp) / "state.json"
+            case_path.write_text(json.dumps(base_case(), ensure_ascii=False), encoding="utf-8")
+            self.run_cli("init", str(case_path), "--state", str(state_path), cwd=tmp)
+            planned = json.loads(self.run_cli("plan", "--state", str(state_path), cwd=tmp).stdout)
+            programme = next(t for t in planned["tasks"] if t["kind"] == "programme")
+            programme_path = Path(tmp) / "programme.json"
+            programme_path.write_text(json.dumps(programme_result(programme), ensure_ascii=False),
+                                      encoding="utf-8")
+            self.assertEqual(self.run_cli("record", "--state", str(state_path),
+                                          str(programme_path), cwd=tmp).returncode, 0)
+            gate = next(t for t in planned["tasks"] if t["kind"] == "eligibility")
+            gate_path = Path(tmp) / "gate.json"
+            gate_path.write_text(json.dumps(gate_result(gate), ensure_ascii=False), encoding="utf-8")
+            recorded = json.loads(self.run_cli("record", "--state", str(state_path),
+                                               str(gate_path), cwd=tmp).stdout)
+            evidence_id = recorded["added"][0]
+
+            disposition = Path(tmp) / "coverage.json"
+            disposition.write_text(json.dumps({
+                "path": "private", "kind": "credential", "status": "not_applicable",
+                "reason": "目标岗位按作品集招聘，不设专业目录", "reviewer": "human",
+            }, ensure_ascii=False), encoding="utf-8")
+            applied = self.run_cli("coverage", "--state", str(state_path),
+                                   "--record", str(disposition), cwd=tmp)
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            covered = json.loads(applied.stdout)["coverage"]
+            self.assertIn("credential", covered["paths"]["private"]["not_applicable"])
+
+            review = Path(tmp) / "review.json"
+            review.write_text(json.dumps({
+                "claim_id": evidence_id,
+                "source_url": "https://www.example.edu/study/marketing",
+                "locator": "Admissions > Entry requirements",
+                "reviewer_type": "human", "verdict": "supported",
+                "rationale": "The paragraph states the accepted degree.",
+            }, ensure_ascii=False), encoding="utf-8")
+            reviewed = self.run_cli("review", "--state", str(state_path),
+                                    str(review), cwd=tmp)
+            self.assertEqual(reviewed.returncode, 0, reviewed.stderr)
+            self.assertFalse(json.loads(reviewed.stdout)["official_confirmation"])
+            status = json.loads(self.run_cli("status", "--state", str(state_path), cwd=tmp).stdout)
+            self.assertEqual(status["evidence"]["semantic_reviews"], 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

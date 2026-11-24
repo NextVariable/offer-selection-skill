@@ -1,0 +1,63 @@
+{
+  "schema": "offer-decision/v1",
+  "conclusion": {
+    "type": "conditional",
+    "choices": [
+      {
+        "offer": "glasgow",
+        "path": "private"
+      },
+      {
+        "offer": "warwick",
+        "path": "private"
+      }
+    ]
+  },
+  "headline": "默认选 Glasgow；只有当你确认目标雇主更看重 Warwick 品牌且愿意把预算目标上调约 GBP 1,500 时，才改选 Warwick。",
+  "reasons": [
+    "Glasgow 2027-28 国际学费 GBP 34,815，比 Warwick 的 GBP 39,500 低 GBP 4,685；按用户自报 GBP 15,000 生活费，总现金成本约 GBP 49,815，仍在 GBP 53,000 目标内。",
+    "Warwick 总成本约 GBP 54,500，低于 GBP 56,000 绝对上限，但超过 GBP 53,000 目标约 GBP 1,500，需要明确的品牌/雇主信号溢价来证明。",
+    "两校 2027 入学资格均与合成画像匹配：Warwick 接受任何学科 2.1 且要求 IELTS 7.0；Glasgow 要求商科/营销/commerce 2.1 且 IELTS 6.5。",
+    "Warwick 的 QS 营销排名信号更强；Glasgow 为 QS top 70、CIM 认证、三重认证商学院，已足以进入目标岗位的可投递范围。"
+  ],
+  "risks": [
+    "中国私企对该两个具体硕士项目的偏好尚未核实，当前只确认了学校公开的排名与认证。",
+    "Warwick 超出用户预算目标约 GBP 1,500；若家庭现金流不允许，Warwick 不应作为默认选择。",
+    "生活费采用用户自报的 GBP 15,000 全包估计，不是学校官方住宿报价；实际房租和汇率会改变余量。"
+  ],
+  "reversal": "若目标雇主明确把 Warwick 列为目标院校，或用户把预算目标提高到至少 GBP 54,500，则 Warwick 转为可推荐；若预算上限降到 GBP 53,000 以下，Warwick 预算门槛失败，只剩 Glasgow。",
+  "assessments": [
+    {
+      "offer": "glasgow",
+      "path": "private",
+      "gate": "pass",
+      "score_state": "provisional",
+      "stance": "recommend",
+      "value": "课程覆盖营销战略、CIM 认证与咨询项目，直接匹配私企营销岗位；成本低于目标。",
+      "competitiveness": "QS top 70 与三重认证商学院提供足够的目标市场识别度；具体雇主偏好仍未核实。",
+      "evidence_ids": [
+        "e_g_entry",
+        "e_g_programme",
+        "e_g_tuition",
+        "e_g_brand",
+        "e_g_china"
+      ]
+    },
+    {
+      "offer": "warwick",
+      "path": "private",
+      "gate": "pass",
+      "score_state": "provisional",
+      "stance": "conditional",
+      "value": "更强的 QS 营销排名和 WBS 品牌可能带来额外简历信号，但需要 GBP 4,685 增量成本与超出目标 GBP 1,500。",
+      "competitiveness": "品牌信号更强，但该溢价对具体中国私企雇主的实际回报未核实。",
+      "evidence_ids": [
+        "e_w_entry",
+        "e_w_programme",
+        "e_w_tuition",
+        "e_w_brand",
+        "e_w_china"
+      ]
+    }
+  ]
+}

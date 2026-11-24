@@ -38,6 +38,9 @@ jobs:
       - name: Offer Decision Engine fixtures
         run: python3 -m unittest discover -s maintenance -p 'test_decision_engine.py'
 
+      - name: Decision harness fixtures
+        run: python3 -m unittest maintenance.test_harness
+
       - name: Installer syntax and safety battery
         run: |
           bash -n maintenance/install.sh maintenance/test_installer.sh
@@ -69,6 +72,9 @@ jobs:
 
       - name: Offer Decision Engine fixtures
         run: python3 -m unittest discover -s maintenance -p 'test_decision_engine.py'
+
+      - name: Decision harness fixtures
+        run: python3 -m unittest maintenance.test_harness
 
       - name: Installer syntax and safety battery
         run: |

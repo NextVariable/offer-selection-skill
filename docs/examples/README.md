@@ -37,3 +37,4 @@ or a guarantee of AI performance. The rules are maintained in
 | 10 | All offers not recommended | "Choose none" / reapply / change-target are valid outcomes |
 | 11 | Critical facts unconfirmed | No Responsible Score Yet; conditional recommendation, never a fake-precision integer |
 | 12 | Unrelated question | The skill must not activate for out-of-scope requests |
+| 14 | v2 harness on real 2027 UK sources | Opened sources support cost/eligibility claims; employer recognition stays unresolved; a budget change reverses the choice without contaminating the base case |
