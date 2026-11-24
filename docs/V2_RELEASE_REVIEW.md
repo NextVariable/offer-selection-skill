@@ -11,6 +11,8 @@
 
 项目与费用复核来源为 [Bristol](https://www.bristol.ac.uk/study/postgraduate/taught/msc-business-analytics/)、[Manchester](https://www.manchester.ac.uk/study/masters/courses/list/22043/msc-business-analytics-and-artificial-intelligence/all-content/)、[Warwick](https://www.wbs.ac.uk/courses/masters/marketing-and-strategy/) 和 [Glasgow](https://www.gla.ac.uk/postgraduate/taught/internationalstrategicmarketing/)。官方费用页无从确认个人最终净成本。已归档原生证据属于一个回国私企案例，其他职业路径保留离线证据。本轮复核未新增原生模型运行或人类 oracle 签字。
 
+TRAE 冻结输出中，Glasgow 的排名与认证不足以证明进入目标岗位筛选范围；提高目标预算本身也不足以支持改选 Warwick。这两处记录保留供历史重放，已在[公开示例](examples/14-v2-harness-real-sources.md)标清适用边界。回退运行用于复核预算与流程，不计入推荐质量通过证据。
+
 ## 可复现缺陷及收口
 
 - 普通 POSIX 权限下新状态是 `0644`。现以私有临时文件原子替换，状态写入权限为 `0600`。

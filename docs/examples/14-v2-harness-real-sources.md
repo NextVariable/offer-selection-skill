@@ -48,6 +48,8 @@ confirmed **only** because the source inspection reports `access: opened` and
 
 The frozen recording sets programme admission gates to pass for the synthetic example. The pages establish the programmes’ published requirements, including IELTS component minima. The example’s overall IELTS score alone cannot establish those minima, final admission, or eligibility for an employer in China.
 
+The archived decision also claims that Glasgow’s rankings and accreditations suffice for target-role eligibility. The cited sources provide no employer-side support for that claim. Treat the frozen output as a replay of the original run; the verified conclusions here concern tuition, budget arithmetic and the conditional cost preference.
+
 Decision: **conditional**, default **Glasgow**; Warwick only becomes preferred
 if verified career value or funding warrants its GBP 4,685 premium. The GBP 1,500 overrun against the target is a separate comparison.
 
