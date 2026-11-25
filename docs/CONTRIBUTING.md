@@ -1,12 +1,13 @@
-# Contributing to offer-selection-skill
+# Contributing to Offer Selection
 
-Thanks for considering a contribution. This project is an evidence-driven Agent
-Skill for deciding which postgraduate offer — if any — is worth accepting for a
-specific student and goal. It is deliberately small in decision machinery and
-large in governance, because the domain (money, career, student wellbeing)
-punishes guesswork.
+Offer Selection is a Domain-Specific Decision Harness distributed as the
+`offer-selection-skill` Agent Skill. Codex CLI is the formally supported host.
+Start with the [README](../README.md) and [repository governance](../AGENTS.md).
 
-Please read `README.md` first, then this file, then the files it links to.
+v2.0.0 is stable and feature development is frozen. Use a public topic branch
+and pull request for reviewed maintenance changes. Preserve historical audits
+and acceptance records. Disclose which checks ran and keep private research
+and raw Agent sessions outside the public repository.
 
 ## What the project solves
 

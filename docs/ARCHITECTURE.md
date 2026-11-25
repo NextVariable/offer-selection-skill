@@ -1,4 +1,11 @@
-# Architecture
+# Offer Selection Architecture
+
+Offer Selection is a **Domain-Specific Decision Harness for Postgraduate Offer
+Selection**, distributed as the `offer-selection-skill` Agent Skill. Codex CLI
+is the formally supported host. The Skill owns the domain workflow; the host
+provides browsing and model execution; the local Harness tracks the workflow
+and uses the decision module to validate case and report state. See
+[compatibility](COMPATIBILITY.md) for verified environments.
 
 ## v1 execution boundary
 

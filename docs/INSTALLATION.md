@@ -1,6 +1,6 @@
 # 安装与更新
 
-对话安装和首次使用见 [README](../README.md)。无法自动安装时，可使用以下方式。
+首次使用与对话示例见 [README](../README.md)。以下步骤涵盖正式标签安装、更新和卸载。
 
 ## 安装 v2.0.0
 
@@ -72,7 +72,7 @@ pwsh -File .\maintenance/install.ps1 -Platform claude-code
 pwsh -File .\maintenance/install.ps1 -Platform workbuddy
 ```
 
-安装后开启 AI Agent 的新会话，按 [README 中的示例](../README.md#在-ai-聊天框开始使用) 调用。
+安装后开启 AI Agent 的新会话，按 [README 中的示例](../README.md#使用示例) 调用。
 
 v1 可执行校验使用 Python 3.10+。确认宿主允许终端调用后，可以在技能目录运行
 `python3 scripts/decision.py --help`（Windows 用 `py -3`）。没有本地执行权限时，
