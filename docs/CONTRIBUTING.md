@@ -1,12 +1,13 @@
-# Contributing to offer-selection-skill
+# Contributing to Offer Selection
 
-Thanks for considering a contribution. This project is an evidence-driven Agent
-Skill for deciding which postgraduate offer — if any — is worth accepting for a
-specific student and goal. It is deliberately small in decision machinery and
-large in governance, because the domain (money, career, student wellbeing)
-punishes guesswork.
+Offer Selection is a Domain-Specific Decision Harness distributed as the
+`offer-selection-skill` Agent Skill. Codex CLI is the formally supported host.
+Start with the [README](../README.md) and [repository governance](../AGENTS.md).
 
-Please read `README.md` first, then this file, then the files it links to.
+v2.0.0 is stable and feature development is frozen. Use a public topic branch
+and pull request for reviewed maintenance changes. Preserve historical audits
+and acceptance records. Disclose which checks ran and keep private research
+and raw Agent sessions outside the public repository.
 
 ## What the project solves
 
@@ -28,9 +29,10 @@ change it in its owner:
 | `skills/offer-selection-skill/references/path-{private-sector,soe-public,local-stay,phd-academic}.md` | Path-specific business rules | When that path activates |
 | `skills/offer-selection-skill/references/priors-and-calibration.md` | Labelled conditional priors and calibration anchors | Only when a prior trigger fires |
 
-The public repository carries only the runtime files above. The maintainers'
-development history (behavioral evidence, audits, provenance) is intentionally
-not part of this repository. See `AGENTS.md` for the full authority model.
+The public repository carries the runtime package, public documentation,
+synthetic examples, installers, and deterministic verification. Maintainers keep
+private provenance, raw behavioral evidence, and experimental assets separately.
+See `AGENTS.md` for the authority model.
 
 ## What you may change
 
@@ -72,14 +74,24 @@ project's cardinal sin.
 # skills/offer-selection-skill/SKILL.md frontmatter compliance
 python3 maintenance/check_frontmatter.py
 
+# decision engine, Harness and release contract (Python 3.10+, standard library)
+python3 -m unittest discover -s maintenance
+
+# offline end-to-end with the public frozen fixture
+bash docs/examples/v2-harness/codex-e2e.sh
+
 # installers: syntax, dry-run, and the full safety battery
 bash -n maintenance/install.sh maintenance/test_installer.sh
 ./maintenance/install.sh --dry-run --platform universal
 bash maintenance/test_installer.sh
 ```
 
-CI runs these checks on every PR (`.github/workflows/ci.yml`). It never runs
-LLM evals, never calls paid APIs, and needs no secrets.
+CI runs the deterministic suites and installer checks on PRs
+(`.github/workflows/ci.yml`). The end-to-end example is a local replay. Native
+host acceptance is recorded separately in [COMPATIBILITY.md](COMPATIBILITY.md).
+The public runtime needs no repository-specific credentials or dependency
+lockfile. Keep private case JSON, research notes, and logs outside the
+checkout or under a local `.offer-selection-work/` directory.
 
 ## Filing issues
 

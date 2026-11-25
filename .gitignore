@@ -13,3 +13,10 @@ __pycache__/
 
 # Release snapshot build output (regenerable)
 build/
+
+# Local decisions and environment overrides
+.offer-selection-work/
+.env
+.env.*
+!.env.example
+*.log

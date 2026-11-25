@@ -1,7 +1,13 @@
-# Offer Selection Skill — repository governance
+# Offer Selection — repository governance
 
-This repository is a Claude Code / agent skill for deciding which postgraduate
-offer, if any, is worth accepting for a specific user and goal.
+Offer Selection is a Domain-Specific Decision Harness for Postgraduate Offer
+Selection. It ships as the `offer-selection-skill` Agent Skill with formal support
+for Codex CLI. The host provides model execution and web research.
+
+**STABLE RELEASED / FEATURE FROZEN / MAINTENANCE MODE.** Preserve the install
+identifier and paths. Scope changes to maintenance, documentation, or
+maintainer-authorized fixes. Keep published audit and acceptance records intact.
+See [Architecture](docs/ARCHITECTURE.md) for execution boundaries.
 
 ## Normative files (authority model)
 
@@ -28,8 +34,9 @@ this file or anywhere else.
   (tuition, ranking, visa, employer, credential, graduation policy).
 - Version number is single-sourced in `.claude-plugin/plugin.json` and copied
   to the `skills/offer-selection-skill/SKILL.md` frontmatter; bump both and tag the commit when releasing.
-- The skill loads only the files in the table above at runtime. Maintainer
-  history and provenance are kept out of this repository.
+- The table lists the rule owners. Runtime workflows and scripts are loaded
+  through the Skill when needed. Keep private provenance and raw test material
+  outside the public repository.
 
 ## Git workflow
 
@@ -43,9 +50,11 @@ this file or anywhere else.
 - Do not silently include unrelated pre-existing work. When a user explicitly
   requests archiving the current accumulated changes, identify that provenance
   in commit messages instead of claiming every change was made in this task.
-- Report commit IDs, checks and any remaining working-tree changes at handoff.
-  Push, release, tags and history rewriting require authorization beyond this
-  standing local-commit preference. If Git writes are blocked, report the block.
+- Start public changes from public history. Push reviewed public files to a
+  topic branch and use a pull request. Preserve private checkout protections.
+  Direct default-branch pushes, merging, release and tag changes, remote branch
+  deletion, PR closure and history rewriting require explicit authorization.
+  Report the commit, checks, remote branch and any remaining local changes.
 
 ## Testing workflow
 

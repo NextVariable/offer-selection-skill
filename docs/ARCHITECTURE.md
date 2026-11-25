@@ -1,4 +1,11 @@
-# Architecture
+# Offer Selection Architecture
+
+Offer Selection is a **Domain-Specific Decision Harness for Postgraduate Offer
+Selection**, distributed as the `offer-selection-skill` Agent Skill. Codex CLI
+is the formally supported host. The Skill owns the domain workflow; the host
+provides browsing and model execution; the local Harness tracks the workflow
+and uses the decision module to validate case and report state. See
+[compatibility](COMPATIBILITY.md) for verified environments.
 
 ## v1 execution boundary
 
@@ -40,7 +47,7 @@ around the engine rather than another decision model:
 | Case State | harness, validated by `decision.py` | The one case document; no parallel copy of profile or offers |
 | Research Task State | harness | Task class (`hard_gate`/`decisive`/`optional`), dependency, status, attempts, verification route, stop condition |
 | Evidence State | harness + `decision.py` | Claim/source mapping, scope/period/freshness/authority checks, conflicts, downgrade propagation through `decision.audit` |
-| Coverage State | harness | Per-path required research contract (`hard`/`decisive`/optional) with human `not_applicable` reasons |
+| Coverage State | harness | Required research checked per offer and active path, with human `not_applicable` reasons |
 | Review State | harness | Append-only semantic-review records per claim; a review can lower certainty, never promote a claim |
 | Gate State | `decision.py` | Gate semantics, `Unknown ≠ Pass`, and recommendation feasibility |
 | Decision State | `decision.py` + digest | Validated decision, case digest, stale marker if evidence/gates change |
@@ -53,9 +60,9 @@ Boundaries:
 - Programmatic checks cover structure, scope, period, freshness, authority,
   dependency and arithmetic. Whether a source entails a claim remains a
   model/human review and is labelled that way in every verification summary.
-- A recommendation is blocked while a hard-gate task is open; an unopened or
-  incomplete source cannot close a gate; an evidence downgrade marks a stored
-  decision stale so it cannot be rendered as current.
+- An open hard-gate task blocks an unconditional recommendation for the
+  affected offer. A parity conclusion checks every comparator. An evidence
+  downgrade marks a stored decision stale so it cannot be rendered as current.
 - State is one local JSON file with atomic replacement, checkpoints and a
   default seven-day profile retention. Expiry performs an actual profile
   deletion on the next CLI access, not only a warning. Checkpoints are audit
